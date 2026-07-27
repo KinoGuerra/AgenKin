@@ -1,0 +1,87 @@
+.hero {
+  display: grid;
+  width: min(1180px, calc(100% - 2rem));
+  min-height: 690px;
+  grid-template-columns: 1.15fr .85fr;
+  align-items: center;
+  gap: clamp(2rem, 6vw, 6rem);
+  margin: 0 auto;
+  padding: 5rem 0 7rem;
+}
+.hero h1 { max-width: 760px; margin-bottom: 1.5rem; }
+.hero h1 span { color: var(--verde); }
+.hero__descripcion { max-width: 680px; font-size: clamp(1.05rem, 2vw, 1.25rem); }
+.hero .acciones { margin: 2rem 0 1rem; }
+.nota-seguridad { font-size: .83rem; }
+.hero__panel {
+  position: relative;
+  padding: 3rem 2rem;
+  border: 1px solid #d8e8de;
+  border-radius: 30px;
+  background: linear-gradient(155deg, #e1f7e9, #f8fbf4);
+  box-shadow: var(--sombra);
+}
+.hero__panel::before { content: ""; position: absolute; width: 130px; height: 130px; right: -30px; top: -45px; border-radius: 50%; background: var(--lima); z-index: -1; }
+.correo-ejemplo, .evento-ejemplo {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.2rem;
+  border: 1px solid var(--borde);
+  border-radius: 14px;
+  background: white;
+  box-shadow: 0 8px 25px rgb(12 58 43 / 7%);
+}
+.correo-ejemplo div, .evento-ejemplo div:not(.fecha-ejemplo) { display: grid; gap: .15rem; flex: 1; }
+.correo-ejemplo small, .evento-ejemplo small, .evento-ejemplo span { color: var(--tinta-suave); font-size: .78rem; }
+.icono { display: grid; width: 42px; height: 42px; place-items: center; border-radius: 11px; background: #e3f4ea; color: var(--verde); }
+.etiqueta { padding: .35rem .55rem; border-radius: 100px; background: var(--menta); color: var(--verde-oscuro) !important; font-size: .7rem !important; font-weight: 800; }
+.linea-flujo { width: 2px; height: 70px; margin-left: 42px; background: repeating-linear-gradient(var(--verde) 0 5px, transparent 5px 10px); }
+.fecha-ejemplo { display: grid; min-width: 62px; padding: .6rem; border-radius: 10px; background: var(--verde); color: white; place-items: center; }
+.fecha-ejemplo strong { font-size: 1.55rem; line-height: 1; }
+.fecha-ejemplo span { color: var(--menta); font-size: .67rem; font-weight: 800; }
+.seccion { width: min(1180px, calc(100% - 2rem)); margin: 0 auto; padding: 7rem 0; }
+.seccion--centrada { text-align: center; }
+.seccion--centrada > p, .seccion--centrada > h2 { max-width: 760px; margin-left: auto; margin-right: auto; }
+.pasos { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1rem; margin-top: 4rem; text-align: left; }
+.pasos article { padding-top: 1.5rem; border-top: 2px solid var(--borde); }
+.pasos article:first-child { border-color: var(--verde); }
+.pasos article > span { color: var(--verde); font-size: .72rem; font-weight: 850; }
+.pasos h3 { margin: 1.4rem 0 .7rem; }
+.pasos p { font-size: .9rem; }
+.grilla-beneficios { display: grid; grid-template-columns: .8fr 1.2fr; gap: 6rem; align-items: start; }
+.grilla-beneficios > div:first-child { position: sticky; top: 2rem; }
+.tarjetas { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+.tarjetas article { min-height: 220px; padding: 1.7rem; border: 1px solid var(--borde); border-radius: var(--radio); background: white; }
+.tarjetas article > span { display: grid; width: 42px; height: 42px; margin-bottom: 2rem; place-items: center; border-radius: 12px; background: #e4f5eb; color: var(--verde); font-size: 1.3rem; }
+.planes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 3rem; text-align: left; }
+.planes article { position: relative; padding: 2rem; border: 1px solid var(--borde); border-radius: var(--radio); background: white; }
+.plan-destacado { border: 2px solid var(--verde) !important; transform: translateY(-10px); }
+.plan-destacado .etiqueta { position: absolute; right: 1rem; top: 1rem; }
+.precio { margin: 1.7rem 0; color: var(--tinta); font-size: 2rem; font-weight: 800; }
+.precio small { font-size: .8rem; font-weight: 500; }
+.aclaracion { margin-top: 2rem !important; font-size: .85rem; }
+.preguntas { max-width: 850px; }
+.preguntas details { padding: 1.3rem 0; border-bottom: 1px solid var(--borde); }
+.preguntas summary { cursor: pointer; font-weight: 750; }
+.preguntas details p { margin: 1rem 0 0; }
+.cta { display: flex; width: min(1180px, calc(100% - 2rem)); align-items: center; justify-content: space-between; gap: 2rem; margin: 5rem auto; padding: clamp(2rem, 5vw, 4rem); border-radius: 26px; background: var(--verde-oscuro); color: white; }
+.cta h2 { max-width: 700px; margin-bottom: 0; }
+.cta .eyebrow { color: var(--menta); }
+
+@media (max-width: 900px) {
+  .hero { min-height: auto; grid-template-columns: 1fr; padding-top: 4rem; }
+  .hero__panel { width: min(560px, 100%); }
+  .pasos { grid-template-columns: repeat(2, 1fr); }
+  .grilla-beneficios { grid-template-columns: 1fr; gap: 2rem; }
+  .grilla-beneficios > div:first-child { position: static; }
+}
+@media (max-width: 650px) {
+  .hero { padding-bottom: 4rem; }
+  .hero__panel { padding: 2rem 1rem; }
+  .hero__panel::before { right: 0; }
+  .correo-ejemplo .etiqueta { display: none; }
+  .pasos, .tarjetas, .planes { grid-template-columns: 1fr; }
+  .plan-destacado { transform: none; }
+  .cta { align-items: start; flex-direction: column; }
+}

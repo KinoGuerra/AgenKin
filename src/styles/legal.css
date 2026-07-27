@@ -1,0 +1,4 @@
+.documento { width: min(760px, calc(100% - 2rem)); margin: 4rem auto 7rem; }
+.documento h1 { font-size: clamp(2.7rem, 7vw, 5rem); }
+.documento h2 { margin-top: 3rem; font-size: 1.45rem; }
+.documento p { font-size: 1.02rem; line-height: 1.75; }

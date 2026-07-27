@@ -1,0 +1,19 @@
+project_id = "kpqzwbhprqlapwhadejt"
+
+[functions.google-oauth-callback]
+verify_jwt = false
+
+[functions.admin-manage-user]
+verify_jwt = true
+
+[functions.google-oauth-start]
+verify_jwt = true
+
+[functions.google-disconnect]
+verify_jwt = true
+
+[functions.scan-gmail]
+verify_jwt = true
+
+[functions.create-calendar-event]
+verify_jwt = true

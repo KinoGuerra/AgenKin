@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; object-src 'none'; base-uri 'self'; frame-ancestors 'none'">
+    <title>Mi portal — AgenKin</title>
+    <link rel="stylesheet" href="./src/styles/global.css">
+    <link rel="stylesheet" href="./src/styles/portal.css">
+  </head>
+  <body class="portal">
+    <a class="salto-contenido" href="#contenido">Saltar al contenido</a>
+    <aside class="barra-lateral">
+      <a class="marca marca--clara" href="./app.html"><span aria-hidden="true">A</span>AgenKin</a>
+      <nav aria-label="Portal del usuario">
+        <a class="activo" href="#inicio">Inicio</a>
+        <a href="#correos">Correos analizados</a>
+        <a href="#vencimientos">Vencimientos</a>
+        <a href="#eventos">Eventos</a>
+        <a href="#reglas">Reglas</a>
+        <a href="#google">Conexión con Google</a>
+        <a href="#suscripcion">Suscripción</a>
+        <a href="#configuracion">Configuración</a>
+      </nav>
+      <button class="boton boton--lateral" data-logout>Cerrar sesión</button>
+    </aside>
+    <main id="contenido" class="contenido-portal">
+      <header class="cabecera-portal">
+        <button class="menu-movil" data-menu aria-label="Abrir menú" aria-expanded="false">☰</button>
+        <div><p class="eyebrow">Portal de usuario</p><h1>Hola, <span data-nombre>cargando…</span></h1></div>
+        <span class="avatar" data-avatar aria-hidden="true">A</span>
+      </header>
+      <div data-alertas></div>
+
+      <section id="inicio" aria-labelledby="titulo-resumen">
+        <div class="titulo-seccion"><div><h2 id="titulo-resumen">Tu actividad</h2><p>Resumen del período actual.</p></div><button class="boton boton--primario" data-scan>Analizar correos ahora</button></div>
+        <div class="metricas">
+          <article><small>Correos procesados</small><strong data-metrica="correos">—</strong><span>este mes</span></article>
+          <article><small>Vencimientos detectados</small><strong data-metrica="vencimientos">—</strong><span>total</span></article>
+          <article><small>Eventos creados</small><strong data-metrica="eventos">—</strong><span>este mes</span></article>
+          <article><small>Pendientes de revisión</small><strong data-metrica="pendientes">—</strong><span>requieren tu acción</span></article>
+        </div>
+      </section>
+
+      <section id="vencimientos" class="panel">
+        <div class="titulo-seccion"><div><h2>Vencimientos</h2><p>Revisá cada hallazgo antes de enviarlo a Calendar.</p></div></div>
+        <div class="tabla-scroll">
+          <table>
+            <thead><tr><th>Asunto</th><th>Tipo</th><th>Fecha</th><th>Confianza</th><th>Estado</th><th>Acciones</th></tr></thead>
+            <tbody data-vencimientos><tr><td colspan="6">Cargando vencimientos…</td></tr></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="correos" class="panel">
+        <div class="titulo-seccion"><div><h2>Correos analizados</h2><p>Solo se muestran metadatos y resultados; no guardamos el cuerpo completo.</p></div></div>
+        <div class="tabla-scroll"><table><thead><tr><th>Fecha</th><th>Remitente</th><th>Asunto</th><th>Categoría</th><th>Estado</th></tr></thead><tbody data-correos><tr><td colspan="5">Cargando correos…</td></tr></tbody></table></div>
+      </section>
+
+      <section id="eventos" class="panel">
+        <div class="titulo-seccion"><div><h2>Eventos creados</h2><p>Registro de eventos confirmados en Google Calendar.</p></div></div>
+        <div data-eventos class="lista-vacia">Cargando eventos…</div>
+      </section>
+
+      <section id="reglas" class="panel">
+        <div class="titulo-seccion"><div><h2>Reglas personales</h2><p>Priorizá o descartá correos mediante condiciones simples.</p></div><button class="boton boton--secundario" data-nueva-regla>Nueva regla</button></div>
+        <div data-reglas class="lista-vacia">Cargando reglas…</div>
+      </section>
+
+      <section id="google" class="panel panel--google">
+        <div><p class="eyebrow">Integración opcional</p><h2>Gmail y Google Calendar</h2><p data-google-estado>Consultando el estado de la conexión…</p></div>
+        <div class="acciones"><button class="boton boton--primario" data-connect-google>Conectar servicios</button><button class="boton boton--peligro oculto" data-disconnect-google>Desconectar</button></div>
+      </section>
+
+      <section id="suscripcion" class="panel">
+        <div class="titulo-seccion"><div><h2>Suscripción</h2><p>Estado y uso del plan actual.</p></div></div>
+        <div class="suscripcion-grid">
+          <dl><div><dt>Plan</dt><dd data-suscripcion="plan">—</dd></div><div><dt>Estado</dt><dd data-suscripcion="estado">—</dd></div><div><dt>Inicio</dt><dd data-suscripcion="inicio">—</dd></div><div><dt>Vencimiento</dt><dd data-suscripcion="vencimiento">—</dd></div></dl>
+          <div><label for="uso-plan">Uso mensual</label><progress id="uso-plan" max="100" value="0" data-uso></progress><p data-uso-texto>—</p></div>
+        </div>
+      </section>
+
+      <section id="configuracion" class="panel">
+        <h2>Configuración</h2>
+        <p>La eliminación de cuenta y datos se solicita al propietario durante el MVP. Consultá el procedimiento en la política de privacidad.</p>
+        <a class="boton boton--secundario" href="./privacidad.html#eliminacion">Cómo eliminar mi cuenta</a>
+      </section>
+    </main>
+
+    <dialog data-evento-dialog>
+      <form method="dialog" data-evento-form>
+        <header><div><p class="eyebrow">Confirmación manual</p><h2>Crear evento</h2></div><button value="cancel" class="cerrar" aria-label="Cerrar">×</button></header>
+        <input type="hidden" name="vencimiento_id">
+        <label>Título<input name="titulo" required maxlength="160"></label>
+        <label>Descripción<textarea name="descripcion" maxlength="1000"></textarea></label>
+        <div class="campos-dobles"><label>Fecha<input name="fecha" type="date" required></label><label>Hora<input name="hora" type="time"></label></div>
+        <div class="campos-dobles"><label>Recordatorio<select name="recordatorio"><option value="10">10 minutos antes</option><option value="30">30 minutos antes</option><option value="60">1 hora antes</option><option value="1440">1 día antes</option></select></label><label>Calendario<input name="calendario" value="AgenKin" readonly></label></div>
+        <p>Al confirmar, AgenKin creará el evento en el calendario seleccionado.</p>
+        <footer><button value="cancel" class="boton boton--secundario">Cancelar</button><button value="default" class="boton boton--primario" data-confirm-event>Confirmar y crear</button></footer>
+      </form>
+    </dialog>
+    <dialog data-regla-dialog>
+      <form method="dialog" data-regla-form>
+        <header><div><p class="eyebrow">Regla personal</p><h2>Nueva regla</h2></div><button value="cancel" class="cerrar" aria-label="Cerrar">×</button></header>
+        <label>Nombre<input name="nombre" required maxlength="100" placeholder="Ej.: Priorizar facturas"></label>
+        <div class="campos-dobles">
+          <label>Campo<select name="campo"><option value="remitente">Remitente</option><option value="asunto">Asunto</option></select></label>
+          <label>Operador<select name="operador"><option value="contiene">Contiene</option><option value="igual">Es igual a</option></select></label>
+        </div>
+        <label>Valor<input name="valor" required maxlength="200"></label>
+        <label>Acción<select name="accion"><option value="priorizar">Priorizar</option><option value="ignorar">Ignorar</option></select></label>
+        <footer><button value="cancel" class="boton boton--secundario">Cancelar</button><button value="default" class="boton boton--primario" data-guardar-regla>Guardar regla</button></footer>
+      </form>
+    </dialog>
+    <script type="module" src="./src/pages/app.js"></script>
+  </body>
+</html>

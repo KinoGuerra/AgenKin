@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; object-src 'none'; base-uri 'self'; frame-ancestors 'none'">
+    <title>Administración — AgenKin</title>
+    <link rel="stylesheet" href="./src/styles/global.css">
+    <link rel="stylesheet" href="./src/styles/portal.css">
+  </head>
+  <body class="portal portal--admin">
+    <a class="salto-contenido" href="#contenido">Saltar al contenido</a>
+    <aside class="barra-lateral">
+      <a class="marca marca--clara" href="./admin.html"><span aria-hidden="true">A</span>AgenKin <small>ADMIN</small></a>
+      <nav aria-label="Panel administrativo"><a class="activo" href="#resumen">Resumen</a><a href="#usuarios">Usuarios</a><a href="#auditoria">Auditoría</a></nav>
+      <a class="boton boton--lateral" href="./access.html">Cambiar de portal</a>
+      <button class="boton boton--lateral" data-logout>Cerrar sesión</button>
+    </aside>
+    <main id="contenido" class="contenido-portal">
+      <header class="cabecera-portal"><button class="menu-movil" data-menu aria-label="Abrir menú" aria-expanded="false">☰</button><div><p class="eyebrow">Administración</p><h1>Panel de control</h1></div><span class="avatar">SA</span></header>
+      <div data-alertas></div>
+      <section id="resumen">
+        <div class="metricas metricas--admin">
+          <article><small>Usuarios registrados</small><strong data-metrica="registrados">—</strong></article>
+          <article><small>Usuarios activos</small><strong data-metrica="activos">—</strong></article>
+          <article><small>En prueba</small><strong data-metrica="prueba">—</strong></article>
+          <article><small>Suspendidos</small><strong data-metrica="suspendidos">—</strong></article>
+          <article><small>Bloqueados</small><strong data-metrica="bloqueados">—</strong></article>
+          <article><small>Suscripciones vencidas</small><strong data-metrica="vencidas">—</strong></article>
+          <article><small>Correos del período</small><strong data-metrica="correos">—</strong></article>
+          <article><small>Eventos creados</small><strong data-metrica="eventos">—</strong></article>
+          <article><small>Errores recientes</small><strong data-metrica="errores">—</strong></article>
+        </div>
+      </section>
+      <section id="usuarios" class="panel">
+        <div class="titulo-seccion"><div><h2>Gestión de usuarios</h2><p>Las acciones críticas requieren confirmación y quedan auditadas.</p></div></div>
+        <form class="filtros" data-filtros>
+          <label>Buscar<span class="sr-only"> por nombre o correo</span><input name="buscar" type="search" placeholder="Nombre o correo"></label>
+          <label>Acceso<select name="estado"><option value="">Todos</option><option>activo</option><option>suspendido</option><option>bloqueado</option><option>cancelado</option></select></label>
+          <button class="boton boton--secundario">Aplicar filtros</button>
+        </form>
+        <div class="tabla-scroll">
+          <table><thead><tr><th>Usuario</th><th>Plan</th><th>Acceso</th><th>Suscripción</th><th>Vencimiento</th><th>Consumo</th><th>Último acceso</th><th>Acciones</th></tr></thead><tbody data-usuarios><tr><td colspan="8">Cargando usuarios…</td></tr></tbody></table>
+        </div>
+        <nav class="paginacion" aria-label="Paginación"><button class="boton boton--secundario" data-pagina-anterior disabled>Anterior</button><span data-pagina>1</span><button class="boton boton--secundario" data-pagina-siguiente disabled>Siguiente</button></nav>
+      </section>
+      <section id="auditoria" class="panel"><div class="titulo-seccion"><div><h2>Auditoría administrativa</h2><p>Últimas acciones sensibles registradas.</p></div></div><div data-auditoria class="lista-vacia">Cargando historial…</div></section>
+    </main>
+    <dialog data-admin-dialog>
+      <form method="dialog" data-admin-form>
+        <header><div><p class="eyebrow">Acción administrativa</p><h2 data-admin-titulo>Gestionar usuario</h2></div><button value="cancel" class="cerrar" aria-label="Cerrar">×</button></header>
+        <input type="hidden" name="usuario_id"><input type="hidden" name="accion">
+        <label data-campo-plan class="oculto">Plan<select name="plan_id"></select></label>
+        <label data-campo-fecha class="oculto">Nueva fecha de vencimiento<input name="fecha_vencimiento" type="date"></label>
+        <label>Observación interna<textarea name="observacion" maxlength="1000" placeholder="Motivo de la acción"></textarea></label>
+        <p data-admin-confirmacion>Confirmá la acción. El cambio quedará registrado.</p>
+        <footer><button value="cancel" class="boton boton--secundario">Cancelar</button><button value="default" class="boton boton--peligro" data-admin-confirmar>Confirmar</button></footer>
+      </form>
+    </dialog>
+    <script type="module" src="./src/pages/admin.js"></script>
+  </body>
+</html>
