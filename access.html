@@ -1,16 +1,23 @@
 <!doctype html>
 <html lang="es">
   <head>
-    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="robots" content="noindex"><meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; object-src 'none'; base-uri 'self'; frame-ancestors 'none'">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; object-src 'none'; base-uri 'self'; frame-ancestors 'none'">
     <title>Elegir portal — AgenKin</title>
-    <link rel="stylesheet" href="./src/styles/global.css"><link rel="stylesheet" href="./src/styles/auth.css">
+    <link rel="stylesheet" href="./src/styles/global.css">
+    <link rel="stylesheet" href="./src/styles/auth.css">
   </head>
   <body class="pagina-auth">
     <main class="selector-portal">
-      <a class="marca" href="./index.html"><span aria-hidden="true">A</span>AgenKin</a>
+      <a class="marca marca--imagen marca--selector" href="./index.html" aria-label="AgenKin, inicio">
+        <img class="logo-tema logo-tema--claro" src="./src/assets/agenkin-logo-light.png" alt="AgenKin">
+        <img class="logo-tema logo-tema--oscuro" src="./src/assets/agenkin-logo-dark.png" alt="">
+      </a>
       <p class="eyebrow">Cuenta superadministradora</p>
       <h1>¿A qué portal querés ingresar?</h1>
-      <p>Podés usar AgenKin como cualquier cliente o administrar la plataforma.</p>
+      <p>Elegí cómo querés usar AgenKin en esta sesión.</p>
       <div class="opciones-portal">
         <a class="opcion-portal" href="./app.html"><span>U</span><div><h2>Ingresar como usuario</h2><p>Ver el portal y las funciones del cliente.</p></div><b aria-hidden="true">→</b></a>
         <a class="opcion-portal" href="./admin.html"><span>SA</span><div><h2>Ingresar como administrador</h2><p>Gestionar usuarios, planes y accesos.</p></div><b aria-hidden="true">→</b></a>
