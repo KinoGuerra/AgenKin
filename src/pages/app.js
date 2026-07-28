@@ -3,33 +3,30 @@ import { crearCelda, estadoVacio, mostrarAviso, setCargando } from '../component
 import { protegerRuta } from '../guards/route-guard.js'
 import { cerrarSesion } from '../services/auth.js'
 import { invocarFuncion } from '../services/edge.js'
-import { cargarPortal } from '../services/portal.js'
+import { cargarEventosAgenda, cargarPortal } from '../services/portal.js'
 import { supabase } from '../services/supabase.js'
-import { formatearFecha } from '../utils/fechas.js'
+import { formatearFecha, formatearFechaHora } from '../utils/fechas.js'
 
 let datosPortal
+let eventosAgenda = []
+let mesAgenda = new Date()
+mesAgenda = new Date(mesAgenda.getFullYear(), mesAgenda.getMonth(), 1)
 const tbodyVencimientos = document.querySelector('[data-vencimientos]')
 const dialogoEvento = document.querySelector('[data-evento-dialog]')
 const formularioEvento = document.querySelector('[data-evento-form]')
 const dialogoRegla = document.querySelector('[data-regla-dialog]')
 const formularioRegla = document.querySelector('[data-regla-form]')
-
-function renderFilas(contenedor, datos, columnas, mensajeVacio) {
-  contenedor.replaceChildren()
-  if (!datos.length) {
-    const fila = document.createElement('tr')
-    const celda = crearCelda(mensajeVacio)
-    celda.colSpan = columnas.length
-    fila.append(celda)
-    contenedor.append(fila)
-    return
-  }
-  datos.forEach((dato) => {
-    const fila = document.createElement('tr')
-    columnas.forEach((obtener) => fila.append(crearCelda(obtener(dato))))
-    contenedor.append(fila)
-  })
-}
+const formularioAutomatizacion = document.querySelector('[data-auto-form]')
+const sincronizacionAutomatica = document.querySelector('[data-auto-sync]')
+const eventosAutomaticos = document.querySelector('[data-auto-events]')
+const umbralAutomatico = document.querySelector('[data-auto-threshold]')
+const GRUPOS = [
+  ['tarjetas', 'Tarjetas'],
+  ['servicios', 'Servicios'],
+  ['suscripciones', 'Suscripciones'],
+  ['turnos', 'Turnos'],
+  ['otros', 'Otros'],
+]
 
 function renderVencimientos(vencimientos) {
   tbodyVencimientos.replaceChildren()
@@ -66,37 +63,178 @@ function renderVencimientos(vencimientos) {
   })
 }
 
+function renderCategorias(categorias = {}) {
+  const cuerpo = document.querySelector('[data-categorias]')
+  cuerpo.replaceChildren()
+  GRUPOS.forEach(([clave, etiqueta]) => {
+    const fila = document.createElement('tr')
+    fila.append(crearCelda(etiqueta), crearCelda(Number(categorias[clave] || 0)))
+    cuerpo.append(fila)
+  })
+}
+
+function renderCorreos(correos) {
+  const cuerpo = document.querySelector('[data-correos]')
+  cuerpo.replaceChildren()
+  if (!correos.length) {
+    const fila = document.createElement('tr')
+    const celda = crearCelda('Todavía no se analizaron correos.')
+    celda.colSpan = 6
+    fila.append(celda)
+    cuerpo.append(fila)
+    return
+  }
+  correos.forEach((item) => {
+    const fila = document.createElement('tr')
+    fila.append(
+      crearCelda(formatearFecha(item.fecha_correo)),
+      crearCelda(item.remitente),
+      crearCelda(item.asunto),
+      crearCelda(item.categoria),
+    )
+    const grupo = document.createElement('td')
+    const selector = document.createElement('select')
+    selector.dataset.grupoCorreo = item.id
+    selector.setAttribute('aria-label', `Grupo de ${item.asunto || 'correo'}`)
+    GRUPOS.forEach(([valor, etiqueta]) => {
+      const opcion = document.createElement('option')
+      opcion.value = valor
+      opcion.textContent = etiqueta
+      opcion.selected = item.grupo_resumen === valor
+      selector.append(opcion)
+    })
+    grupo.append(selector)
+    fila.append(grupo, crearCelda(item.estado_procesamiento))
+    cuerpo.append(fila)
+  })
+}
+
+function claveFecha(valor) {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Argentina/Cordoba',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(new Date(valor))
+}
+
+function renderDetalleAgenda(clave) {
+  const seleccionados = eventosAgenda.filter((evento) => claveFecha(evento.fecha_evento) === clave)
+  const fecha = new Date(`${clave}T12:00:00`)
+  document.querySelector('[data-agenda-dia]').textContent = new Intl.DateTimeFormat('es-AR', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+  }).format(fecha)
+  const contenedor = document.querySelector('[data-agenda-eventos]')
+  contenedor.replaceChildren()
+  if (!seleccionados.length) {
+    contenedor.append(estadoVacio('No hay eventos para este día.'))
+    return
+  }
+  seleccionados.forEach((evento) => {
+    const tarjeta = document.createElement('article')
+    const texto = document.createElement('div')
+    const titulo = document.createElement('strong')
+    titulo.textContent = evento.titulo || 'Evento de Agenda'
+    const fecha = document.createElement('time')
+    fecha.dateTime = evento.fecha_evento
+    fecha.textContent = evento.es_dia_completo
+      ? 'Todo el día'
+      : formatearFechaHora(evento.fecha_evento)
+    const estado = document.createElement('span')
+    estado.textContent = evento.estado_google === 'sincronizado'
+      ? 'Sincronizado con Google'
+      : evento.estado_google === 'no_conectado'
+        ? 'Solo en Agenda'
+        : evento.estado_google === 'error'
+          ? 'Error de Google · reintento pendiente'
+          : 'Google pendiente'
+    texto.append(titulo, fecha, estado)
+    if (evento.descripcion) {
+      const descripcion = document.createElement('p')
+      descripcion.textContent = evento.descripcion
+      tarjeta.append(texto, descripcion)
+    } else {
+      tarjeta.append(texto)
+    }
+    contenedor.append(tarjeta)
+  })
+}
+
+function renderAgenda() {
+  document.querySelector('[data-agenda-mes]').textContent = new Intl.DateTimeFormat('es-AR', {
+    month: 'long',
+    year: 'numeric',
+  }).format(mesAgenda)
+  const grilla = document.querySelector('[data-agenda-grid]')
+  grilla.replaceChildren()
+  const inicioSemana = (mesAgenda.getDay() + 6) % 7
+  const inicio = new Date(mesAgenda)
+  inicio.setDate(1 - inicioSemana)
+  const hoy = claveFecha(new Date())
+  for (let indice = 0; indice < 42; indice += 1) {
+    const fecha = new Date(inicio)
+    fecha.setDate(inicio.getDate() + indice)
+    const clave = [
+      fecha.getFullYear(),
+      String(fecha.getMonth() + 1).padStart(2, '0'),
+      String(fecha.getDate()).padStart(2, '0'),
+    ].join('-')
+    const eventos = eventosAgenda.filter((evento) => claveFecha(evento.fecha_evento) === clave)
+    const dia = document.createElement('button')
+    dia.type = 'button'
+    dia.className = 'dia-agenda'
+    if (fecha.getMonth() !== mesAgenda.getMonth()) dia.classList.add('dia-agenda--otro-mes')
+    if (clave === hoy) dia.classList.add('dia-agenda--hoy')
+    dia.dataset.agendaFecha = clave
+    dia.setAttribute('aria-label', `${fecha.getDate()} de ${new Intl.DateTimeFormat('es-AR', { month: 'long' }).format(fecha)}, ${eventos.length} eventos`)
+    const numero = document.createElement('span')
+    numero.textContent = fecha.getDate()
+    dia.append(numero)
+    eventos.slice(0, 2).forEach((evento) => {
+      const etiqueta = document.createElement('small')
+      etiqueta.textContent = evento.titulo || 'Evento'
+      dia.append(etiqueta)
+    })
+    if (eventos.length > 2) {
+      const mas = document.createElement('small')
+      mas.textContent = `+${eventos.length - 2} más`
+      dia.append(mas)
+    }
+    grilla.append(dia)
+  }
+}
+
+async function cargarMesAgenda() {
+  const inicioSemana = (mesAgenda.getDay() + 6) % 7
+  const desde = new Date(mesAgenda)
+  desde.setDate(1 - inicioSemana)
+  const hasta = new Date(desde)
+  hasta.setDate(hasta.getDate() + 42)
+  eventosAgenda = await cargarEventosAgenda(desde.toISOString(), hasta.toISOString())
+  renderAgenda()
+  const hoy = new Date()
+  const fechaInicial =
+    hoy.getFullYear() === mesAgenda.getFullYear() && hoy.getMonth() === mesAgenda.getMonth()
+      ? claveFecha(hoy)
+      : claveFecha(mesAgenda)
+  const diaInicial = document.querySelector(`[data-agenda-fecha="${fechaInicial}"]`)
+  if (diaInicial) diaInicial.dataset.seleccionado = 'true'
+  renderDetalleAgenda(fechaInicial)
+}
+
 function renderPortal(datos) {
   const resumen = datos.resumen || {}
   Object.entries({
-    correos: resumen.correos_procesados || 0,
-    vencimientos: resumen.vencimientos_detectados || 0,
-    eventos: resumen.eventos_creados || 0,
-    pendientes: resumen.pendientes_revision || 0,
+    dias: resumen.dias_usando_agenkin || 1,
+    correos: resumen.correos_analizados_total || 0,
   }).forEach(([nombre, valor]) => {
     document.querySelector(`[data-metrica="${nombre}"]`).textContent = valor
   })
   renderVencimientos(datos.vencimientos)
-  renderFilas(document.querySelector('[data-correos]'), datos.correos, [
-    (item) => formatearFecha(item.fecha_correo),
-    (item) => item.remitente,
-    (item) => item.asunto,
-    (item) => item.categoria,
-    (item) => item.estado_procesamiento,
-  ], 'Todavía no se analizaron correos.')
-
-  const eventos = document.querySelector('[data-eventos]')
-  eventos.replaceChildren()
-  if (!datos.eventos.length) eventos.append(estadoVacio('Todavía no se crearon eventos.'))
-  datos.eventos.forEach((item) => {
-    const tarjeta = document.createElement('article')
-    const titulo = document.createElement('strong')
-    titulo.textContent = item.vencimientos_detectados?.titulo || 'Evento de AgenKin'
-    const detalle = document.createElement('span')
-    detalle.textContent = `${formatearFecha(item.fecha_evento)} · ${item.estado_sincronizacion}`
-    tarjeta.append(titulo, detalle)
-    eventos.append(tarjeta)
-  })
+  renderCorreos(datos.correos)
+  renderCategorias(resumen.categorias_resumen)
 
   const reglas = document.querySelector('[data-reglas]')
   reglas.replaceChildren()
@@ -118,11 +256,45 @@ function renderPortal(datos) {
   })
 
   const conexion = datos.conexion || {}
-  document.querySelector('[data-google-estado]').textContent = conexion.conectado
-    ? `${conexion.google_email || 'Cuenta conectada'} · última sincronización: ${formatearFecha(conexion.fecha_ultima_sincronizacion)}`
-    : 'Los servicios no están conectados. Se requiere configurar Google OAuth en el servidor.'
-  document.querySelector('[data-connect-google]').classList.toggle('oculto', Boolean(conexion.conectado))
-  document.querySelector('[data-disconnect-google]').classList.toggle('oculto', !conexion.conectado)
+  const estadoGmail = conexion.gmail_conectado ? 'Conectado' : 'Desconectado'
+  const estadoCalendar = conexion.calendar_conectado ? 'Conectado' : 'Desconectado'
+  const indicadores = [
+    [document.querySelector('[data-header-gmail]'), estadoGmail, conexion.gmail_conectado],
+    [document.querySelector('[data-header-calendar]'), estadoCalendar, conexion.calendar_conectado],
+    [document.querySelector('[data-servicio-gmail]'), estadoGmail, conexion.gmail_conectado],
+    [document.querySelector('[data-servicio-calendar]'), estadoCalendar, conexion.calendar_conectado],
+  ]
+  indicadores.forEach(([indicador, texto, conectado]) => {
+    indicador.textContent = texto
+    indicador.dataset.estado = conectado ? 'conectado' : 'desconectado'
+  })
+  document.querySelector('[data-servicio-gmail-detalle]').textContent = conexion.gmail_conectado
+    ? `${conexion.gmail_email || conexion.google_email || 'Cuenta de Google'} · última lectura ${formatearFechaHora(conexion.gmail_ultima_lectura_en)}`
+    : 'Sin cuenta asociada'
+  document.querySelector('[data-servicio-calendar-detalle]').textContent = conexion.calendar_conectado
+    ? `${conexion.calendar_email || conexion.google_email || 'Cuenta de Google'} · última sincronización ${formatearFechaHora(conexion.calendar_ultima_sincronizacion_en)}`
+    : 'Sin cuenta asociada'
+  document.querySelector('[data-header-agenda]').textContent = formatearFechaHora(conexion.agenda_ultima_actualizacion_en)
+  document.querySelector('[data-connect-gmail]').classList.toggle('oculto', Boolean(conexion.gmail_conectado))
+  document.querySelector('[data-disconnect-gmail]').classList.toggle('oculto', !conexion.gmail_conectado)
+  document.querySelector('[data-connect-calendar]').classList.toggle('oculto', Boolean(conexion.calendar_conectado))
+  document.querySelector('[data-disconnect-calendar]').classList.toggle('oculto', !conexion.calendar_conectado)
+  document.querySelector('[data-revoke-google]').classList.toggle('oculto', !conexion.conectado)
+  sincronizacionAutomatica.checked = Boolean(conexion.sincronizacion_automatica)
+  eventosAutomaticos.checked = Boolean(conexion.creacion_automatica_eventos)
+  umbralAutomatico.value = Number(conexion.umbral_confianza_automatica || 0.9).toFixed(2)
+  formularioAutomatizacion.querySelectorAll('input, select, button').forEach((control) => {
+    control.disabled = !conexion.gmail_conectado
+  })
+  document.querySelector('[data-auto-estado]').textContent = conexion.sincronizacion_automatica
+    ? 'Activa'
+    : 'Desactivada'
+  const pendientes = Number(conexion.tareas_pendientes || 0)
+  const conError = Number(conexion.tareas_error || 0)
+  const ultima = formatearFecha(conexion.ultima_sincronizacion_exitosa)
+  document.querySelector('[data-auto-detalle]').textContent = conexion.gmail_conectado
+    ? `${pendientes} en cola · ${conError} con error · última revisión completa: ${ultima}`
+    : 'Conectá Gmail para activar esta función.'
 
   const suscripcion = resumen.suscripcion || {}
   const campos = {
@@ -134,7 +306,7 @@ function renderPortal(datos) {
   Object.entries(campos).forEach(([campo, valor]) => {
     document.querySelector(`[data-suscripcion="${campo}"]`).textContent = valor
   })
-  const usados = Number(resumen.correos_procesados || 0)
+  const usados = Number(suscripcion.correos_mes || 0)
   const limite = Number(suscripcion.limite_correos_mensuales || 0)
   document.querySelector('[data-uso]').value = limite ? Math.min(100, (usados / limite) * 100) : 0
   document.querySelector('[data-uso-texto]').textContent = `${usados} de ${limite || '—'} correos procesados`
@@ -143,6 +315,7 @@ function renderPortal(datos) {
 async function refrescar() {
   datosPortal = await cargarPortal()
   renderPortal(datosPortal)
+  await cargarMesAgenda()
 }
 
 async function iniciar() {
@@ -152,6 +325,18 @@ async function iniciar() {
     document.querySelector('[data-nombre]').textContent = contexto.perfil.nombre_completo?.split(' ')[0] || 'bienvenido'
     document.querySelector('[data-avatar]').textContent = (contexto.perfil.nombre_completo || contexto.perfil.email || 'A').slice(0, 1).toUpperCase()
     await refrescar()
+    const parametros = new URLSearchParams(window.location.search)
+    if (parametros.get('google') === 'conectado') {
+      const servicio = parametros.get('servicio') === 'calendar' ? 'Google Calendar' : 'Gmail'
+      mostrarAviso(`${servicio} quedó conectado.`, 'exito')
+    } else if (parametros.get('motivo') === 'cuenta_google_distinta') {
+      mostrarAviso('Usá la misma cuenta Google que ya está asociada al otro servicio.', 'error')
+    } else if (parametros.get('google') === 'error') {
+      mostrarAviso('No se pudo completar la conexión con Google. Intentá nuevamente.', 'error')
+    }
+    if (parametros.has('google')) {
+      window.history.replaceState({}, '', `${window.location.pathname}${window.location.hash}`)
+    }
   } catch {
     mostrarAviso('No pudimos cargar el portal. Revisá la conexión y la configuración de Supabase.', 'error')
   }
@@ -187,24 +372,132 @@ document.querySelector('[data-scan]').addEventListener('click', async (evento) =
     mostrarAviso(error.message, 'error')
   } finally { setCargando(boton, false) }
 })
-document.querySelector('[data-connect-google]').addEventListener('click', async (evento) => {
-  const boton = evento.currentTarget
+async function conectarServicio(servicio, boton) {
   setCargando(boton, true, 'Preparando conexión…')
   try {
-    const { url } = await invocarFuncion('google-oauth-start', {})
+    const { url } = await invocarFuncion('google-oauth-start', { servicio })
     window.location.assign(url)
-  } catch {
-    mostrarAviso('Configuración requerida: el propietario debe configurar las credenciales de Google.', 'error')
+  } catch (error) {
+    mostrarAviso(error.message, 'error')
+    setCargando(boton, false)
+  }
+}
+
+async function desconectarServicio(servicio, boton) {
+  const nombre = servicio === 'gmail' ? 'Gmail' : 'Google Calendar'
+  if (!confirm(`¿Desactivar ${nombre} en AgenKin?`)) return
+
+  setCargando(boton, true, 'Desactivando…')
+  try {
+    await invocarFuncion('google-disconnect', { servicio })
+    mostrarAviso(`${nombre} fue desactivado.`, 'exito')
+    await refrescar()
+  } catch (error) {
+    mostrarAviso(error.message, 'error')
+  } finally {
+    setCargando(boton, false)
+  }
+}
+
+document.querySelector('[data-connect-gmail]').addEventListener('click', (evento) => {
+  conectarServicio('gmail', evento.currentTarget)
+})
+document.querySelector('[data-connect-calendar]').addEventListener('click', (evento) => {
+  conectarServicio('calendar', evento.currentTarget)
+})
+document.querySelector('[data-disconnect-gmail]').addEventListener('click', (evento) => {
+  desconectarServicio('gmail', evento.currentTarget)
+})
+document.querySelector('[data-disconnect-calendar]').addEventListener('click', (evento) => {
+  desconectarServicio('calendar', evento.currentTarget)
+})
+document.querySelector('[data-revoke-google]').addEventListener('click', async (evento) => {
+  if (!confirm('Esto revocará el acceso de AgenKin a Google y desconectará Gmail y Calendar. ¿Continuar?')) return
+
+  const boton = evento.currentTarget
+  setCargando(boton, true, 'Revocando…')
+  try {
+    await invocarFuncion('google-disconnect', { servicio: 'todo' })
+    mostrarAviso('El acceso de Google fue revocado.', 'exito')
+    await refrescar()
+  } catch (error) {
+    mostrarAviso(error.message, 'error')
+  } finally {
     setCargando(boton, false)
   }
 })
-document.querySelector('[data-disconnect-google]').addEventListener('click', async () => {
-  if (!confirm('¿Desconectar Gmail y Calendar? AgenKin dejará de poder analizarlos.')) return
+
+document.querySelector('[data-correos]').addEventListener('change', async (evento) => {
+  const selector = evento.target.closest('[data-grupo-correo]')
+  if (!selector) return
+
+  selector.disabled = true
   try {
-    await invocarFuncion('google-disconnect', {})
-    mostrarAviso('La cuenta de Google fue desconectada.', 'exito')
+    const { error } = await supabase.rpc('actualizar_grupo_correo', {
+      correo_id: selector.dataset.grupoCorreo,
+      grupo: selector.value,
+    })
+    if (error) throw error
+    mostrarAviso('La categoría fue actualizada.', 'exito')
     await refrescar()
-  } catch (error) { mostrarAviso(error.message, 'error') }
+  } catch (error) {
+    mostrarAviso(error.message, 'error')
+    await refrescar()
+  }
+})
+
+document.querySelector('[data-agenda-anterior]').addEventListener('click', async () => {
+  mesAgenda = new Date(mesAgenda.getFullYear(), mesAgenda.getMonth() - 1, 1)
+  await cargarMesAgenda()
+})
+document.querySelector('[data-agenda-siguiente]').addEventListener('click', async () => {
+  mesAgenda = new Date(mesAgenda.getFullYear(), mesAgenda.getMonth() + 1, 1)
+  await cargarMesAgenda()
+})
+document.querySelector('[data-agenda-hoy]').addEventListener('click', async () => {
+  const hoy = new Date()
+  mesAgenda = new Date(hoy.getFullYear(), hoy.getMonth(), 1)
+  await cargarMesAgenda()
+})
+document.querySelector('[data-agenda-grid]').addEventListener('click', (evento) => {
+  const dia = evento.target.closest('[data-agenda-fecha]')
+  if (!dia) return
+  document.querySelectorAll('[data-agenda-fecha]').forEach((elemento) => {
+    elemento.dataset.seleccionado = String(elemento === dia)
+  })
+  renderDetalleAgenda(dia.dataset.agendaFecha)
+})
+eventosAutomaticos.addEventListener('change', () => {
+  if (eventosAutomaticos.checked) sincronizacionAutomatica.checked = true
+})
+sincronizacionAutomatica.addEventListener('change', () => {
+  if (!sincronizacionAutomatica.checked) eventosAutomaticos.checked = false
+})
+formularioAutomatizacion.addEventListener('submit', async (evento) => {
+  evento.preventDefault()
+  const activarEventos = eventosAutomaticos.checked
+  if (activarEventos && !datosPortal.conexion?.creacion_automatica_eventos) {
+    const aceptado = confirm(
+      'AgenKin creará eventos futuros automáticamente cuando la IA no requiera revisión y alcance la confianza elegida. ¿Querés activarlo?',
+    )
+    if (!aceptado) return
+  }
+  const boton = evento.submitter
+  setCargando(boton, true, 'Guardando…')
+  try {
+    const { error } = await supabase.rpc('configurar_automatizacion_google', {
+      p_sincronizacion_automatica: sincronizacionAutomatica.checked,
+      p_creacion_automatica_eventos: activarEventos,
+      p_umbral_confianza: Number(umbralAutomatico.value),
+    })
+    if (error) throw error
+    mostrarAviso('La automatización fue actualizada.', 'exito')
+    await refrescar()
+  } catch {
+    mostrarAviso('No se pudo actualizar la automatización.', 'error')
+  } finally {
+    setCargando(boton, false)
+  }
 })
 tbodyVencimientos.addEventListener('click', async (evento) => {
   const id = evento.target.dataset.revisar || evento.target.dataset.descartar
@@ -232,9 +525,15 @@ formularioEvento.addEventListener('submit', async (evento) => {
   try {
     const payload = Object.fromEntries(new FormData(formularioEvento))
     payload.recordatorio = Number(payload.recordatorio)
-    await invocarFuncion('create-calendar-event', payload)
+    const respuesta = await invocarFuncion('create-calendar-event', payload)
     dialogoEvento.close()
-    mostrarAviso('Evento creado correctamente en Google Calendar.', 'exito')
+    const detalleGoogle =
+      respuesta.google_estado === 'sincronizado'
+        ? ' y sincronizado con Google Calendar'
+        : respuesta.google_estado === 'pendiente'
+          ? '; Google Calendar quedó pendiente de reintento'
+          : ''
+    mostrarAviso(`Evento guardado en Agenda${detalleGoogle}.`, 'exito')
     await refrescar()
   } catch (error) { mostrarAviso(error.message, 'error') } finally { setCargando(boton, false) }
 })

@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="AgenKin convierte fechas importantes de tus correos en eventos de Google Calendar, siempre con tu confirmación.">
+    <meta name="description" content="AgenKin convierte fechas importantes de tus correos en eventos de Google Calendar de forma manual o automatizada.">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-oTgFU+AOnycdjK+uMeVmFE2vpcY6jXBrCE3I9DUsfwI='; style-src 'self'; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; font-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self' https://accounts.google.com">
     <title>AgenKin — Del correo a tu agenda</title>
     <link rel="stylesheet" href="./src/styles/global.css">
@@ -35,13 +35,13 @@
         <div class="hero__contenido">
           <p class="eyebrow">Tu agenda, sin fechas perdidas</p>
           <h1>Del correo a tu agenda, <span>automáticamente.</span></h1>
-          <p class="hero__descripcion">AgenKin analiza tus correos cuando vos lo pedís, detecta vencimientos, entregas, reuniones y fechas importantes para ayudarte a registrarlas en Google Calendar.</p>
+          <p class="hero__descripcion">AgenKin analiza tus correos cuando vos lo pedís o de forma periódica, detecta vencimientos, entregas, reuniones y fechas importantes para registrarlas en Google Calendar.</p>
           <div class="acciones">
             <button class="boton boton--primario" type="button" data-login>Ingresar con Google</button>
             <a class="boton boton--texto" href="#como-funciona">Conocer el proceso</a>
           </div>
           <p class="estado-auth" data-auth-status role="status">Comprobando Google Auth…</p>
-          <p class="nota-seguridad">Vos revisás y confirmás cada evento. AgenKin no modifica tu bandeja.</p>
+          <p class="nota-seguridad">Vos elegís entre revisión manual y automatización de alta confianza. AgenKin no modifica tu bandeja.</p>
           <div data-alertas></div>
         </div>
         <div class="hero__panel" aria-label="Ejemplo del flujo de AgenKin">
@@ -53,7 +53,7 @@
           <div class="linea-flujo" aria-hidden="true"></div>
           <div class="evento-ejemplo">
             <div class="fecha-ejemplo"><strong>05</strong><span>AGO</span></div>
-            <div><small>Evento sugerido</small><strong>Vencimiento de factura</strong><span>Esperando tu confirmación</span></div>
+            <div><small>Evento sugerido</small><strong>Vencimiento de factura</strong><span>Listo para revisar o automatizar</span></div>
           </div>
         </div>
       </section>
@@ -63,10 +63,10 @@
         <h2>Del mensaje al calendario en cinco pasos</h2>
         <div class="pasos">
           <article><span>01</span><h3>Conectá tu cuenta</h3><p>Ingresá con Google y autorizá Gmail y Calendar por separado.</p></article>
-          <article><span>02</span><h3>Iniciá el análisis</h3><p>Elegís cuándo analizar nuevos correos autorizados.</p></article>
+          <article><span>02</span><h3>Elegí el seguimiento</h3><p>Analizá a pedido o activá la revisión periódica de nuevos correos.</p></article>
           <article><span>03</span><h3>Detectamos fechas</h3><p>La IA clasifica el mensaje y extrae fechas relevantes.</p></article>
           <article><span>04</span><h3>Revisá el hallazgo</h3><p>Editá el título, la fecha, la hora y el calendario.</p></article>
-          <article><span>05</span><h3>Confirmá el evento</h3><p>Solo entonces AgenKin lo crea en Google Calendar.</p></article>
+          <article><span>05</span><h3>Confirmá o automatizá</h3><p>Revisá cada evento o automatizá únicamente los hallazgos de alta confianza.</p></article>
         </div>
       </section>
 
@@ -78,7 +78,7 @@
         </div>
         <div class="tarjetas">
           <article><span aria-hidden="true">⌁</span><h3>Detección inteligente</h3><p>Reconoce facturas, pagos, entregas, turnos, reuniones y documentación pendiente.</p></article>
-          <article><span aria-hidden="true">✓</span><h3>Control antes de crear</h3><p>Ningún evento se crea sin que revises y confirmes la información.</p></article>
+          <article><span aria-hidden="true">✓</span><h3>Automatización bajo control</h3><p>La activás, elegís el umbral de confianza y podés desactivarla cuando quieras.</p></article>
           <article><span aria-hidden="true">◫</span><h3>Una vista ordenada</h3><p>Revisá correos analizados, vencimientos, eventos y consumo desde un solo portal.</p></article>
           <article><span aria-hidden="true">⌾</span><h3>Privacidad por diseño</h3><p>No guardamos permanentemente el cuerpo completo de tus correos.</p></article>
         </div>
@@ -90,7 +90,7 @@
         <div class="planes">
           <article><h3>Prueba</h3><p class="precio">$0 <small>/ 15 días</small></p><p>Probá el flujo completo con un límite inicial de correos.</p></article>
           <article class="plan-destacado"><span class="etiqueta">Recomendado</span><h3>Básico</h3><p class="precio">A definir</p><p>Para organizar vencimientos personales y profesionales.</p></article>
-          <article><h3>Profesional</h3><p class="precio">A definir</p><p>Mayor volumen mensual y automatización futura.</p></article>
+          <article><h3>Profesional</h3><p class="precio">A definir</p><p>Mayor volumen mensual y automatización configurable.</p></article>
         </div>
         <p class="aclaracion">El MVP no procesa pagos. La asignación de planes se gestiona manualmente.</p>
       </section>
@@ -98,8 +98,8 @@
       <section class="seccion preguntas">
         <p class="eyebrow">Preguntas frecuentes</p>
         <h2>Antes de conectar tu cuenta</h2>
-        <details><summary>¿AgenKin crea eventos sin avisarme?</summary><p>No. En esta versión siempre revisás y confirmás cada evento.</p></details>
-        <details><summary>¿Analiza mis correos en tiempo real?</summary><p>No. El MVP usa sincronización manual: vos elegís cuándo analizar nuevos mensajes.</p></details>
+        <details><summary>¿AgenKin crea eventos automáticamente?</summary><p>Solo si activás esa opción. Se limita a fechas futuras, exactas y de alta confianza; el resto queda para revisión.</p></details>
+        <details><summary>¿Analiza mis correos en tiempo real?</summary><p>Podés analizar a pedido o activar una revisión incremental cada pocos minutos.</p></details>
         <details><summary>¿Guarda el contenido de mis correos?</summary><p>No almacena permanentemente el cuerpo completo. Conserva metadatos mínimos y el resultado estructurado.</p></details>
         <details><summary>¿El primer login autoriza Gmail y Calendar?</summary><p>No. Primero ingresás a AgenKin y luego decidís si conectás esos servicios.</p></details>
       </section>

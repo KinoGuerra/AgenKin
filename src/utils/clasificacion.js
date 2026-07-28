@@ -13,6 +13,7 @@ const CATEGORIAS = new Set([
   'irrelevante',
   'otro',
 ])
+const GRUPOS = new Set(['tarjetas', 'servicios', 'suscripciones', 'turnos', 'otros'])
 
 export function confianzaValida(valor) {
   return typeof valor === 'number' && Number.isFinite(valor) && valor >= 0 && valor <= 1
@@ -30,6 +31,7 @@ export function normalizarClasificacion(respuesta) {
   return {
     relevante,
     categoria: CATEGORIAS.has(respuesta.categoria) ? respuesta.categoria : 'otro',
+    grupo_resumen: GRUPOS.has(respuesta.grupo_resumen) ? respuesta.grupo_resumen : 'otros',
     tipo: String(respuesta.tipo || 'otro').slice(0, 50),
     titulo: String(respuesta.titulo || '').trim().slice(0, 160),
     descripcion: String(respuesta.descripcion || '').trim().slice(0, 1000),

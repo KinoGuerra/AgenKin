@@ -27,6 +27,7 @@ function clasificacion(cambios = {}) {
   return {
     relevante: true,
     categoria: 'factura',
+    grupo_resumen: 'servicios',
     tipo: 'pago',
     titulo: 'Vencimiento de factura de internet',
     descripcion: 'La factura informada vence el 5 de agosto de 2026.',
@@ -70,7 +71,12 @@ async function clasificarFixture(nombre, resultado, inspeccionar) {
 describe('clasificación de correos ficticios con Groq simulado', () => {
   it('clasifica una factura con fecha explícita', async () => {
     const { valor } = await clasificarFixture('factura', clasificacion())
-    expect(valor).toMatchObject({ relevante: true, categoria: 'factura', fecha: '2026-08-05' })
+    expect(valor).toMatchObject({
+      relevante: true,
+      categoria: 'factura',
+      grupo_resumen: 'servicios',
+      fecha: '2026-08-05',
+    })
   })
 
   it('envía la fecha del correo como referencia para “vence mañana”', async () => {
@@ -90,11 +96,17 @@ describe('clasificación de correos ficticios con Groq simulado', () => {
   it('clasifica una renovación con fecha', async () => {
     const { valor } = await clasificarFixture('renovacion', clasificacion({
       categoria: 'renovacion',
+      grupo_resumen: 'suscripciones',
       tipo: 'renovacion',
       titulo: 'Renovación del servicio',
       fecha: '2026-08-15',
     }))
-    expect(valor).toMatchObject({ categoria: 'renovacion', tipo: 'renovacion', fecha: '2026-08-15' })
+    expect(valor).toMatchObject({
+      categoria: 'renovacion',
+      grupo_resumen: 'suscripciones',
+      tipo: 'renovacion',
+      fecha: '2026-08-15',
+    })
   })
 
   it('clasifica una reunión con fecha y hora', async () => {
@@ -165,7 +177,7 @@ describe('contrato estricto y validación defensiva', () => {
         json_schema: { name: 'clasificacion_correo_agenkin', strict: true },
       },
     })
-    expect(ESQUEMA_CLASIFICACION_CORREO.required).toHaveLength(11)
+    expect(ESQUEMA_CLASIFICACION_CORREO.required).toHaveLength(12)
     expect(ESQUEMA_CLASIFICACION_CORREO.additionalProperties).toBe(false)
   })
 
@@ -179,6 +191,10 @@ describe('contrato estricto y validación defensiva', () => {
 
   it('rechaza confianza fuera de rango', () => {
     expect(() => validarClasificacion(clasificacion({ confianza: 1.2 }))).toThrowError(ErrorIA)
+  })
+
+  it('rechaza un grupo de resumen fuera del contrato', () => {
+    expect(() => validarClasificacion(clasificacion({ grupo_resumen: 'impuestos' }))).toThrowError(ErrorIA)
   })
 
   it('fuerza revisión con confianza menor a 0.75', () => {

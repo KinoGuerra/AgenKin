@@ -13,6 +13,13 @@ export function manejarPreflight(request: Request) {
   return request.method === 'OPTIONS' ? new Response('ok', { headers: corsHeaders }) : null
 }
 
+export function verificarCron(request: Request) {
+  const secreto = Deno.env.get('CRON_SECRET')
+  if (!secreto || request.headers.get('x-agenkin-cron-secret') !== secreto) {
+    throw new Error('Invocación programada no autorizada')
+  }
+}
+
 export function errorSeguro(error: unknown, status = 400) {
   const mensaje = error instanceof Error ? error.message : 'La operación no pudo completarse'
   return json({ error: mensaje }, status)

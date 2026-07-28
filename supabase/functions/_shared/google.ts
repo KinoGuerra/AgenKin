@@ -7,6 +7,16 @@ export type ConexionGoogle = {
   calendar_id?: string | null
 }
 
+export class ErrorGoogle extends Error {
+  status: number
+
+  constructor(status: number) {
+    super(`Google rechazó la operación (${status})`)
+    this.name = 'ErrorGoogle'
+    this.status = status
+  }
+}
+
 export async function tokenAcceso(conexion: ConexionGoogle) {
   const { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET } = envRequerida('GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET')
   const refreshToken = await descifrarToken(conexion.refresh_token_cifrado, conexion.token_iv)
@@ -35,6 +45,6 @@ export async function googleJson(url: string, token: string, init: RequestInit =
     },
   })
   const datos = await respuesta.json().catch(() => ({}))
-  if (!respuesta.ok) throw new Error(`Google rechazó la operación (${respuesta.status})`)
+  if (!respuesta.ok) throw new ErrorGoogle(respuesta.status)
   return datos
 }

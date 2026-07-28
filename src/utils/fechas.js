@@ -33,3 +33,20 @@ export function formatearFecha(valor, locale = 'es-AR') {
   if (Number.isNaN(fecha.getTime())) return 'Fecha inválida'
   return new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(fecha)
 }
+
+export function formatearFechaHora(valor, locale = 'es-AR') {
+  if (!valor) return 'Sin actualizaciones'
+  const fecha = new Date(valor)
+  if (Number.isNaN(fecha.getTime())) return 'Fecha inválida'
+  const partes = new Intl.DateTimeFormat(locale, {
+    timeZone: 'America/Argentina/Cordoba',
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+  }).formatToParts(fecha)
+  const valorDe = (tipo) => partes.find((parte) => parte.type === tipo)?.value || ''
+  return `${valorDe('day')}/${valorDe('month')}/${valorDe('year')} ${valorDe('hour')}:${valorDe('minute')}`
+}

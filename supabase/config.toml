@@ -34,3 +34,15 @@ verify_jwt = true
 
 [functions.create-calendar-event]
 verify_jwt = true
+
+[functions.sync-gmail-scheduled]
+verify_jwt = false
+
+[functions.process-gmail-queue]
+verify_jwt = false
+
+[functions.create-calendar-scheduled]
+verify_jwt = false
+
+[functions.process-calendar-queue]
+verify_jwt = false

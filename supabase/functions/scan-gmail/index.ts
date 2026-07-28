@@ -8,7 +8,7 @@ import {
 import { encabezado, extraerTextoPlano } from '../_shared/gmail.ts'
 import { googleJson, tokenAcceso } from '../_shared/google.ts'
 import { envRequerida, errorSeguro, json, manejarPreflight } from '../_shared/http.ts'
-import { usuarioAutenticado } from '../_shared/supabase.ts'
+import { clienteServicio, usuarioAutenticado } from '../_shared/supabase.ts'
 
 const LOTE_MAXIMO = 20
 const CORREOS_POR_EJECUCION = 2
@@ -81,6 +81,7 @@ function clasificacionIgnorada() {
   return {
     relevante: false,
     categoria: 'irrelevante' as const,
+    grupo_resumen: 'otros' as const,
     tipo: 'otro' as const,
     titulo: '',
     descripcion: '',
@@ -97,24 +98,44 @@ Deno.serve(async (request) => {
   const preflight = manejarPreflight(request)
   if (preflight) return preflight
   try {
+    const body = await request.json().catch(() => ({}))
     envRequerida('GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET', 'TOKEN_ENCRYPTION_KEY')
     leerConfiguracionIA()
-    const { usuario, cliente } = await usuarioAutenticado(request)
+    const autorizacion = request.headers.get('Authorization')
+    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+    const invocacionInterna = Boolean(
+      serviceRoleKey
+      && autorizacion === `Bearer ${serviceRoleKey}`
+      && /^[0-9a-f-]{36}$/i.test(body.usuario_id || ''),
+    )
+    const contexto = invocacionInterna
+      ? { usuario: { id: body.usuario_id as string }, cliente: clienteServicio() }
+      : await usuarioAutenticado(request)
+    const { usuario, cliente } = contexto
     const { data: habilitado } = await cliente.rpc('usuario_habilitado', { usuario: usuario.id })
     if (!habilitado) return json({ error: 'La cuenta o suscripción no está habilitada' }, 403)
     const { data: conexion, error: errorConexion } = await cliente
       .from('conexiones_google')
-      .select('refresh_token_cifrado,token_iv,estado_conexion')
+      .select('refresh_token_cifrado,token_iv,estado_conexion,gmail_conectado')
       .eq('usuario_id', usuario.id)
       .single()
-    if (errorConexion || conexion.estado_conexion !== 'activa') throw new Error('Configuración requerida: conectá Gmail')
+    if (errorConexion || conexion.estado_conexion !== 'activa' || !conexion.gmail_conectado) {
+      throw new Error('Configuración requerida: conectá Gmail')
+    }
 
     const acceso = await tokenAcceso(conexion)
-    const listado = await googleJson(
-      `https://gmail.googleapis.com/gmail/v1/users/me/messages?maxResults=${LOTE_MAXIMO}&q=newer_than%3A90d`,
-      acceso,
-    )
-    const referencias = listado.messages || []
+    const idsSolicitados = invocacionInterna && Array.isArray(body.gmail_message_ids)
+      ? [...new Set(body.gmail_message_ids
+        .map((id: unknown) => String(id))
+        .filter((id: string) => /^[a-zA-Z0-9_-]{1,128}$/.test(id)))]
+        .slice(0, CORREOS_POR_EJECUCION)
+      : []
+    const referencias = idsSolicitados.length
+      ? idsSolicitados.map((id) => ({ id }))
+      : (await googleJson(
+        `https://gmail.googleapis.com/gmail/v1/users/me/messages?maxResults=${LOTE_MAXIMO}&q=newer_than%3A90d`,
+        acceso,
+      )).messages || []
     const ids = referencias.map((mensaje: { id: string }) => mensaje.id)
     const resumen = {
       procesados: 0,
@@ -123,8 +144,20 @@ Deno.serve(async (request) => {
       errores: 0,
       limite_alcanzado: false,
       hay_mas: false,
+      reintentar: false,
     }
-    if (!ids.length) return json(resumen)
+    if (!ids.length) {
+      const ahora = new Date().toISOString()
+      await cliente
+        .from('conexiones_google')
+        .update({
+          fecha_ultima_sincronizacion: ahora,
+          gmail_ultima_lectura_en: ahora,
+          agenda_ultima_actualizacion_en: ahora,
+        })
+        .eq('usuario_id', usuario.id)
+      return json(resumen)
+    }
 
     const { data: existentes, error: errorExistentes } = await cliente
       .from('correos_procesados')
@@ -133,6 +166,12 @@ Deno.serve(async (request) => {
       .in('gmail_message_id', ids)
     if (errorExistentes) throw errorExistentes
     const porId = new Map((existentes as CorreoExistente[] || []).map((item) => [item.gmail_message_id, item]))
+    resumen.reintentar = referencias.some((mensaje: { id: string }) => {
+      const existente = porId.get(mensaje.id)
+      return existente?.estado_procesamiento === 'error'
+        && existente.error_procesamiento === CODIGO_EN_PROCESO
+        && !puedeReintentarse(existente)
+    })
     const pendientesDisponibles = referencias.filter((mensaje: { id: string }) => {
       const existente = porId.get(mensaje.id)
       return !existente || puedeReintentarse(existente)
@@ -198,6 +237,8 @@ Deno.serve(async (request) => {
             asunto,
             fecha_correo: fechaIsoSegura(fecha),
             categoria: clasificacion.categoria,
+            grupo_resumen: clasificacion.grupo_resumen,
+            grupo_asignado_por: ignorar ? 'migracion' : 'ia',
             relevante: clasificacion.relevante,
             estado_procesamiento: ignorar ? 'ignorado' : 'procesado',
             error_procesamiento: null,
@@ -237,6 +278,8 @@ Deno.serve(async (request) => {
           asunto,
           fecha_correo: fechaIsoSegura(fecha),
           categoria: 'otro',
+          grupo_resumen: 'otros',
+          grupo_asignado_por: 'migracion',
           relevante: false,
           estado_procesamiento: 'error',
           error_procesamiento: codigo,
@@ -245,9 +288,14 @@ Deno.serve(async (request) => {
       }
     }
 
+    const ahora = new Date().toISOString()
     await cliente
       .from('conexiones_google')
-      .update({ fecha_ultima_sincronizacion: new Date().toISOString() })
+      .update({
+        fecha_ultima_sincronizacion: ahora,
+        gmail_ultima_lectura_en: ahora,
+        agenda_ultima_actualizacion_en: ahora,
+      })
       .eq('usuario_id', usuario.id)
     return json(resumen)
   } catch (error) {

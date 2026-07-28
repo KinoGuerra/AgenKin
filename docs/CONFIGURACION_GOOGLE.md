@@ -13,7 +13,11 @@ AgenKin solicita los permisos adicionales únicamente desde el portal:
 
 - `openid` y `email`, para identificar la cuenta conectada.
 - `https://www.googleapis.com/auth/gmail.readonly`, para leer correos sin modificarlos.
-- `https://www.googleapis.com/auth/calendar.app.created`, para crear un calendario secundario AgenKin y administrar solamente sus eventos.
+- `https://www.googleapis.com/auth/calendar.app.created`, para crear un calendario secundario **Agenda** y administrar solamente sus eventos.
+
+Gmail y Calendar se autorizan con botones separados y cada solicitud incluye
+solamente el permiso del servicio elegido. Ambos deben usar la misma cuenta
+Google; para cambiar de cuenta hay que usar primero **Revocar acceso de Google**.
 
 `gmail.readonly` es un permiso restringido. Una publicación abierta puede requerir verificación de Google y, si los datos restringidos pasan por un servidor, una evaluación de seguridad. Revisar los requisitos oficiales antes de salir de Testing.
 
@@ -53,4 +57,5 @@ El primer inicio de sesión usa el proveedor Google de **Supabase Auth** y solic
    - `http://localhost:5173/AgenKin/auth-callback.html`
    - `https://kinoguerra.github.io/AgenKin/auth-callback.html`
 
-La autorización de Gmail/Calendar es una segunda conexión independiente gestionada por las Edge Functions.
+La autorización de Gmail/Calendar es una segunda conexión gestionada por las
+Edge Functions, independiente del inicio de sesión y separada por servicio.

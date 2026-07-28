@@ -2,11 +2,11 @@
 
 **Del correo a tu agenda, automáticamente.**
 
-AgenKin es un MVP SaaS que permite iniciar sesión con Google, conectar Gmail y Google Calendar por separado, analizar manualmente nuevos correos, detectar fechas con IA y crear eventos únicamente después de la confirmación del usuario.
+AgenKin es un MVP SaaS que permite iniciar sesión con Google, conectar Gmail y Google Calendar por separado, analizar correos a pedido o periódicamente, detectar fechas con IA y crear eventos de forma manual o automática bajo reglas conservadoras.
 
 ## Estado del MVP
 
-El frontend, la base, RLS y las Edge Functions están implementados. La landing y los portales cargan sin credenciales de Gmail, Calendar o IA; esas acciones muestran “Configuración requerida” hasta completar los secretos externos. No se incluyen datos simulados, cobros ni procesamiento continuo.
+El frontend, la base, RLS y las Edge Functions están implementados. La landing y los portales cargan sin credenciales de Gmail, Calendar o IA; esas acciones muestran “Configuración requerida” hasta completar los secretos externos. No se incluyen datos simulados ni cobros.
 
 ## Arquitectura
 
@@ -19,8 +19,9 @@ Supabase Auth ── PostgreSQL + RLS
         └── Edge Functions
               ├── administración transaccional
               ├── OAuth adicional de Google
+              ├── descubrimiento incremental + cola durable
               ├── lectura Gmail + clasificación IA
-              └── creación confirmada en Calendar
+              └── creación manual o automática en Calendar
 ```
 
 Se eligió JavaScript multipágina sin React ni router: GitHub Pages sirve cada destino directamente, Vite comparte los módulos y las guardas, y no hay una capa de estado global que mantener.
@@ -97,7 +98,7 @@ La migración crea:
 - consumos mensuales con unicidad por período;
 - conexiones Google con campos cifrados;
 - correos sin cuerpo completo;
-- vencimientos, eventos, reglas y auditoría;
+- vencimientos, Agenda interna, réplica opcional en Calendar, reglas y auditoría;
 - índices, restricciones, triggers, funciones auxiliares y RLS.
 
 En Supabase → Authentication → URL Configuration:
@@ -189,9 +190,15 @@ supabase functions deploy google-oauth-callback --no-verify-jwt
 supabase functions deploy google-disconnect
 supabase functions deploy scan-gmail
 supabase functions deploy create-calendar-event
+supabase functions deploy sync-gmail-scheduled --no-verify-jwt
+supabase functions deploy process-gmail-queue --no-verify-jwt
+supabase functions deploy create-calendar-scheduled --no-verify-jwt
+supabase functions deploy process-calendar-queue --no-verify-jwt
 ```
 
-La clasificación vive dentro de `scan-gmail` para evitar una segunda llamada y un segundo límite de confianza.
+La clasificación vive dentro de `scan-gmail` para evitar una segunda llamada y un
+segundo límite de confianza. Cada evento se guarda primero en Agenda; la cola de
+Calendar replica los pendientes sin bloquear ni duplicar el registro interno.
 
 ## Calidad
 
@@ -223,12 +230,11 @@ Consultar [Seguridad](docs/SEGURIDAD.md) y la política incluida en `privacidad.
 ## Limitaciones actuales
 
 - Sin pasarela de pagos: planes y vencimientos se administran manualmente.
-- Sin sincronización continua: el usuario pulsa “Analizar correos ahora”.
 - Gmail requiere verificación y posiblemente evaluación de seguridad antes de un lanzamiento público.
 - Las condiciones de privacidad y retención de Groq deben revisarse nuevamente
   antes de comercializar el servicio.
 - GitHub Pages no permite todos los encabezados HTTP; la CSP se aplica mediante HTML.
-- No hay recuperación automática ante un evento creado en Google pero no registrado por una caída excepcional posterior. El ID determinista evita crear un duplicado al reintentar, pero ese caso debe reconciliarse operativamente.
+- La automatización depende de Cron, Queues, Vault y las Edge Functions configuradas en Supabase; si falta alguno, el portal conserva el análisis manual.
 - Los textos legales son una base técnica y requieren revisión profesional antes de comercializar.
 
 ## Próximos pasos

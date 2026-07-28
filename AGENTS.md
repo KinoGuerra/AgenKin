@@ -3,7 +3,8 @@
 ## Objetivo
 
 AgenKin convierte fechas importantes detectadas en correos autorizados en
-eventos de Google Calendar, siempre después de la confirmación del usuario.
+eventos de Google Calendar. El usuario puede confirmar cada evento o activar
+la automatización limitada a hallazgos futuros de alta confianza.
 
 ## Stack y arquitectura
 
@@ -42,7 +43,8 @@ Rutas principales:
 - Ejecutar acciones administrativas sensibles mediante Edge Functions.
 - Cifrar refresh tokens y no mostrarlos ni escribirlos en logs.
 - No almacenar permanentemente el cuerpo completo de los correos.
-- No crear eventos sin confirmación manual.
+- La creación automática debe ser voluntaria, reversible, idempotente y limitarse
+  a fechas futuras sin revisión requerida que superen el umbral elegido.
 - No asignar automáticamente el rol `superadministrador`.
 
 ## Base de datos y Edge Functions
