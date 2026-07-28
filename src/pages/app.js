@@ -352,7 +352,7 @@ document.querySelector('[data-logout]').addEventListener('click', async (evento)
 })
 document.querySelector('[data-scan]').addEventListener('click', async (evento) => {
   const boton = evento.currentTarget
-  setCargando(boton, true, 'Analizando…')
+  setCargando(boton, true, 'Actualizando…')
   try {
     const resultado = await invocarFuncion('scan-gmail', {})
     const procesados = resultado.procesados || 0
@@ -366,7 +366,7 @@ document.querySelector('[data-scan]').addEventListener('click', async (evento) =
     const mensaje = errores
       ? `Análisis terminado: ${procesados} correctos, ${errores} con error, ${ignorados} ignorados y ${detectados} vencimientos detectados.${limite}${pendientes}`
       : `Análisis terminado: ${procesados} correos, ${ignorados} ignorados y ${detectados} vencimientos detectados.${limite}${pendientes}`
-    mostrarAviso(mensaje, errores ? 'error' : 'exito')
+    mostrarAviso(`Agenda actualizada. ${mensaje}`, errores ? 'error' : 'exito')
     await refrescar()
   } catch (error) {
     mostrarAviso(error.message, 'error')

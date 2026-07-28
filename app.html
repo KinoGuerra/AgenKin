@@ -46,15 +46,20 @@
           </article>
           <article class="cuadrante-estado cuadrante-estado--agenda">
             <p>Agenda</p>
-            <span>Última actualización</span>
-            <strong data-header-agenda>Sin actualizaciones</strong>
+            <div class="cuadrante-agenda__contenido">
+              <div class="cuadrante-agenda__fecha">
+                <span>Última actualización</span>
+                <strong data-header-agenda>Sin actualizaciones</strong>
+              </div>
+              <button class="boton boton--primario boton--sincronizar-agenda" data-scan aria-label="Actualizar correos y eventos de Agenda ahora">Actualizar Agenda</button>
+            </div>
           </article>
         </div>
       </header>
       <div data-alertas></div>
 
       <section id="inicio" aria-labelledby="titulo-resumen">
-        <div class="titulo-seccion"><div><h2 id="titulo-resumen">Tu actividad</h2><p>Resumen del período actual.</p></div><button class="boton boton--primario" data-scan>Analizar correos ahora</button></div>
+        <div class="titulo-seccion"><div><h2 id="titulo-resumen">Tu actividad</h2><p>Resumen del período actual.</p></div></div>
         <div class="metricas metricas--actividad">
           <article><small>Días usando AgenKin</small><strong data-metrica="dias">—</strong><span>desde tu registro</span></article>
           <article><small>Correos analizados</small><strong data-metrica="correos">—</strong><span>histórico total</span></article>
