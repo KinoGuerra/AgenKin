@@ -11,6 +11,7 @@ import { envRequerida, errorSeguro, json, manejarPreflight } from '../_shared/ht
 import { usuarioAutenticado } from '../_shared/supabase.ts'
 
 const LOTE_MAXIMO = 20
+const CORREOS_POR_EJECUCION = 2
 const CODIGO_EN_PROCESO = 'PROCESAMIENTO_EN_CURSO'
 const RECLAMO_VENCE_MS = 5 * 60 * 1_000
 
@@ -121,6 +122,7 @@ Deno.serve(async (request) => {
       ignorados: 0,
       errores: 0,
       limite_alcanzado: false,
+      hay_mas: false,
     }
     if (!ids.length) return json(resumen)
 
@@ -131,10 +133,12 @@ Deno.serve(async (request) => {
       .in('gmail_message_id', ids)
     if (errorExistentes) throw errorExistentes
     const porId = new Map((existentes as CorreoExistente[] || []).map((item) => [item.gmail_message_id, item]))
-    const pendientes = referencias.filter((mensaje: { id: string }) => {
+    const pendientesDisponibles = referencias.filter((mensaje: { id: string }) => {
       const existente = porId.get(mensaje.id)
       return !existente || puedeReintentarse(existente)
     })
+    const pendientes = pendientesDisponibles.slice(0, CORREOS_POR_EJECUCION)
+    resumen.hay_mas = pendientesDisponibles.length > pendientes.length
     const { data: reglas, error: errorReglas } = await cliente
       .from('reglas_usuario')
       .select('campo,operador,valor,accion')

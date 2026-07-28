@@ -175,9 +175,12 @@ document.querySelector('[data-scan]').addEventListener('click', async (evento) =
     const ignorados = resultado.ignorados || 0
     const detectados = resultado.detectados || 0
     const limite = resultado.limite_alcanzado ? ' Se alcanzó el límite mensual.' : ''
+    const pendientes = resultado.hay_mas
+      ? ' Quedan correos pendientes; volvé a ejecutar el análisis para continuar.'
+      : ''
     const mensaje = errores
-      ? `Análisis terminado: ${procesados} correctos, ${errores} con error, ${ignorados} ignorados y ${detectados} vencimientos detectados.${limite}`
-      : `Análisis terminado: ${procesados} correos, ${ignorados} ignorados y ${detectados} vencimientos detectados.${limite}`
+      ? `Análisis terminado: ${procesados} correctos, ${errores} con error, ${ignorados} ignorados y ${detectados} vencimientos detectados.${limite}${pendientes}`
+      : `Análisis terminado: ${procesados} correos, ${ignorados} ignorados y ${detectados} vencimientos detectados.${limite}${pendientes}`
     mostrarAviso(mensaje, errores ? 'error' : 'exito')
     await refrescar()
   } catch (error) {
