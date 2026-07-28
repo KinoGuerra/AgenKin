@@ -31,6 +31,8 @@ function clasificacion(cambios = {}) {
     tipo: 'pago',
     titulo: 'Vencimiento de factura de internet',
     descripcion: 'La factura informada vence el 5 de agosto de 2026.',
+    entidad: 'Epec',
+    monto: 101000,
     fecha: '2026-08-05',
     hora: null,
     zona_horaria: 'America/Argentina/Cordoba',
@@ -75,6 +77,8 @@ describe('clasificación de correos ficticios con Groq simulado', () => {
       relevante: true,
       categoria: 'factura',
       grupo_resumen: 'servicios',
+      entidad: 'Epec',
+      monto: 101000,
       fecha: '2026-08-05',
     })
   })
@@ -177,7 +181,7 @@ describe('contrato estricto y validación defensiva', () => {
         json_schema: { name: 'clasificacion_correo_agenkin', strict: true },
       },
     })
-    expect(ESQUEMA_CLASIFICACION_CORREO.required).toHaveLength(12)
+    expect(ESQUEMA_CLASIFICACION_CORREO.required).toHaveLength(14)
     expect(ESQUEMA_CLASIFICACION_CORREO.additionalProperties).toBe(false)
   })
 
@@ -195,6 +199,10 @@ describe('contrato estricto y validación defensiva', () => {
 
   it('rechaza un grupo de resumen fuera del contrato', () => {
     expect(() => validarClasificacion(clasificacion({ grupo_resumen: 'impuestos' }))).toThrowError(ErrorIA)
+  })
+
+  it('rechaza montos negativos o inventados fuera de rango', () => {
+    expect(() => validarClasificacion(clasificacion({ monto: -1 }))).toThrowError(ErrorIA)
   })
 
   it('fuerza revisión con confianza menor a 0.75', () => {

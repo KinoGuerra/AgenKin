@@ -16,13 +16,22 @@
   function actualizarControles(tema) {
     const oscuro = tema === 'dark'
     global.document.querySelectorAll('[data-theme-toggle]').forEach((boton) => {
-      boton.setAttribute('aria-pressed', String(oscuro))
-      boton.setAttribute('aria-label', oscuro ? 'Activar modo claro' : 'Activar modo oscuro')
-      boton.title = oscuro ? 'Activar modo claro' : 'Activar modo oscuro'
-      const icono = boton.querySelector('[data-theme-icon]')
-      if (icono) icono.textContent = oscuro ? '☀' : '☾'
-      const etiqueta = boton.querySelector('[data-theme-label]')
-      if (etiqueta) etiqueta.textContent = oscuro ? 'Claro' : 'Oscuro'
+      const esInterruptor = boton.matches('input[role="switch"]')
+      const contenedor = esInterruptor ? boton.closest('.tema-switch') : boton
+      if (esInterruptor) {
+        boton.checked = oscuro
+        boton.setAttribute('aria-checked', String(oscuro))
+        boton.setAttribute('aria-label', 'Modo oscuro')
+        boton.title = oscuro ? 'Modo oscuro activado' : 'Modo oscuro desactivado'
+      } else {
+        boton.setAttribute('aria-pressed', String(oscuro))
+        boton.setAttribute('aria-label', oscuro ? 'Activar modo claro' : 'Activar modo oscuro')
+        boton.title = oscuro ? 'Activar modo claro' : 'Activar modo oscuro'
+      }
+      const icono = contenedor?.querySelector('[data-theme-icon]')
+      if (icono) icono.textContent = esInterruptor ? (oscuro ? '☾' : '☀') : (oscuro ? '☀' : '☾')
+      const etiqueta = contenedor?.querySelector('[data-theme-label]')
+      if (etiqueta) etiqueta.textContent = esInterruptor ? 'Modo oscuro' : (oscuro ? 'Claro' : 'Oscuro')
     })
   }
 
@@ -50,8 +59,12 @@
       return
     }
 
-    const rectangulo = boton.getBoundingClientRect()
-    if (raiz.classList.contains('tema-en-transicion')) return
+    const control = boton.closest?.('.tema-switch') || boton
+    const rectangulo = control.getBoundingClientRect()
+    if (raiz.classList.contains('tema-en-transicion')) {
+      actualizarControles(raiz.dataset.theme)
+      return
+    }
 
     if (!transicionDisponible) {
       const x = rectangulo.left + rectangulo.width / 2
@@ -107,7 +120,8 @@
     aplicarTema(resolverTema(preferenciaGuardada(), media.matches))
 
     global.document.querySelectorAll('[data-theme-toggle]').forEach((boton) => {
-      boton.addEventListener('click', () => cambiarTemaDesde(boton))
+      const evento = boton.matches('input[role="switch"]') ? 'change' : 'click'
+      boton.addEventListener(evento, () => cambiarTemaDesde(boton))
     })
 
     const seguirSistema = (evento) => {

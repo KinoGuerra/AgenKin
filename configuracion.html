@@ -14,23 +14,25 @@
     <aside class="barra-lateral">
       <a class="marca marca--imagen marca--lateral" href="./app.html" aria-label="AgenKin, portal de usuario"><img src="./src/assets/agenkin-logo-dark.png" alt="AgenKin"></a>
       <nav aria-label="Portal del usuario">
-        <a href="./app.html">Inicio</a>
+        <a href="./app.html">Dashboard</a>
         <a href="./correos.html">Correos analizados</a>
         <a href="./vencimientos.html">Vencimientos</a>
         <a href="./agenda.html">Agenda</a>
         <a href="./reglas.html">Reglas personales</a>
         <a class="activo" href="./configuracion.html">Configuración</a>
       </nav>
-      <button class="boton boton--lateral" data-logout>Cerrar sesión</button>
+      <div class="acciones-laterales">
+        <label class="tema-switch"><span class="tema-switch__texto" data-theme-label>Modo oscuro</span><input type="checkbox" role="switch" data-theme-toggle aria-label="Modo oscuro"><span class="tema-switch__pista" aria-hidden="true"><span class="tema-switch__indicador" data-theme-icon>☀</span></span></label>
+        <button class="boton boton--lateral" data-logout>Cerrar sesión</button>
+      </div>
     </aside>
     <main id="contenido" class="contenido-portal">
       <header class="cabecera-subpagina">
         <button class="menu-movil" data-menu aria-label="Abrir menú" aria-expanded="false">☰</button>
-        <a class="volver-inicio" href="./app.html" aria-label="Volver al inicio">←</a>
+        <a class="volver-inicio" href="./app.html" aria-label="Volver al Dashboard">←</a>
         <div><p class="eyebrow">Cuenta e integraciones</p><h1>Configuración</h1><p>Administrá tu plan, conexiones y automatización desde un solo lugar.</p></div>
         <div class="cabecera-subpagina__acciones">
           <span>Hola, <strong data-nombre>cargando…</strong></span>
-          <button class="tema-toggle" type="button" data-theme-toggle aria-label="Activar modo oscuro" aria-pressed="false"><span data-theme-icon aria-hidden="true">☾</span><span data-theme-label>Oscuro</span></button>
           <span class="avatar" data-avatar aria-hidden="true">A</span>
         </div>
       </header>

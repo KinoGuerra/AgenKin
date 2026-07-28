@@ -28,6 +28,11 @@
       </nav>
 
       <div class="acciones-laterales">
+        <label class="tema-switch">
+          <span class="tema-switch__texto" data-theme-label>Modo oscuro</span>
+          <input type="checkbox" role="switch" data-theme-toggle aria-label="Modo oscuro">
+          <span class="tema-switch__pista" aria-hidden="true"><span class="tema-switch__indicador" data-theme-icon>☀</span></span>
+        </label>
         <a class="boton boton--lateral" href="./access.html">Cambiar de portal</a>
         <button class="boton boton--lateral" type="button" data-logout>Cerrar sesión</button>
       </div>
@@ -47,10 +52,6 @@
           <p>Supervisá el acceso, los planes y la actividad de AgenKin.</p>
         </div>
         <div class="cabecera-admin__acciones">
-          <button class="tema-toggle" type="button" data-theme-toggle aria-label="Activar modo oscuro" aria-pressed="false">
-            <span data-theme-icon aria-hidden="true">☾</span>
-            <span data-theme-label>Oscuro</span>
-          </button>
           <div class="perfil-admin" aria-label="Perfil administrador">
             <img class="avatar avatar--imagen" data-admin-avatar alt="" hidden>
             <span class="avatar" data-admin-iniciales aria-hidden="true">SA</span>

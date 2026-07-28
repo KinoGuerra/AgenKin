@@ -5,6 +5,7 @@ import { cerrarSesion } from '../services/auth.js'
 import { invocarFuncion } from '../services/edge.js'
 import { cargarEventosAgenda, cargarPortal } from '../services/portal.js'
 import { supabase } from '../services/supabase.js'
+import { formatearAvisoDia } from '../utils/clasificacion.js'
 import { formatearFecha, formatearFechaHora } from '../utils/fechas.js'
 
 let datosPortal
@@ -86,6 +87,24 @@ function renderCategorias(categorias = {}) {
     proporcion.append(medidor, valor)
     fila.append(crearCelda(etiqueta), crearCelda(cantidad), proporcion)
     cuerpo.append(fila)
+  })
+}
+
+function renderAvisosDia(avisos = []) {
+  const lista = document.querySelector('[data-avisos-dia]')
+  if (!lista) return
+  lista.replaceChildren()
+  if (!avisos.length) {
+    const vacio = document.createElement('li')
+    vacio.className = 'avisos-dia__vacio'
+    vacio.textContent = 'No hay vencimientos para hoy.'
+    lista.append(vacio)
+    return
+  }
+  avisos.forEach((aviso) => {
+    const item = document.createElement('li')
+    item.textContent = formatearAvisoDia(aviso)
+    lista.append(item)
   })
 }
 
@@ -251,6 +270,7 @@ function definirTexto(selector, valor) {
 
 function renderPortal(datos) {
   const resumen = datos.resumen || {}
+  renderAvisosDia(Array.isArray(resumen.avisos_del_dia) ? resumen.avisos_del_dia : [])
   Object.entries({
     dias: resumen.dias_usando_agenkin || 1,
     correos: resumen.correos_analizados_total || 0,
