@@ -4,6 +4,11 @@ import { defineConfig } from 'vite'
 const paginas = [
   'index.html',
   'app.html',
+  'correos.html',
+  'vencimientos.html',
+  'agenda.html',
+  'reglas.html',
+  'configuracion.html',
   'admin.html',
   'access.html',
   'auth-callback.html',

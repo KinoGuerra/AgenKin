@@ -8,9 +8,11 @@ import { supabase } from '../services/supabase.js'
 import { formatearFecha, formatearFechaHora } from '../utils/fechas.js'
 
 let datosPortal
+let usuarioActualId
 let eventosAgenda = []
 let mesAgenda = new Date()
 mesAgenda = new Date(mesAgenda.getFullYear(), mesAgenda.getMonth(), 1)
+const paginaPortal = document.body.dataset.portalPage || 'inicio'
 const tbodyVencimientos = document.querySelector('[data-vencimientos]')
 const dialogoEvento = document.querySelector('[data-evento-dialog]')
 const formularioEvento = document.querySelector('[data-evento-form]')
@@ -29,6 +31,7 @@ const GRUPOS = [
 ]
 
 function renderVencimientos(vencimientos) {
+  if (!tbodyVencimientos) return
   tbodyVencimientos.replaceChildren()
   if (!vencimientos.length) {
     const fila = document.createElement('tr')
@@ -65,16 +68,30 @@ function renderVencimientos(vencimientos) {
 
 function renderCategorias(categorias = {}) {
   const cuerpo = document.querySelector('[data-categorias]')
+  if (!cuerpo) return
   cuerpo.replaceChildren()
+  const total = GRUPOS.reduce((suma, [clave]) => suma + Number(categorias[clave] || 0), 0)
   GRUPOS.forEach(([clave, etiqueta]) => {
+    const cantidad = Number(categorias[clave] || 0)
+    const porcentaje = total ? Math.round((cantidad / total) * 100) : 0
     const fila = document.createElement('tr')
-    fila.append(crearCelda(etiqueta), crearCelda(Number(categorias[clave] || 0)))
+    const proporcion = document.createElement('td')
+    const medidor = document.createElement('meter')
+    medidor.min = 0
+    medidor.max = 100
+    medidor.value = porcentaje
+    medidor.setAttribute('aria-label', `${porcentaje}% de los correos`)
+    const valor = document.createElement('span')
+    valor.textContent = `${porcentaje}%`
+    proporcion.append(medidor, valor)
+    fila.append(crearCelda(etiqueta), crearCelda(cantidad), proporcion)
     cuerpo.append(fila)
   })
 }
 
 function renderCorreos(correos) {
   const cuerpo = document.querySelector('[data-correos]')
+  if (!cuerpo) return
   cuerpo.replaceChildren()
   if (!correos.length) {
     const fila = document.createElement('tr')
@@ -119,6 +136,7 @@ function claveFecha(valor) {
 }
 
 function renderDetalleAgenda(clave) {
+  if (!document.querySelector('[data-agenda-dia]')) return
   const seleccionados = eventosAgenda.filter((evento) => claveFecha(evento.fecha_evento) === clave)
   const fecha = new Date(`${clave}T12:00:00`)
   document.querySelector('[data-agenda-dia]').textContent = new Intl.DateTimeFormat('es-AR', {
@@ -163,6 +181,7 @@ function renderDetalleAgenda(clave) {
 }
 
 function renderAgenda() {
+  if (!document.querySelector('[data-agenda-grid]')) return
   document.querySelector('[data-agenda-mes]').textContent = new Intl.DateTimeFormat('es-AR', {
     month: 'long',
     year: 'numeric',
@@ -207,6 +226,7 @@ function renderAgenda() {
 }
 
 async function cargarMesAgenda() {
+  if (!document.querySelector('[data-agenda-grid]')) return
   const inicioSemana = (mesAgenda.getDay() + 6) % 7
   const desde = new Date(mesAgenda)
   desde.setDate(1 - inicioSemana)
@@ -224,36 +244,42 @@ async function cargarMesAgenda() {
   renderDetalleAgenda(fechaInicial)
 }
 
+function definirTexto(selector, valor) {
+  const elemento = document.querySelector(selector)
+  if (elemento) elemento.textContent = valor
+}
+
 function renderPortal(datos) {
   const resumen = datos.resumen || {}
   Object.entries({
     dias: resumen.dias_usando_agenkin || 1,
     correos: resumen.correos_analizados_total || 0,
-  }).forEach(([nombre, valor]) => {
-    document.querySelector(`[data-metrica="${nombre}"]`).textContent = valor
-  })
+    'correos-hoy': resumen.correos_analizados_hoy || 0,
+  }).forEach(([nombre, valor]) => definirTexto(`[data-metrica="${nombre}"]`, valor))
   renderVencimientos(datos.vencimientos)
   renderCorreos(datos.correos)
   renderCategorias(resumen.categorias_resumen)
 
   const reglas = document.querySelector('[data-reglas]')
-  reglas.replaceChildren()
-  if (!datos.reglas.length) reglas.append(estadoVacio('No tenés reglas personales. Podés crear la primera.'))
-  datos.reglas.forEach((item) => {
-    const tarjeta = document.createElement('article')
-    const texto = document.createElement('div')
-    const titulo = document.createElement('strong')
-    titulo.textContent = item.nombre
-    const detalle = document.createElement('span')
-    detalle.textContent = `${item.campo} ${item.operador} “${item.valor}” → ${item.accion}`
-    texto.append(titulo, detalle)
-    const eliminar = document.createElement('button')
-    eliminar.className = 'boton boton--mini boton--texto'
-    eliminar.textContent = 'Eliminar'
-    eliminar.dataset.eliminarRegla = item.id
-    tarjeta.append(texto, eliminar)
-    reglas.append(tarjeta)
-  })
+  if (reglas) {
+    reglas.replaceChildren()
+    if (!datos.reglas.length) reglas.append(estadoVacio('No tenés reglas personales. Podés crear la primera.'))
+    datos.reglas.forEach((item) => {
+      const tarjeta = document.createElement('article')
+      const texto = document.createElement('div')
+      const titulo = document.createElement('strong')
+      titulo.textContent = item.nombre
+      const detalle = document.createElement('span')
+      detalle.textContent = `${item.campo} ${item.operador} “${item.valor}” → ${item.accion}`
+      texto.append(titulo, detalle)
+      const eliminar = document.createElement('button')
+      eliminar.className = 'boton boton--mini boton--texto'
+      eliminar.textContent = 'Eliminar'
+      eliminar.dataset.eliminarRegla = item.id
+      tarjeta.append(texto, eliminar)
+      reglas.append(tarjeta)
+    })
+  }
 
   const conexion = datos.conexion || {}
   const estadoGmail = conexion.gmail_conectado ? 'Conectado' : 'Desconectado'
@@ -263,67 +289,90 @@ function renderPortal(datos) {
     [document.querySelector('[data-header-calendar]'), estadoCalendar, conexion.calendar_conectado],
     [document.querySelector('[data-servicio-gmail]'), estadoGmail, conexion.gmail_conectado],
     [document.querySelector('[data-servicio-calendar]'), estadoCalendar, conexion.calendar_conectado],
-  ]
+  ].filter(([indicador]) => indicador)
   indicadores.forEach(([indicador, texto, conectado]) => {
     indicador.textContent = texto
     indicador.dataset.estado = conectado ? 'conectado' : 'desconectado'
   })
-  document.querySelector('[data-servicio-gmail-detalle]').textContent = conexion.gmail_conectado
-    ? `${conexion.gmail_email || conexion.google_email || 'Cuenta de Google'} · última lectura ${formatearFechaHora(conexion.gmail_ultima_lectura_en)}`
-    : 'Sin cuenta asociada'
-  document.querySelector('[data-servicio-calendar-detalle]').textContent = conexion.calendar_conectado
-    ? `${conexion.calendar_email || conexion.google_email || 'Cuenta de Google'} · última sincronización ${formatearFechaHora(conexion.calendar_ultima_sincronizacion_en)}`
-    : 'Sin cuenta asociada'
-  document.querySelector('[data-header-agenda]').textContent = formatearFechaHora(conexion.agenda_ultima_actualizacion_en)
-  document.querySelector('[data-connect-gmail]').classList.toggle('oculto', Boolean(conexion.gmail_conectado))
-  document.querySelector('[data-disconnect-gmail]').classList.toggle('oculto', !conexion.gmail_conectado)
-  document.querySelector('[data-connect-calendar]').classList.toggle('oculto', Boolean(conexion.calendar_conectado))
-  document.querySelector('[data-disconnect-calendar]').classList.toggle('oculto', !conexion.calendar_conectado)
-  document.querySelector('[data-revoke-google]').classList.toggle('oculto', !conexion.conectado)
-  sincronizacionAutomatica.checked = Boolean(conexion.sincronizacion_automatica)
-  eventosAutomaticos.checked = Boolean(conexion.creacion_automatica_eventos)
-  umbralAutomatico.value = Number(conexion.umbral_confianza_automatica || 0.9).toFixed(2)
-  formularioAutomatizacion.querySelectorAll('input, select, button').forEach((control) => {
-    control.disabled = !conexion.gmail_conectado
-  })
-  document.querySelector('[data-auto-estado]').textContent = conexion.sincronizacion_automatica
-    ? 'Activa'
-    : 'Desactivada'
-  const pendientes = Number(conexion.tareas_pendientes || 0)
-  const conError = Number(conexion.tareas_error || 0)
-  const ultima = formatearFecha(conexion.ultima_sincronizacion_exitosa)
-  document.querySelector('[data-auto-detalle]').textContent = conexion.gmail_conectado
-    ? `${pendientes} en cola · ${conError} con error · última revisión completa: ${ultima}`
-    : 'Conectá Gmail para activar esta función.'
+  definirTexto(
+    '[data-servicio-gmail-detalle]',
+    conexion.gmail_conectado
+      ? `${conexion.gmail_email || conexion.google_email || 'Cuenta de Google'} · última lectura ${formatearFechaHora(conexion.gmail_ultima_lectura_en)}`
+      : 'Sin cuenta asociada',
+  )
+  definirTexto(
+    '[data-servicio-calendar-detalle]',
+    conexion.calendar_conectado
+      ? `${conexion.calendar_email || conexion.google_email || 'Cuenta de Google'} · última sincronización ${formatearFechaHora(conexion.calendar_ultima_sincronizacion_en)}`
+      : 'Sin cuenta asociada',
+  )
+  definirTexto('[data-header-agenda]', formatearFechaHora(conexion.agenda_ultima_actualizacion_en))
+  document.querySelector('[data-connect-gmail]')?.classList.toggle('oculto', Boolean(conexion.gmail_conectado))
+  document.querySelector('[data-disconnect-gmail]')?.classList.toggle('oculto', !conexion.gmail_conectado)
+  document.querySelector('[data-connect-calendar]')?.classList.toggle('oculto', Boolean(conexion.calendar_conectado))
+  document.querySelector('[data-disconnect-calendar]')?.classList.toggle('oculto', !conexion.calendar_conectado)
+  document.querySelector('[data-revoke-google]')?.classList.toggle('oculto', !conexion.conectado)
+  if (formularioAutomatizacion) {
+    sincronizacionAutomatica.checked = Boolean(conexion.sincronizacion_automatica)
+    eventosAutomaticos.checked = Boolean(conexion.creacion_automatica_eventos)
+    umbralAutomatico.value = Number(conexion.umbral_confianza_automatica || 0.9).toFixed(2)
+    formularioAutomatizacion.querySelectorAll('input, select, button').forEach((control) => {
+      control.disabled = !conexion.gmail_conectado
+    })
+    definirTexto('[data-auto-estado]', conexion.sincronizacion_automatica ? 'Activa' : 'Desactivada')
+    const pendientes = Number(conexion.tareas_pendientes || 0)
+    const conError = Number(conexion.tareas_error || 0)
+    const ultima = formatearFecha(conexion.ultima_sincronizacion_exitosa)
+    definirTexto(
+      '[data-auto-detalle]',
+      conexion.gmail_conectado
+        ? `${pendientes} en cola · ${conError} con error · última revisión completa: ${ultima}`
+        : 'Conectá Gmail para activar esta función.',
+    )
+  }
 
   const suscripcion = resumen.suscripcion || {}
+  definirTexto('[data-plan-cabecera]', suscripcion.plan || 'Sin plan')
+  definirTexto(
+    '[data-plan-estado]',
+    suscripcion.estado ? `${suscripcion.estado} · vence ${formatearFecha(suscripcion.fecha_vencimiento)}` : 'Sin suscripción',
+  )
   const campos = {
     plan: suscripcion.plan || 'Sin plan',
     estado: suscripcion.estado || 'Sin suscripción',
     inicio: formatearFecha(suscripcion.fecha_inicio),
     vencimiento: formatearFecha(suscripcion.fecha_vencimiento),
   }
-  Object.entries(campos).forEach(([campo, valor]) => {
-    document.querySelector(`[data-suscripcion="${campo}"]`).textContent = valor
-  })
+  Object.entries(campos).forEach(([campo, valor]) => definirTexto(`[data-suscripcion="${campo}"]`, valor))
   const usados = Number(suscripcion.correos_mes || 0)
   const limite = Number(suscripcion.limite_correos_mensuales || 0)
-  document.querySelector('[data-uso]').value = limite ? Math.min(100, (usados / limite) * 100) : 0
-  document.querySelector('[data-uso-texto]').textContent = `${usados} de ${limite || '—'} correos procesados`
+  const uso = document.querySelector('[data-uso]')
+  if (uso) uso.value = limite ? Math.min(100, (usados / limite) * 100) : 0
+  definirTexto('[data-uso-texto]', `${usados} de ${limite || '—'} correos procesados`)
+  const botonPlan = document.querySelector('[data-request-plan]')
+  if (botonPlan) {
+    botonPlan.disabled = Boolean(suscripcion.solicitud_mejora_pendiente)
+    botonPlan.textContent = suscripcion.solicitud_mejora_pendiente ? 'Solicitud enviada' : 'Solicitar mejora'
+  }
+  definirTexto(
+    '[data-dashboard-fecha]',
+    new Intl.DateTimeFormat('es-AR', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date()),
+  )
 }
 
 async function refrescar() {
-  datosPortal = await cargarPortal()
+  datosPortal = await cargarPortal(paginaPortal)
   renderPortal(datosPortal)
-  await cargarMesAgenda()
+  if (paginaPortal === 'agenda') await cargarMesAgenda()
 }
 
 async function iniciar() {
   try {
     const contexto = await protegerRuta('app')
     if (!contexto) return
-    document.querySelector('[data-nombre]').textContent = contexto.perfil.nombre_completo?.split(' ')[0] || 'bienvenido'
-    document.querySelector('[data-avatar]').textContent = (contexto.perfil.nombre_completo || contexto.perfil.email || 'A').slice(0, 1).toUpperCase()
+    usuarioActualId = contexto.user.id
+    definirTexto('[data-nombre]', contexto.perfil.nombre_completo?.split(' ')[0] || 'bienvenido')
+    definirTexto('[data-avatar]', (contexto.perfil.nombre_completo || contexto.perfil.email || 'A').slice(0, 1).toUpperCase())
     await refrescar()
     const parametros = new URLSearchParams(window.location.search)
     if (parametros.get('google') === 'conectado') {
@@ -342,15 +391,36 @@ async function iniciar() {
   }
 }
 
-document.querySelector('[data-menu]').addEventListener('click', (evento) => {
+document.querySelector('[data-menu]')?.addEventListener('click', (evento) => {
   const abierto = document.body.classList.toggle('menu-abierto')
   evento.currentTarget.setAttribute('aria-expanded', String(abierto))
 })
-document.querySelector('[data-logout]').addEventListener('click', async (evento) => {
+document.querySelector('[data-logout]')?.addEventListener('click', async (evento) => {
   setCargando(evento.currentTarget, true)
   try { await cerrarSesion() } catch { mostrarAviso('No se pudo cerrar la sesión.', 'error') }
 })
-document.querySelector('[data-scan]').addEventListener('click', async (evento) => {
+document.querySelector('[data-request-plan]')?.addEventListener('click', async (evento) => {
+  const boton = evento.currentTarget
+  let actualizar = false
+  setCargando(boton, true, 'Enviando…')
+  try {
+    const { error } = await supabase.from('solicitudes_mejora_plan').insert({ usuario_id: usuarioActualId })
+    if (error?.code === '23505') {
+      mostrarAviso('Ya tenés una solicitud de mejora pendiente.', 'info')
+    } else if (error) {
+      throw error
+    } else {
+      mostrarAviso('Solicitud enviada. El administrador revisará tu plan.', 'exito')
+    }
+    actualizar = true
+  } catch {
+    mostrarAviso('No se pudo enviar la solicitud de mejora.', 'error')
+  } finally {
+    setCargando(boton, false)
+    if (actualizar) await refrescar()
+  }
+})
+document.querySelector('[data-scan]')?.addEventListener('click', async (evento) => {
   const boton = evento.currentTarget
   setCargando(boton, true, 'Actualizando…')
   try {
@@ -399,19 +469,19 @@ async function desconectarServicio(servicio, boton) {
   }
 }
 
-document.querySelector('[data-connect-gmail]').addEventListener('click', (evento) => {
+document.querySelector('[data-connect-gmail]')?.addEventListener('click', (evento) => {
   conectarServicio('gmail', evento.currentTarget)
 })
-document.querySelector('[data-connect-calendar]').addEventListener('click', (evento) => {
+document.querySelector('[data-connect-calendar]')?.addEventListener('click', (evento) => {
   conectarServicio('calendar', evento.currentTarget)
 })
-document.querySelector('[data-disconnect-gmail]').addEventListener('click', (evento) => {
+document.querySelector('[data-disconnect-gmail]')?.addEventListener('click', (evento) => {
   desconectarServicio('gmail', evento.currentTarget)
 })
-document.querySelector('[data-disconnect-calendar]').addEventListener('click', (evento) => {
+document.querySelector('[data-disconnect-calendar]')?.addEventListener('click', (evento) => {
   desconectarServicio('calendar', evento.currentTarget)
 })
-document.querySelector('[data-revoke-google]').addEventListener('click', async (evento) => {
+document.querySelector('[data-revoke-google]')?.addEventListener('click', async (evento) => {
   if (!confirm('Esto revocará el acceso de AgenKin a Google y desconectará Gmail y Calendar. ¿Continuar?')) return
 
   const boton = evento.currentTarget
@@ -427,7 +497,7 @@ document.querySelector('[data-revoke-google]').addEventListener('click', async (
   }
 })
 
-document.querySelector('[data-correos]').addEventListener('change', async (evento) => {
+document.querySelector('[data-correos]')?.addEventListener('change', async (evento) => {
   const selector = evento.target.closest('[data-grupo-correo]')
   if (!selector) return
 
@@ -446,20 +516,20 @@ document.querySelector('[data-correos]').addEventListener('change', async (event
   }
 })
 
-document.querySelector('[data-agenda-anterior]').addEventListener('click', async () => {
+document.querySelector('[data-agenda-anterior]')?.addEventListener('click', async () => {
   mesAgenda = new Date(mesAgenda.getFullYear(), mesAgenda.getMonth() - 1, 1)
   await cargarMesAgenda()
 })
-document.querySelector('[data-agenda-siguiente]').addEventListener('click', async () => {
+document.querySelector('[data-agenda-siguiente]')?.addEventListener('click', async () => {
   mesAgenda = new Date(mesAgenda.getFullYear(), mesAgenda.getMonth() + 1, 1)
   await cargarMesAgenda()
 })
-document.querySelector('[data-agenda-hoy]').addEventListener('click', async () => {
+document.querySelector('[data-agenda-hoy]')?.addEventListener('click', async () => {
   const hoy = new Date()
   mesAgenda = new Date(hoy.getFullYear(), hoy.getMonth(), 1)
   await cargarMesAgenda()
 })
-document.querySelector('[data-agenda-grid]').addEventListener('click', (evento) => {
+document.querySelector('[data-agenda-grid]')?.addEventListener('click', (evento) => {
   const dia = evento.target.closest('[data-agenda-fecha]')
   if (!dia) return
   document.querySelectorAll('[data-agenda-fecha]').forEach((elemento) => {
@@ -467,13 +537,13 @@ document.querySelector('[data-agenda-grid]').addEventListener('click', (evento) 
   })
   renderDetalleAgenda(dia.dataset.agendaFecha)
 })
-eventosAutomaticos.addEventListener('change', () => {
+eventosAutomaticos?.addEventListener('change', () => {
   if (eventosAutomaticos.checked) sincronizacionAutomatica.checked = true
 })
-sincronizacionAutomatica.addEventListener('change', () => {
+sincronizacionAutomatica?.addEventListener('change', () => {
   if (!sincronizacionAutomatica.checked) eventosAutomaticos.checked = false
 })
-formularioAutomatizacion.addEventListener('submit', async (evento) => {
+formularioAutomatizacion?.addEventListener('submit', async (evento) => {
   evento.preventDefault()
   const activarEventos = eventosAutomaticos.checked
   if (activarEventos && !datosPortal.conexion?.creacion_automatica_eventos) {
@@ -499,7 +569,7 @@ formularioAutomatizacion.addEventListener('submit', async (evento) => {
     setCargando(boton, false)
   }
 })
-tbodyVencimientos.addEventListener('click', async (evento) => {
+tbodyVencimientos?.addEventListener('click', async (evento) => {
   const id = evento.target.dataset.revisar || evento.target.dataset.descartar
   if (!id) return
   const item = datosPortal.vencimientos.find((vencimiento) => vencimiento.id === id)
@@ -517,7 +587,7 @@ tbodyVencimientos.addEventListener('click', async (evento) => {
   formularioEvento.elements.hora.value = item.hora_vencimiento?.slice(0, 5) || ''
   dialogoEvento.showModal()
 })
-formularioEvento.addEventListener('submit', async (evento) => {
+formularioEvento?.addEventListener('submit', async (evento) => {
   if (evento.submitter?.value === 'cancel') return
   evento.preventDefault()
   const boton = evento.submitter
@@ -537,8 +607,8 @@ formularioEvento.addEventListener('submit', async (evento) => {
     await refrescar()
   } catch (error) { mostrarAviso(error.message, 'error') } finally { setCargando(boton, false) }
 })
-document.querySelector('[data-nueva-regla]').addEventListener('click', () => dialogoRegla.showModal())
-formularioRegla.addEventListener('submit', async (evento) => {
+document.querySelector('[data-nueva-regla]')?.addEventListener('click', () => dialogoRegla.showModal())
+formularioRegla?.addEventListener('submit', async (evento) => {
   if (evento.submitter?.value === 'cancel') return
   evento.preventDefault()
   const boton = evento.submitter
@@ -550,7 +620,7 @@ formularioRegla.addEventListener('submit', async (evento) => {
   formularioRegla.reset()
   await refrescar()
 })
-document.querySelector('[data-reglas]').addEventListener('click', async (evento) => {
+document.querySelector('[data-reglas]')?.addEventListener('click', async (evento) => {
   const id = evento.target.dataset.eliminarRegla
   if (!id || !confirm('¿Eliminar esta regla?')) return
   const { error } = await supabase.from('reglas_usuario').delete().eq('id', id)

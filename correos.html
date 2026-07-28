@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; object-src 'none'; base-uri 'self'; frame-ancestors 'none'">
+    <title>Correos analizados — AgenKin</title>
+    <link rel="stylesheet" href="./src/styles/global.css">
+    <link rel="stylesheet" href="./src/styles/portal.css">
+  </head>
+  <body class="portal" data-portal-page="correos">
+    <a class="salto-contenido" href="#contenido">Saltar al contenido</a>
+    <aside class="barra-lateral">
+      <a class="marca marca--imagen marca--lateral" href="./app.html" aria-label="AgenKin, portal de usuario"><img src="./src/assets/agenkin-logo-dark.png" alt="AgenKin"></a>
+      <nav aria-label="Portal del usuario">
+        <a href="./app.html">Inicio</a>
+        <a class="activo" href="./correos.html">Correos analizados</a>
+        <a href="./vencimientos.html">Vencimientos</a>
+        <a href="./agenda.html">Agenda</a>
+        <a href="./reglas.html">Reglas personales</a>
+        <a href="./configuracion.html">Configuración</a>
+      </nav>
+      <button class="boton boton--lateral" data-logout>Cerrar sesión</button>
+    </aside>
+    <main id="contenido" class="contenido-portal">
+      <header class="cabecera-subpagina">
+        <button class="menu-movil" data-menu aria-label="Abrir menú" aria-expanded="false">☰</button>
+        <a class="volver-inicio" href="./app.html" aria-label="Volver al inicio">←</a>
+        <div><p class="eyebrow">Historial clasificado</p><h1>Correos analizados</h1><p>Metadatos y resultados de los últimos análisis, sin almacenar el cuerpo completo.</p></div>
+        <div class="cabecera-subpagina__acciones">
+          <span>Hola, <strong data-nombre>cargando…</strong></span>
+          <button class="tema-toggle" type="button" data-theme-toggle aria-label="Activar modo oscuro" aria-pressed="false"><span data-theme-icon aria-hidden="true">☾</span><span data-theme-label>Oscuro</span></button>
+          <span class="avatar" data-avatar aria-hidden="true">A</span>
+        </div>
+      </header>
+      <div data-alertas></div>
+      <section class="panel panel--pagina">
+        <div class="titulo-seccion"><div><h2>Últimos correos</h2><p>Podés corregir el grupo asignado y el tablero se actualizará automáticamente.</p></div></div>
+        <div class="tabla-scroll"><table><thead><tr><th>Fecha</th><th>Remitente</th><th>Asunto</th><th>Detalle IA</th><th>Grupo</th><th>Estado</th></tr></thead><tbody data-correos><tr><td colspan="6">Cargando correos…</td></tr></tbody></table></div>
+      </section>
+    </main>
+    <script type="module" src="./src/pages/app.js"></script>
+  </body>
+</html>

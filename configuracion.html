@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; object-src 'none'; base-uri 'self'; frame-ancestors 'none'">
+    <title>Configuración — AgenKin</title>
+    <link rel="stylesheet" href="./src/styles/global.css">
+    <link rel="stylesheet" href="./src/styles/portal.css">
+  </head>
+  <body class="portal" data-portal-page="configuracion">
+    <a class="salto-contenido" href="#contenido">Saltar al contenido</a>
+    <aside class="barra-lateral">
+      <a class="marca marca--imagen marca--lateral" href="./app.html" aria-label="AgenKin, portal de usuario"><img src="./src/assets/agenkin-logo-dark.png" alt="AgenKin"></a>
+      <nav aria-label="Portal del usuario">
+        <a href="./app.html">Inicio</a>
+        <a href="./correos.html">Correos analizados</a>
+        <a href="./vencimientos.html">Vencimientos</a>
+        <a href="./agenda.html">Agenda</a>
+        <a href="./reglas.html">Reglas personales</a>
+        <a class="activo" href="./configuracion.html">Configuración</a>
+      </nav>
+      <button class="boton boton--lateral" data-logout>Cerrar sesión</button>
+    </aside>
+    <main id="contenido" class="contenido-portal">
+      <header class="cabecera-subpagina">
+        <button class="menu-movil" data-menu aria-label="Abrir menú" aria-expanded="false">☰</button>
+        <a class="volver-inicio" href="./app.html" aria-label="Volver al inicio">←</a>
+        <div><p class="eyebrow">Cuenta e integraciones</p><h1>Configuración</h1><p>Administrá tu plan, conexiones y automatización desde un solo lugar.</p></div>
+        <div class="cabecera-subpagina__acciones">
+          <span>Hola, <strong data-nombre>cargando…</strong></span>
+          <button class="tema-toggle" type="button" data-theme-toggle aria-label="Activar modo oscuro" aria-pressed="false"><span data-theme-icon aria-hidden="true">☾</span><span data-theme-label>Oscuro</span></button>
+          <span class="avatar" data-avatar aria-hidden="true">A</span>
+        </div>
+      </header>
+      <div data-alertas></div>
+
+      <section id="suscripcion" class="panel panel--pagina">
+        <div class="titulo-seccion">
+          <div><p class="eyebrow">Suscripción</p><h2>Tu plan</h2><p>Estado, vigencia y uso mensual de la cuenta.</p></div>
+          <button class="boton boton--secundario" data-request-plan>Solicitar mejora</button>
+        </div>
+        <div class="suscripcion-grid">
+          <dl><div><dt>Plan</dt><dd data-suscripcion="plan">—</dd></div><div><dt>Estado</dt><dd data-suscripcion="estado">—</dd></div><div><dt>Inicio</dt><dd data-suscripcion="inicio">—</dd></div><div><dt>Vencimiento</dt><dd data-suscripcion="vencimiento">—</dd></div></dl>
+          <div><label for="uso-plan">Uso mensual</label><progress id="uso-plan" max="100" value="0" data-uso></progress><p data-uso-texto>—</p></div>
+        </div>
+      </section>
+
+      <section id="google" class="panel panel--google panel--pagina">
+        <div class="panel-google__cabecera">
+          <div><p class="eyebrow">Integraciones opcionales</p><h2>Servicios de Google</h2><p>Usá la misma cuenta para mantener Gmail, Agenda y Calendar sincronizados.</p></div>
+          <button class="boton boton--peligro oculto" data-revoke-google>Revocar acceso de Google</button>
+        </div>
+        <div class="servicios-google">
+          <article><div><span class="servicio-icono">G</span><div><strong>Gmail</strong><p>Lectura de correos autorizados.</p><small data-servicio-gmail-detalle>Sin cuenta asociada</small></div></div><span data-servicio-gmail>Desconectado</span><div><button class="boton boton--primario" data-connect-gmail>Conectar Gmail</button><button class="boton boton--texto oculto" data-disconnect-gmail>Desactivar</button></div></article>
+          <article><div><span class="servicio-icono">C</span><div><strong>Google Calendar</strong><p>Replica los eventos en “Agenda”.</p><small data-servicio-calendar-detalle>Sin cuenta asociada</small></div></div><span data-servicio-calendar>Desconectado</span><div><button class="boton boton--primario" data-connect-calendar>Conectar Calendar</button><button class="boton boton--texto oculto" data-disconnect-calendar>Desactivar</button></div></article>
+        </div>
+        <form class="automatizacion-google" data-auto-form>
+          <div class="automatizacion-google__titulo">
+            <div><strong>Sincronización continua</strong><span>AgenKin revisa cambios de Gmail cada 5 minutos sin volver a leer toda la bandeja.</span></div>
+            <span class="estado-automatizacion" data-auto-estado>Desactivada</span>
+          </div>
+          <label class="opcion-automatizacion">
+            <span><strong>Analizar correos automáticamente</strong><small>Los correos pendientes se procesan en una cola segura y reintentable.</small></span>
+            <input type="checkbox" data-auto-sync>
+          </label>
+          <label class="opcion-automatizacion">
+            <span><strong>Crear eventos de alta confianza</strong><small>Solo fechas futuras, exactas, sin revisión requerida y por encima del umbral elegido.</small></span>
+            <input type="checkbox" data-auto-events>
+          </label>
+          <div class="automatizacion-google__pie">
+            <label>Confianza mínima
+              <select data-auto-threshold>
+                <option value="0.90">90%</option>
+                <option value="0.95">95%</option>
+                <option value="0.98">98%</option>
+              </select>
+            </label>
+            <button class="boton boton--secundario" type="submit">Guardar automatización</button>
+          </div>
+          <p class="detalle-automatizacion" data-auto-detalle>Conectá Gmail para activar esta función.</p>
+        </form>
+      </section>
+
+      <section class="panel panel--pagina">
+        <p class="eyebrow">Privacidad</p><h2>Cuenta y datos</h2>
+        <p>La eliminación de cuenta y datos se solicita al propietario durante el MVP. Consultá el procedimiento en la política de privacidad.</p>
+        <a class="boton boton--secundario" href="./privacidad.html#eliminacion">Cómo eliminar mi cuenta</a>
+      </section>
+    </main>
+    <script type="module" src="./src/pages/app.js"></script>
+  </body>
+</html>
