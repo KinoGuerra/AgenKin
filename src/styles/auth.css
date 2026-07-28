@@ -24,6 +24,7 @@
   text-align: center;
 }
 .tarjeta-auth .marca, .selector-portal > .marca { margin-bottom: 3rem; }
+.tarjeta-auth > .marca--auth { width: min(220px, 70%); margin-right: auto; margin-left: auto; }
 .selector-portal > .marca--selector { width: min(230px, 70%); margin-right: auto; margin-left: auto; }
 .tarjeta-auth h1, .selector-portal h1 { margin-top: .6rem; font-size: clamp(2rem, 5vw, 3rem); }
 .spinner { width: 42px; height: 42px; margin: 2rem auto; border: 4px solid var(--borde); border-top-color: var(--verde); border-radius: 50%; animation: girar .8s linear infinite; }
