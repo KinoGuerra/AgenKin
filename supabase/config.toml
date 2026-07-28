@@ -1,5 +1,22 @@
 project_id = "kpqzwbhprqlapwhadejt"
 
+[auth]
+site_url = "https://kinoguerra.github.io/AgenKin/"
+additional_redirect_urls = [
+  "http://localhost:5173/AgenKin/auth-callback.html",
+  "http://127.0.0.1:5173/AgenKin/auth-callback.html",
+  "https://kinoguerra.github.io/AgenKin/auth-callback.html",
+]
+
+[auth.mfa.totp]
+enroll_enabled = true
+verify_enabled = true
+
+[auth.email]
+enable_confirmations = true
+max_frequency = "1m"
+otp_length = 8
+
 [functions.google-oauth-callback]
 verify_jwt = false
 

@@ -1,7 +1,23 @@
-import { rutaPublica } from '../config/env.js'
+import { env, rutaPublica } from '../config/env.js'
 import { supabase } from './supabase.js'
 
+export function entornoWebServido(location = window.location) {
+  return location.protocol === 'http:' || location.protocol === 'https:'
+}
+
+export async function googleAuthHabilitado(fetcher = globalThis.fetch) {
+  const respuesta = await fetcher(`${env.supabaseUrl}/auth/v1/settings`, {
+    headers: { apikey: env.supabaseKey },
+  })
+  if (!respuesta.ok) throw new Error('No se pudo consultar el estado de Google Auth.')
+  const configuracion = await respuesta.json()
+  return configuracion?.external?.google === true
+}
+
 export async function iniciarSesionGoogle() {
+  if (!entornoWebServido()) {
+    throw new Error('Abrí AgenKin desde npm run dev; el acceso no funciona como archivo local.')
+  }
   return supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {

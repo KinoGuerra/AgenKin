@@ -1,3 +1,4 @@
+import '../components/theme.js'
 import { crearCelda, estadoVacio, mostrarAviso, setCargando } from '../components/ui.js'
 import { protegerRuta } from '../guards/route-guard.js'
 import { cerrarSesion } from '../services/auth.js'

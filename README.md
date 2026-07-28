@@ -54,7 +54,7 @@ Se eligió JavaScript multipágina sin React ni router: GitHub Pages sirve cada 
 - npm 10 o superior.
 - Supabase CLI para aplicar base y funciones.
 - Proyecto Google Cloud para habilitar integraciones.
-- Proveedor de IA con endpoint compatible con OpenAI Chat Completions y salida JSON.
+- Cuenta de Groq para la clasificación con Structured Outputs.
 
 ## Inicio local
 
@@ -67,6 +67,8 @@ npm run dev
 ```
 
 Abrir `http://localhost:5173/AgenKin/`. El base path `/AgenKin/` se usa también en desarrollo para detectar problemas antes del despliegue.
+
+El selector claro/oscuro también funciona al abrir `index.html` con `file://`. Para el ingreso y el resto de la aplicación hay que usar Vite: el navegador bloquea los módulos ES y OAuth no admite una página servida como archivo local. Bajo HTTP, la interfaz muestra además el estado real del proveedor Google consultando la configuración pública de Supabase Auth.
 
 Variables públicas:
 
@@ -106,6 +108,12 @@ En Supabase → Authentication → URL Configuration:
 
 Configurar Google como proveedor de Supabase Auth para el login básico.
 
+El callback que debe registrarse en Google Cloud para ese proveedor es:
+
+```text
+https://kpqzwbhprqlapwhadejt.supabase.co/auth/v1/callback
+```
+
 ## Crear el superadministrador
 
 1. El propietario inicia sesión al menos una vez para crear su perfil.
@@ -135,20 +143,34 @@ El login inicial no solicita estos permisos.
 
 ## IA y secretos
 
-Configurar los secretos en Supabase, nunca en el frontend:
+Seguir [Configuración de Groq](docs/CONFIGURACION_GROQ.md). Groq es el proveedor
+predeterminado y se usa mediante el adaptador existente de `scan-gmail`; nunca
+se llama al proveedor desde el frontend.
+
+Configurar los secretos de IA en Supabase, nunca en el frontend:
 
 ```bash
 supabase secrets set \
-  GOOGLE_CLIENT_ID="..." \
-  GOOGLE_CLIENT_SECRET="..." \
-  GOOGLE_REDIRECT_URI="https://kpqzwbhprqlapwhadejt.supabase.co/functions/v1/google-oauth-callback" \
-  TOKEN_ENCRYPTION_KEY="BASE64_DE_32_BYTES" \
-  APP_PUBLIC_URL="https://kinoguerra.github.io/AgenKin/" \
-  AI_API_KEY="..." \
-  AI_MODEL="modelo-compatible"
+  AI_PROVIDER="groq" \
+  AI_API_URL="https://api.groq.com/openai/v1/chat/completions" \
+  AI_MODEL="openai/gpt-oss-20b" \
+  AI_API_KEY="REEMPLAZAR_CON_CLAVE_GROQ" \
+  AI_TIMEOUT_MS="20000"
 ```
 
-`AI_API_URL` es opcional; por defecto se usa un endpoint compatible con OpenAI en `https://api.openai.com/v1/chat/completions`. El modelo no está fijado en el código. Antes de usar otro proveedor, confirmar que acepte `response_format: {"type":"json_object"}` o adaptar `supabase/functions/_shared/ai.ts`.
+Las credenciales de Google se configuran por separado según
+[Configuración de Google](docs/CONFIGURACION_GOOGLE.md). Las variables de IA
+mantienen nombres genéricos para poder cambiar de proveedor, pero el valor
+predeterminado documentado es Groq con `openai/gpt-oss-20b`.
+
+El adaptador usa JSON Schema estricto, timeout configurable, hasta tres intentos
+totales para errores transitorios y validación local antes de persistir. Cada
+correo se reclama por su combinación `usuario_id + gmail_message_id`; un fallo
+técnico se registra de forma recuperable y devuelve el cupo mensual. Los
+reintentos internos de una misma clasificación no incrementan el cupo.
+
+Nunca agregar `AI_API_KEY` a `.env` del frontend ni crear una variable
+`VITE_AI_API_KEY`.
 
 Generar la clave de cifrado:
 
@@ -180,7 +202,9 @@ npm run build
 npm run preview
 ```
 
-Las pruebas cubren normalización de fechas, confianza, prueba de 15 días, estados y límites de suscripción, guardas, respuesta de IA, duplicados y formularios administrativos.
+Las pruebas cubren normalización de fechas, confianza, prueba de 15 días,
+estados y límites de suscripción, guardas, Structured Outputs, sanitización,
+timeout, reintentos, errores seguros, duplicados y formularios administrativos.
 
 ## Publicación en GitHub Pages
 
@@ -201,7 +225,8 @@ Consultar [Seguridad](docs/SEGURIDAD.md) y la política incluida en `privacidad.
 - Sin pasarela de pagos: planes y vencimientos se administran manualmente.
 - Sin sincronización continua: el usuario pulsa “Analizar correos ahora”.
 - Gmail requiere verificación y posiblemente evaluación de seguridad antes de un lanzamiento público.
-- El proveedor de IA debe revisarse en materia de retención y privacidad.
+- Las condiciones de privacidad y retención de Groq deben revisarse nuevamente
+  antes de comercializar el servicio.
 - GitHub Pages no permite todos los encabezados HTTP; la CSP se aplica mediante HTML.
 - No hay recuperación automática ante un evento creado en Google pero no registrado por una caída excepcional posterior. El ID determinista evita crear un duplicado al reintentar, pero ese caso debe reconciliarse operativamente.
 - Los textos legales son una base técnica y requieren revisión profesional antes de comercializar.

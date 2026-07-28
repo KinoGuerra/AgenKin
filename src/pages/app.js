@@ -1,3 +1,4 @@
+import '../components/theme.js'
 import { crearCelda, estadoVacio, mostrarAviso, setCargando } from '../components/ui.js'
 import { protegerRuta } from '../guards/route-guard.js'
 import { cerrarSesion } from '../services/auth.js'
@@ -169,10 +170,18 @@ document.querySelector('[data-scan]').addEventListener('click', async (evento) =
   setCargando(boton, true, 'Analizando…')
   try {
     const resultado = await invocarFuncion('scan-gmail', {})
-    mostrarAviso(`Análisis terminado: ${resultado.procesados || 0} correos procesados.`, 'exito')
+    const procesados = resultado.procesados || 0
+    const errores = resultado.errores || 0
+    const ignorados = resultado.ignorados || 0
+    const detectados = resultado.detectados || 0
+    const limite = resultado.limite_alcanzado ? ' Se alcanzó el límite mensual.' : ''
+    const mensaje = errores
+      ? `Análisis terminado: ${procesados} correctos, ${errores} con error, ${ignorados} ignorados y ${detectados} vencimientos detectados.${limite}`
+      : `Análisis terminado: ${procesados} correos, ${ignorados} ignorados y ${detectados} vencimientos detectados.${limite}`
+    mostrarAviso(mensaje, errores ? 'error' : 'exito')
     await refrescar()
   } catch (error) {
-    mostrarAviso(error.message.includes('config') ? 'Configuración requerida: completá Google OAuth e IA en Supabase.' : error.message, 'error')
+    mostrarAviso(error.message, 'error')
   } finally { setCargando(boton, false) }
 })
 document.querySelector('[data-connect-google]').addEventListener('click', async (evento) => {

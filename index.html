@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="AgenKin convierte fechas importantes de tus correos en eventos de Google Calendar, siempre con tu confirmación.">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; font-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self' https://accounts.google.com">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-oTgFU+AOnycdjK+uMeVmFE2vpcY6jXBrCE3I9DUsfwI='; style-src 'self'; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; font-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self' https://accounts.google.com">
     <title>AgenKin — Del correo a tu agenda</title>
     <link rel="stylesheet" href="./src/styles/global.css">
     <link rel="stylesheet" href="./src/styles/landing.css">
@@ -12,13 +12,22 @@
   <body>
     <a class="salto-contenido" href="#contenido">Saltar al contenido</a>
     <header class="cabecera-publica">
-      <a class="marca" href="./index.html" aria-label="AgenKin, inicio"><span aria-hidden="true">A</span>AgenKin</a>
+      <a class="marca marca--imagen" href="./index.html" aria-label="AgenKin, inicio">
+        <img class="logo-tema logo-tema--claro" src="./src/assets/agenkin-logo-light.png" alt="AgenKin">
+        <img class="logo-tema logo-tema--oscuro" src="./src/assets/agenkin-logo-dark.png" alt="">
+      </a>
       <nav aria-label="Navegación principal">
         <a href="#como-funciona">Cómo funciona</a>
         <a href="#funciones">Funciones</a>
         <a href="#planes">Planes</a>
       </nav>
-      <button class="boton boton--secundario" data-login>Ingresar</button>
+      <div class="acciones-nav">
+        <button class="tema-toggle" type="button" data-theme-toggle aria-label="Activar modo oscuro" aria-pressed="false">
+          <span data-theme-icon aria-hidden="true">☾</span>
+          <span data-theme-label>Oscuro</span>
+        </button>
+        <button class="boton boton--secundario" type="button" data-login>Ingresar</button>
+      </div>
     </header>
 
     <main id="contenido">
@@ -28,9 +37,10 @@
           <h1>Del correo a tu agenda, <span>automáticamente.</span></h1>
           <p class="hero__descripcion">AgenKin analiza tus correos cuando vos lo pedís, detecta vencimientos, entregas, reuniones y fechas importantes para ayudarte a registrarlas en Google Calendar.</p>
           <div class="acciones">
-            <button class="boton boton--primario" data-login>Ingresar con Google</button>
+            <button class="boton boton--primario" type="button" data-login>Ingresar con Google</button>
             <a class="boton boton--texto" href="#como-funciona">Conocer el proceso</a>
           </div>
+          <p class="estado-auth" data-auth-status role="status">Comprobando Google Auth…</p>
           <p class="nota-seguridad">Vos revisás y confirmás cada evento. AgenKin no modifica tu bandeja.</p>
           <div data-alertas></div>
         </div>
@@ -96,16 +106,18 @@
 
       <section class="cta">
         <div><p class="eyebrow">Tu próxima fecha importante ya puede estar en un correo</p><h2>Convertí tu bandeja en una agenda más confiable.</h2></div>
-        <button class="boton boton--claro" data-login>Ingresar con Google</button>
+        <button class="boton boton--claro" type="button" data-login>Ingresar con Google</button>
       </section>
     </main>
 
     <footer class="pie">
-      <a class="marca marca--clara" href="./index.html"><span aria-hidden="true">A</span>AgenKin</a>
+      <a class="marca marca--imagen marca--pie" href="./index.html"><img src="./src/assets/agenkin-logo-dark.png" alt="AgenKin"></a>
       <p>Del correo a tu agenda, automáticamente.</p>
       <nav aria-label="Enlaces legales"><a href="./privacidad.html">Privacidad</a><a href="./terminos.html">Términos</a></nav>
       <small>© 2026 AgenKin</small>
     </footer>
+    <script type="module" src="./src/components/theme.js"></script>
     <script type="module" src="./src/pages/landing.js"></script>
+    <script>window.addEventListener('load',()=>{if(globalThis.AgenKinTheme)return;const script=document.createElement('script');script.src='./src/components/theme.js';document.head.append(script);const status=document.querySelector('[data-auth-status]');if(status)status.textContent='Para ingresar con Google, ejecutá npm run dev.'})</script>
   </body>
 </html>

@@ -1,3 +1,4 @@
+import '../components/theme.js'
 import { mostrarAviso } from '../components/ui.js'
 import { rutaPublica } from '../config/env.js'
 import { destinoPorPerfil } from '../guards/route-guard.js'

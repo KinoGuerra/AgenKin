@@ -21,13 +21,16 @@ Deno.serve(async (request) => {
 
     const cliente = clienteServicio()
     const hash = await hashEstado(estado)
+    const ahora = new Date().toISOString()
     const { data: registro } = await cliente
       .from('oauth_states')
-      .select('usuario_id,vence_en,usado_en')
+      .update({ usado_en: ahora })
       .eq('hash_estado', hash)
-      .single()
-    if (!registro || registro.usado_en || new Date(registro.vence_en) < new Date()) return redirigir('error')
-    await cliente.from('oauth_states').update({ usado_en: new Date().toISOString() }).eq('hash_estado', hash)
+      .is('usado_en', null)
+      .gt('vence_en', ahora)
+      .select('usuario_id')
+      .maybeSingle()
+    if (!registro) return redirigir('error')
 
     const respuestaToken = await fetch('https://oauth2.googleapis.com/token', {
       method: 'POST',

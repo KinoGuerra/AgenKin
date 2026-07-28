@@ -34,6 +34,10 @@ supabase functions deploy create-calendar-event
 
 El callback es la única función pública porque Google no envía un JWT de Supabase. Su seguridad depende de un `state` aleatorio, almacenado como hash, de uso único y con vencimiento.
 
+Antes de desplegar `scan-gmail`, configurar Groq según
+[Configuración de Groq](CONFIGURACION_GROQ.md). La API key debe existir
+únicamente como Supabase Secret.
+
 ## Variables públicas
 
 El navegador solo usa:

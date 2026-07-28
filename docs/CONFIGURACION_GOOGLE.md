@@ -17,14 +17,17 @@ AgenKin solicita los permisos adicionales únicamente desde el portal:
 
 `gmail.readonly` es un permiso restringido. Una publicación abierta puede requerir verificación de Google y, si los datos restringidos pasan por un servidor, una evaluación de seguridad. Revisar los requisitos oficiales antes de salir de Testing.
 
-## 3. Cliente OAuth
+## 3. Clientes OAuth
 
-Crear un cliente de tipo **Aplicación web** y registrar exactamente:
+Se necesitan dos flujos OAuth independientes. Pueden usar el mismo cliente web durante el MVP si se registran ambos callbacks, aunque separar los clientes por entorno simplifica la rotación futura.
 
-- Origen del frontend: `https://kinoguerra.github.io`
-- Callback de Edge Function: `https://kpqzwbhprqlapwhadejt.supabase.co/functions/v1/google-oauth-callback`
+Registrar:
 
-En desarrollo, agregar los orígenes locales necesarios. El callback de Google siempre debe apuntar a la Edge Function, nunca al navegador.
+- Orígenes JavaScript: `https://kinoguerra.github.io`, `http://localhost:5173` y `http://127.0.0.1:5173`.
+- Callback de Supabase Auth para el ingreso: `https://kpqzwbhprqlapwhadejt.supabase.co/auth/v1/callback`.
+- Callback de Edge Function para Gmail y Calendar: `https://kpqzwbhprqlapwhadejt.supabase.co/functions/v1/google-oauth-callback`.
+
+El callback de Supabase Auth vuelve luego a `auth-callback.html`; el callback de la Edge Function vuelve al portal. No intercambiar esas URLs.
 
 ## 4. Secretos
 
@@ -45,7 +48,7 @@ No copiar estos valores a `.env`, a variables `VITE_*` ni al código.
 El primer inicio de sesión usa el proveedor Google de **Supabase Auth** y solicita solo perfil básico. En Supabase:
 
 1. Authentication → Providers → Google.
-2. Configurar el cliente destinado a Supabase Auth.
+2. Configurar el Client ID y Client Secret del cliente web y habilitar el proveedor.
 3. En URL Configuration agregar:
    - `http://localhost:5173/AgenKin/auth-callback.html`
    - `https://kinoguerra.github.io/AgenKin/auth-callback.html`
