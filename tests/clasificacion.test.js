@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { confianzaValida, formatearAvisoDia, normalizarClasificacion } from '../src/utils/clasificacion.js'
+import {
+  confianzaValida,
+  formatearAvisoDia,
+  formatearMontoARS,
+  normalizarClasificacion,
+} from '../src/utils/clasificacion.js'
 
 describe('confianzaValida', () => {
   it('acepta solamente valores entre cero y uno', () => {
@@ -53,6 +58,11 @@ describe('formatearAvisoDia', () => {
       .toBe('Tarjeta - Visa - $ 120.000')
     expect(formatearAvisoDia({ grupo_resumen: 'servicios', entidad: 'Epec', monto: 101000 }))
       .toBe('Servicio - Epec - $ 101.000')
+  })
+
+  it('formatea importes para mostrar la interpretación del correo', () => {
+    expect(formatearMontoARS(100000)).toContain('100.000')
+    expect(formatearMontoARS(null, null)).toBeNull()
   })
 
   it('explicita los datos que no pudieron detectarse', () => {

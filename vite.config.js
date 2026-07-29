@@ -11,6 +11,7 @@ const paginas = [
   'configuracion.html',
   'admin.html',
   'access.html',
+  'mfa.html',
   'auth-callback.html',
   'privacidad.html',
   'terminos.html',

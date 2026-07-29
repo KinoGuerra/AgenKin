@@ -198,8 +198,10 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .aviso { margin: 1rem 0; padding: .85rem 1rem; border: 1px solid var(--borde); border-radius: 10px; background: var(--superficie); font-size: .9rem; }
 .aviso--error { border-color: #e5b3b3; background: #fff4f3; color: #7e2424; }
 .aviso--exito { border-color: #a9d9c0; background: #f0fbf5; color: #135b38; }
+.aviso--advertencia { border-color: #e7cf91; background: #fff9e8; color: #6d4b00; }
 [data-theme="dark"] .aviso--error { border-color: #783f3f; background: #321c1c; color: #ffb4b4; }
 [data-theme="dark"] .aviso--exito { border-color: #276a4c; background: #102b20; color: #8be7b8; }
+[data-theme="dark"] .aviso--advertencia { border-color: #735d23; background: #30280f; color: #f7d77d; }
 [data-theme="dark"] .boton--peligro { border-color: #783f3f; background: #321c1c; }
 .estado-vacio, .lista-vacia {
   padding: 2.5rem 1rem;

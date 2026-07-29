@@ -30,9 +30,10 @@ Deno.serve(async (request) => {
 
     if (revocarTodo && conexion.refresh_token_cifrado && conexion.token_iv) {
       const token = await descifrarToken(conexion.refresh_token_cifrado, conexion.token_iv)
-      await fetch(`https://oauth2.googleapis.com/revoke?token=${encodeURIComponent(token)}`, {
+      await fetch('https://oauth2.googleapis.com/revoke', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({ token }),
       }).catch(() => null)
     }
 
@@ -75,6 +76,6 @@ Deno.serve(async (request) => {
     }
     return json({ ok: true, gmail_conectado: gmailConectado, calendar_conectado: calendarConectado })
   } catch (error) {
-    return errorSeguro(error)
+    return errorSeguro(error, 400, 'No se pudo actualizar la conexión con Google.')
   }
 })

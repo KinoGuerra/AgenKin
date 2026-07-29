@@ -37,3 +37,30 @@
 .opcion-portal h2 { margin: 0 0 .3rem; font-size: 1.15rem; }
 .opcion-portal p { margin: 0; font-size: .82rem; }
 @keyframes girar { to { transform: rotate(360deg); } }
+
+.tarjeta-mfa { width: min(560px, 100%); }
+.mfa-enrolamiento { margin: 1.5rem auto; }
+.mfa-enrolamiento img {
+  width: min(220px, 75vw);
+  padding: .75rem;
+  border: 1px solid var(--borde);
+  border-radius: 16px;
+  background: #fff;
+}
+.mfa-enrolamiento code {
+  display: block;
+  margin: .75rem auto;
+  padding: .65rem;
+  overflow-wrap: anywhere;
+  border-radius: 10px;
+  background: var(--superficie-suave);
+  color: var(--tinta);
+  user-select: all;
+}
+.mfa-formulario { display: grid; gap: .8rem; margin: 1.5rem 0; text-align: left; }
+.mfa-formulario input {
+  font-size: 1.2rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: .35em;
+  text-align: center;
+}

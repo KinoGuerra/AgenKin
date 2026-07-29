@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Política de privacidad de AgenKin">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'">
+    <script type="module" src="./src/components/frame-guard.js"></script>
     <title>Privacidad — AgenKin</title>
     <link rel="stylesheet" href="./src/styles/global.css">
     <link rel="stylesheet" href="./src/styles/legal.css">
@@ -26,13 +28,13 @@
       <h2>Google</h2>
       <p>El acceso a Gmail es de solo lectura. AgenKin no envía, elimina ni modifica correos. Los permisos de Calendar se usan para administrar el calendario secundario creado por AgenKin. Los tokens de actualización se cifran antes de almacenarse.</p>
       <h2>Inteligencia artificial</h2>
-      <p>Se envía al proveedor configurado solamente el texto necesario para clasificar el correo y extraer fechas. La política del proveedor debe revisarse antes de habilitar la integración.</p>
+      <p>Se envía al proveedor configurado solamente el texto necesario para clasificar el correo y extraer fechas. Antes del envío, AgenKin redacta direcciones de correo, secuencias numéricas largas, parámetros de URL y credenciales reconocibles. La política del proveedor debe revisarse antes de habilitar la integración.</p>
       <h2>Seguridad y conservación</h2>
       <p>Supabase aplica políticas de seguridad por fila. No se exponen claves secretas en el navegador. Conservamos los datos mientras la cuenta permanezca activa o según obligaciones legales aplicables.</p>
       <h2 id="eliminacion">Eliminación de cuenta y datos</h2>
       <p>Durante el MVP, solicitá la eliminación al propietario desde el canal de soporte comunicado al habilitar tu cuenta. La solicitud incluye el perfil, conexiones, correos procesados, vencimientos, reglas y eventos registrados. El acceso de Google también puede revocarse desde tu cuenta de Google.</p>
       <h2>Contacto y cambios</h2>
-      <p>El propietario deberá completar un canal de contacto antes de publicar el servicio. Los cambios materiales a esta política se comunicarán en la aplicación.</p>
+      <p>Podés comunicar una consulta o solicitud mediante el <a href="https://github.com/KinoGuerra/AgenKin/issues">canal de soporte de AgenKin</a>. Los cambios materiales a esta política se comunicarán en la aplicación.</p>
     </main>
     <footer class="pie pie--simple"><a href="./terminos.html">Términos y condiciones</a></footer>
     <script type="module" src="./src/components/theme.js"></script>

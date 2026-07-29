@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; object-src 'none'; base-uri 'self'; frame-ancestors 'none'">
+    <script type="module" src="./src/components/frame-guard.js"></script>
+    <title>Verificación administrativa — AgenKin</title>
+    <link rel="stylesheet" href="./src/styles/global.css">
+    <link rel="stylesheet" href="./src/styles/auth.css">
+  </head>
+  <body class="pagina-auth">
+    <main class="tarjeta-auth tarjeta-mfa">
+      <a class="marca marca--imagen marca--auth" href="./index.html" aria-label="AgenKin, inicio">
+        <img class="logo-tema logo-tema--claro" src="./src/assets/agenkin-logo-light.png" alt="AgenKin">
+        <img class="logo-tema logo-tema--oscuro" src="./src/assets/agenkin-logo-dark.png" alt="">
+      </a>
+      <p class="eyebrow">Seguridad administrativa</p>
+      <h1 data-mfa-titulo>Preparando verificación…</h1>
+      <p data-mfa-descripcion>El panel administrativo requiere un segundo factor.</p>
+
+      <section class="mfa-enrolamiento oculto" data-mfa-enrolamiento>
+        <img data-mfa-qr alt="Código QR para configurar el autenticador">
+        <p>Escaneá el código con tu aplicación autenticadora o ingresá esta clave:</p>
+        <code data-mfa-secreto></code>
+      </section>
+
+      <form class="mfa-formulario oculto" data-mfa-form>
+        <label for="codigo-mfa">Código de seis dígitos</label>
+        <input
+          id="codigo-mfa"
+          name="codigo"
+          inputmode="numeric"
+          autocomplete="one-time-code"
+          pattern="[0-9]{6}"
+          minlength="6"
+          maxlength="6"
+          required
+        >
+        <button class="boton boton--primario" type="submit">Verificar y continuar</button>
+      </form>
+      <button class="boton boton--texto" type="button" data-logout>Cerrar sesión</button>
+      <div data-alertas aria-live="polite"></div>
+    </main>
+    <script type="module" src="./src/pages/mfa.js"></script>
+  </body>
+</html>

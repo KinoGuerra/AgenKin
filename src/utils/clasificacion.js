@@ -26,21 +26,21 @@ export function confianzaValida(valor) {
   return typeof valor === 'number' && Number.isFinite(valor) && valor >= 0 && valor <= 1
 }
 
+export function formatearMontoARS(valor, textoVacio = 'Monto no informado') {
+  const monto = Number(valor)
+  if (valor === null || valor === undefined || valor === '' || !Number.isFinite(monto)) return textoVacio
+  return new Intl.NumberFormat('es-AR', {
+    style: 'currency',
+    currency: 'ARS',
+    minimumFractionDigits: Number.isInteger(monto) ? 0 : 2,
+    maximumFractionDigits: 2,
+  }).format(monto).replace(/\s/g, ' ')
+}
+
 export function formatearAvisoDia(aviso = {}) {
   const grupo = GRUPOS_AVISOS[aviso.grupo_resumen] || GRUPOS_AVISOS.otros
   const entidad = String(aviso.entidad || '').trim() || 'Desconocido'
-  const monto = Number(aviso.monto)
-  const importe = aviso.monto === null
-    || aviso.monto === undefined
-    || aviso.monto === ''
-    || !Number.isFinite(monto)
-    ? 'Monto no informado'
-    : new Intl.NumberFormat('es-AR', {
-        style: 'currency',
-        currency: 'ARS',
-        minimumFractionDigits: Number.isInteger(monto) ? 0 : 2,
-        maximumFractionDigits: 2,
-      }).format(monto).replace(/\s/g, ' ')
+  const importe = formatearMontoARS(aviso.monto)
   return `${grupo} - ${entidad} - ${importe}`
 }
 

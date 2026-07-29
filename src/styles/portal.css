@@ -460,6 +460,26 @@ a.dashboard-card:hover { border-color: color-mix(in srgb, var(--verde) 52%, var(
 .tabla-categorias td:last-child { display: flex; min-width: 170px; align-items: center; justify-content: flex-end; gap: .7rem; }
 .tabla-categorias meter { width: min(170px, 18vw); height: .65rem; accent-color: var(--verde); }
 .tabla-categorias td:last-child span { width: 3rem; color: var(--tinta-suave); font-variant-numeric: tabular-nums; text-align: right; }
+.detalle-ia { min-width: 250px; }
+.detalle-ia strong, .detalle-ia small, .detalle-ia span { display: block; }
+.detalle-ia strong { margin-bottom: .22rem; color: var(--tinta); font-size: .76rem; }
+.detalle-ia small {
+  display: -webkit-box;
+  max-width: 380px;
+  overflow: hidden;
+  color: var(--tinta-suave);
+  font-size: .68rem;
+  line-height: 1.45;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+.detalle-ia span {
+  margin-top: .35rem;
+  color: var(--verde);
+  font-size: .65rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
 .titulo-seccion { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 1.4rem; }
 .titulo-seccion h2 { margin-bottom: .3rem; font-size: 1.55rem; }
 .titulo-seccion p { margin-bottom: 0; font-size: .9rem; }

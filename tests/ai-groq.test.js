@@ -7,6 +7,8 @@ import {
   debeCrearVencimiento,
   ESQUEMA_CLASIFICACION_CORREO,
   ErrorIA,
+  prepararDatosCorreo,
+  redactarDatosSensibles,
   sanitizarTextoCorreo,
   validarClasificacion,
 } from '../supabase/functions/_shared/ai.ts'
@@ -22,6 +24,24 @@ const entorno = {
   AI_MODEL: 'openai/gpt-oss-20b',
   AI_TIMEOUT_MS: '1000',
 }
+
+describe('minimización de datos antes de Groq', () => {
+  it('redacta correos, números largos, parámetros y credenciales', () => {
+    const datos = prepararDatosCorreo({
+      asunto: 'Cuenta 1234 5678 9012 3456',
+      remitente: 'persona@example.test',
+      fecha: 'Mon, 27 Jul 2026 10:00:00 -0300',
+      texto: 'token=secreto https://example.test/pago?clave=abc Tel 351 555 1234. Total $100000',
+    })
+
+    expect(datos.asunto).toContain('[NÚMERO REDACTADO]')
+    expect(datos.remitente).toContain('***@example.test')
+    expect(datos.texto).toContain('token=[REDACTADO]')
+    expect(datos.texto).toContain('?[PARÁMETROS REDACTADOS]')
+    expect(datos.texto).toContain('$100000')
+    expect(redactarDatosSensibles('Bearer abc123')).toBe('Bearer [REDACTADO]')
+  })
+})
 
 function clasificacion(cambios = {}) {
   return {
@@ -95,6 +115,26 @@ describe('clasificación de correos ficticios con Groq simulado', () => {
     expect(valor.fecha).toBe('2026-07-28')
     expect(solicitud.messages[1].content).toContain('Mon, 27 Jul 2026')
     expect(solicitud.messages[1].content).toContain('vence mañana')
+  })
+
+  it('conserva fecha y monto explícitos sin tomar una persona como entidad', async () => {
+    let solicitud
+    const { valor } = await clasificarFixture('servicioExplicito', clasificacion({
+      titulo: 'Pago de servicio',
+      descripcion: 'El pago del servicio vence el 30 de julio de 2026.',
+      entidad: null,
+      monto: 100000,
+      fecha: '2026-07-30',
+    }), (body) => { solicitud = body })
+    expect(valor).toMatchObject({
+      grupo_resumen: 'servicios',
+      entidad: null,
+      monto: 100000,
+      fecha: '2026-07-30',
+    })
+    expect(solicitud.messages[0].content).toContain('No uses el nombre de una persona remitente')
+    expect(solicitud.messages[1].content).toContain('30/07/2026')
+    expect(solicitud.messages[1].content).toContain('$100000')
   })
 
   it('clasifica una renovación con fecha', async () => {

@@ -7,7 +7,11 @@ export async function cargarPortal(pagina = 'inicio') {
     consultas.conexion = supabase.rpc('obtener_estado_conexion_google')
   }
   if (pagina === 'correos') {
-    consultas.correos = supabase.from('correos_procesados').select('id,remitente,asunto,fecha_correo,categoria,grupo_resumen,grupo_asignado_por,estado_procesamiento').order('fecha_correo', { ascending: false }).limit(50)
+    consultas.correos = supabase
+      .from('correos_procesados')
+      .select('id,remitente,asunto,fecha_correo,categoria,grupo_resumen,grupo_asignado_por,relevante,estado_procesamiento,error_procesamiento,vencimientos_detectados(titulo,descripcion,fecha_vencimiento,monto)')
+      .order('fecha_correo', { ascending: false })
+      .limit(50)
   }
   if (pagina === 'vencimientos') {
     consultas.vencimientos = supabase.from('vencimientos_detectados').select('id,tipo,titulo,descripcion,fecha_vencimiento,hora_vencimiento,zona_horaria,confianza,estado,requiere_revision,correos_procesados(asunto)').order('creado_en', { ascending: false }).limit(50)
