@@ -1,11 +1,37 @@
-<!doctype html>
-<html lang="es">
+<!DOCTYPE html>
+<html lang="es-AR">
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="AgenKin convierte fechas importantes de tus correos en eventos de Google Calendar de forma manual o automatizada.">
+    <meta name="description" content="AgenKin detecta vencimientos y fechas importantes en Gmail, los organiza en una agenda propia y puede sincronizarlos con Google Calendar.">
+    <meta name="application-name" content="AgenKin">
+    <meta name="author" content="AgenKin">
+    <meta name="robots" content="index, follow, max-image-preview:large">
     <meta name="referrer" content="strict-origin-when-cross-origin">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-oTgFU+AOnycdjK+uMeVmFE2vpcY6jXBrCE3I9DUsfwI='; style-src 'self'; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; font-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self' https://accounts.google.com">
+    <meta name="color-scheme" content="light dark">
+    <meta name="theme-color" content="#e3e9e8" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#071018" media="(prefers-color-scheme: dark)">
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="es_AR">
+    <meta property="og:site_name" content="AgenKin">
+    <meta property="og:title" content="AgenKin — Del correo a tu agenda">
+    <meta property="og:description" content="Detectá vencimientos en Gmail, revisalos en tu Agenda y sincronizalos con Google Calendar.">
+    <meta property="og:url" content="https://kinoguerra.github.io/AgenKin/">
+    <meta property="og:image" content="https://kinoguerra.github.io/AgenKin/agenkin-social.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="AgenKin: del correo a tu agenda">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="AgenKin — Del correo a tu agenda">
+    <meta name="twitter:description" content="Tus fechas importantes, detectadas y organizadas bajo tu control.">
+    <meta name="twitter:image" content="https://kinoguerra.github.io/AgenKin/agenkin-social.png">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-QxaPIx9nlMui1iac5f55oalBanFxsFcvwXftisMxWSQ='; style-src 'self'; img-src 'self' data:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; font-src 'self'; manifest-src 'self'; frame-src 'none'; media-src 'none'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'">
+    <link rel="canonical" href="https://kinoguerra.github.io/AgenKin/">
+    <link rel="manifest" href="./site.webmanifest">
+    <link rel="icon" type="image/png" sizes="32x32" href="./agenkin-icon-32.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="./agenkin-icon-180.png">
+    <link rel="preload" as="image" href="./src/assets/agenkin-logo-light.png" type="image/png" media="(prefers-color-scheme: light)">
+    <link rel="preload" as="image" href="./src/assets/agenkin-logo-dark.png" type="image/png" media="(prefers-color-scheme: dark)">
     <script type="module" src="./src/components/frame-guard.js"></script>
     <title>AgenKin — Del correo a tu agenda</title>
     <link rel="stylesheet" href="./src/styles/global.css">
@@ -13,113 +39,335 @@
   </head>
   <body>
     <a class="salto-contenido" href="#contenido">Saltar al contenido</a>
-    <header class="cabecera-publica">
-      <a class="marca marca--imagen" href="./index.html" aria-label="AgenKin, inicio">
-        <img class="logo-tema logo-tema--claro" src="./src/assets/agenkin-logo-light.png" alt="AgenKin">
-        <img class="logo-tema logo-tema--oscuro" src="./src/assets/agenkin-logo-dark.png" alt="">
+    <header class="cabecera-publica" data-public-header>
+      <a class="marca marca--imagen" href="./index.html" aria-label="AgenKin, inicio" aria-current="page">
+        <img class="logo-tema logo-tema--claro" src="./src/assets/agenkin-logo-light.png" width="900" height="218" alt="AgenKin" fetchpriority="high">
+        <img class="logo-tema logo-tema--oscuro" src="./src/assets/agenkin-logo-dark.png" width="900" height="218" alt="" fetchpriority="high">
       </a>
-      <nav aria-label="Navegación principal">
+
+      <button
+        class="menu-toggle"
+        type="button"
+        aria-expanded="false"
+        aria-controls="menu-principal"
+        aria-label="Abrir navegación"
+        data-menu-toggle
+      >
+        <span></span><span></span><span></span>
+      </button>
+
+      <nav id="menu-principal" class="menu-publico" aria-label="Navegación principal" data-public-menu>
         <a href="#como-funciona">Cómo funciona</a>
-        <a href="#funciones">Funciones</a>
+        <a href="#funciones">Qué organiza</a>
         <a href="#planes">Planes</a>
+        <a href="#seguridad">Privacidad</a>
       </nav>
+
       <div class="acciones-nav">
         <button class="tema-toggle" type="button" data-theme-toggle aria-label="Activar modo oscuro" aria-pressed="false">
           <span data-theme-icon aria-hidden="true">☾</span>
           <span data-theme-label>Oscuro</span>
         </button>
-        <button class="boton boton--secundario" type="button" data-login>Ingresar</button>
+        <button class="boton boton--secundario boton--ingreso-nav" type="button" data-login>
+          <span data-login-label>Ingresar</span>
+        </button>
       </div>
     </header>
 
-    <main id="contenido">
-      <section class="hero">
+    <main
+      id="contenido"
+      itemscope
+      itemtype="https://schema.org/SoftwareApplication"
+    >
+      <meta itemprop="name" content="AgenKin">
+      <meta itemprop="applicationCategory" content="ProductivityApplication">
+      <meta itemprop="operatingSystem" content="Web">
+      <meta itemprop="url" content="https://kinoguerra.github.io/AgenKin/">
+
+      <section class="hero" aria-labelledby="titulo-principal">
         <div class="hero__contenido">
-          <p class="eyebrow">Tu agenda, sin fechas perdidas</p>
-          <h1>Del correo a tu agenda, <span>automáticamente.</span></h1>
-          <p class="hero__descripcion">AgenKin analiza tus correos cuando vos lo pedís o de forma periódica, detecta vencimientos, entregas, reuniones y fechas importantes para registrarlas en Google Calendar.</p>
-          <div class="acciones">
-            <button class="boton boton--primario" type="button" data-login>Ingresar con Google</button>
-            <a class="boton boton--texto" href="#como-funciona">Conocer el proceso</a>
+          <p class="eyebrow">Fechas detectadas, decisiones tuyas</p>
+          <h1 id="titulo-principal" itemprop="headline">
+            Tu correo ya sabe qué vence.
+            <span>AgenKin lo convierte en agenda.</span>
+          </h1>
+          <p class="hero__descripcion" itemprop="description">
+            Detectá pagos, servicios, suscripciones y turnos en Gmail. Revisalos en una
+            agenda propia y, si querés, sincronizalos con Google Calendar.
+          </p>
+          <div class="acciones hero__acciones">
+            <button class="boton boton--primario boton--google" type="button" data-login>
+              <span class="google-g" aria-hidden="true"></span>
+              <span data-login-label>Comenzar con Google</span>
+            </button>
+            <a class="boton boton--texto" href="#como-funciona">Ver cómo funciona</a>
           </div>
-          <p class="estado-auth" data-auth-status role="status">Comprobando Google Auth…</p>
-          <p class="nota-seguridad">Vos elegís entre revisión manual y automatización de alta confianza. AgenKin no modifica tu bandeja.</p>
+          <p class="estado-auth" data-auth-status role="status" aria-live="polite">
+            Comprobando acceso seguro…
+          </p>
+          <ul class="garantias-hero">
+            <li>Gmail en modo lectura</li>
+            <li>Calendar se autoriza por separado</li>
+            <li>Sin guardar el cuerpo completo</li>
+          </ul>
           <div data-alertas></div>
         </div>
-        <div class="hero__panel" aria-label="Ejemplo del flujo de AgenKin">
-          <div class="correo-ejemplo">
-            <span class="icono">✉</span>
-            <div><strong>Factura de servicios</strong><small>Vence el 5 de agosto</small></div>
-            <span class="etiqueta">Detectado</span>
+
+        <figure class="radar-fechas">
+          <figcaption class="sr-only">Ejemplo: AgenKin transforma un correo en un evento</figcaption>
+          <div class="radar-fechas__cabecera">
+            <div>
+              <span class="radar-fechas__pulso" aria-hidden="true"></span>
+              Lectura bajo demanda
+            </div>
+            <span>Vista previa</span>
           </div>
-          <div class="linea-flujo" aria-hidden="true"></div>
-          <div class="evento-ejemplo">
-            <div class="fecha-ejemplo"><strong>05</strong><span>AGO</span></div>
-            <div><small>Evento sugerido</small><strong>Vencimiento de factura</strong><span>Listo para revisar o automatizar</span></div>
-          </div>
-        </div>
+
+          <ol class="radar-fechas__flujo">
+            <li>
+              <span class="radar-fechas__paso" aria-hidden="true">01</span>
+              <div class="correo-ejemplo">
+                <span class="icono" aria-hidden="true">✉</span>
+                <div>
+                  <small>Correo recibido</small>
+                  <strong>Factura de electricidad</strong>
+                  <span>Vence el 5 de agosto · $101.000</span>
+                </div>
+              </div>
+            </li>
+            <li>
+              <span class="radar-fechas__paso" aria-hidden="true">02</span>
+              <div class="interpretacion-ejemplo">
+                <span class="etiqueta">Servicio detectado</span>
+                <p><strong>EPEC</strong><span>Fecha exacta · importe reconocido</span></p>
+              </div>
+            </li>
+            <li>
+              <span class="radar-fechas__paso" aria-hidden="true">03</span>
+              <div class="evento-ejemplo">
+                <div class="fecha-ejemplo"><strong>05</strong><span>AGO</span></div>
+                <div>
+                  <small>Agenda AgenKin</small>
+                  <strong>Vencimiento de electricidad</strong>
+                  <span>Listo para revisar o sincronizar</span>
+                </div>
+              </div>
+            </li>
+          </ol>
+        </figure>
       </section>
 
-      <section class="seccion seccion--centrada" id="como-funciona">
-        <p class="eyebrow">Simple y bajo tu control</p>
-        <h2>Del mensaje al calendario en cinco pasos</h2>
-        <div class="pasos">
-          <article><span>01</span><h3>Conectá tu cuenta</h3><p>Ingresá con Google y autorizá Gmail y Calendar por separado.</p></article>
-          <article><span>02</span><h3>Elegí el seguimiento</h3><p>Analizá a pedido o activá la revisión periódica de nuevos correos.</p></article>
-          <article><span>03</span><h3>Detectamos fechas</h3><p>La IA clasifica el mensaje y extrae fechas relevantes.</p></article>
-          <article><span>04</span><h3>Revisá el hallazgo</h3><p>Editá el título, la fecha, la hora y el calendario.</p></article>
-          <article><span>05</span><h3>Confirmá o automatizá</h3><p>Revisá cada evento o automatizá únicamente los hallazgos de alta confianza.</p></article>
-        </div>
+      <section class="franja-confianza" aria-label="Principios del servicio">
+        <article><strong>Permisos separados</strong><span>Ingresar no conecta tu correo ni tu calendario.</span></article>
+        <article><strong>Agenda primero</strong><span>El evento queda guardado aunque Google no esté disponible.</span></article>
+        <article><strong>Automatización acotada</strong><span>Solo para remitentes priorizados y fechas futuras confiables.</span></article>
       </section>
 
-      <section class="seccion grilla-beneficios" id="funciones">
-        <div>
-          <p class="eyebrow">Menos carga mental</p>
-          <h2>Las fechas importantes dejan de esconderse en tu bandeja</h2>
-          <p>Centralizá vencimientos y compromisos sin cambiar tu forma de trabajar.</p>
+      <section class="seccion proceso" id="como-funciona" aria-labelledby="titulo-proceso">
+        <div class="encabezado-seccion">
+          <p class="eyebrow">Un flujo visible de principio a fin</p>
+          <h2 id="titulo-proceso">Cuatro decisiones. Ningún permiso escondido.</h2>
+          <p>Vos elegís qué conectar, cuándo analizar y qué llega a tu calendario.</p>
         </div>
+        <ol class="pasos">
+          <li>
+            <span>01 · Cuenta</span>
+            <h3>Ingresá a AgenKin</h3>
+            <p>Google valida tu identidad con los permisos básicos de perfil. Gmail todavía no se conecta.</p>
+          </li>
+          <li>
+            <span>02 · Lectura</span>
+            <h3>Conectá Gmail</h3>
+            <p>Autorizá acceso de solo lectura y ejecutá la primera revisión cuando estés listo.</p>
+          </li>
+          <li>
+            <span>03 · Agenda</span>
+            <h3>Revisá lo detectado</h3>
+            <p>Confirmá fechas, importes y categorías antes de convertir cada hallazgo en evento.</p>
+          </li>
+          <li>
+            <span>04 · Sincronización</span>
+            <h3>Sumá Calendar si querés</h3>
+            <p>Conectalo por separado para replicar tus eventos en el calendario “Agenda”.</p>
+          </li>
+        </ol>
+      </section>
+
+      <section class="seccion grilla-beneficios" id="funciones" aria-labelledby="titulo-funciones">
+        <div class="beneficios__introduccion">
+          <p class="eyebrow">Un tablero para lo que no puede olvidarse</p>
+          <h2 id="titulo-funciones">AgenKin ordena la bandeja con categorías que sí entendés</h2>
+          <p>La clasificación sirve para priorizar, corregir y medir. Nunca reemplaza tu revisión.</p>
+          <a class="enlace-flecha" href="#planes">Comparar capacidades <span aria-hidden="true">→</span></a>
+        </div>
+
         <div class="tarjetas">
-          <article><span aria-hidden="true">⌁</span><h3>Detección inteligente</h3><p>Reconoce facturas, pagos, entregas, turnos, reuniones y documentación pendiente.</p></article>
-          <article><span aria-hidden="true">✓</span><h3>Automatización bajo control</h3><p>La activás, elegís el umbral de confianza y podés desactivarla cuando quieras.</p></article>
-          <article><span aria-hidden="true">◫</span><h3>Una vista ordenada</h3><p>Revisá correos analizados, vencimientos, eventos y consumo desde un solo portal.</p></article>
-          <article><span aria-hidden="true">⌾</span><h3>Privacidad por diseño</h3><p>No guardamos permanentemente el cuerpo completo de tus correos.</p></article>
+          <article>
+            <span class="codigo-categoria">01 · TAR</span>
+            <h3>Tarjetas</h3>
+            <p>Resúmenes, cierres y vencimientos con importe y entidad cuando están disponibles.</p>
+          </article>
+          <article>
+            <span class="codigo-categoria">02 · SER</span>
+            <h3>Servicios</h3>
+            <p>Luz, gas, internet, seguros y otras facturas que llegan todos los meses.</p>
+          </article>
+          <article>
+            <span class="codigo-categoria">03 · SUS</span>
+            <h3>Suscripciones</h3>
+            <p>Renovaciones y cobros recurrentes para anticiparte a la próxima fecha.</p>
+          </article>
+          <article>
+            <span class="codigo-categoria">04 · TUR</span>
+            <h3>Turnos y otros</h3>
+            <p>Citas, reservas, reuniones y compromisos que necesitan un lugar en tu agenda.</p>
+          </article>
         </div>
       </section>
 
-      <section class="seccion seccion--centrada" id="planes">
-        <p class="eyebrow">Empezá con 15 días de prueba</p>
-        <h2>Planes simples, administrados sin cargos automáticos</h2>
+      <section class="seccion seguridad" id="seguridad" aria-labelledby="titulo-seguridad">
+        <div class="seguridad__marco">
+          <div>
+            <p class="eyebrow">Privacidad por diseño</p>
+            <h2 id="titulo-seguridad">Tus correos no son el producto.</h2>
+            <p>
+              AgenKin usa la información necesaria para mostrarte una función concreta:
+              detectar fechas y organizar eventos. No vende datos ni modifica tu bandeja.
+            </p>
+            <div class="acciones">
+              <a class="boton boton--secundario" href="./privacidad.html">Leer política de privacidad</a>
+              <a class="boton boton--texto" href="./privacidad.html#eliminacion">Solicitar eliminación</a>
+            </div>
+          </div>
+          <dl class="controles-datos">
+            <div><dt>Gmail</dt><dd>Solo lectura. No enviamos, eliminamos ni marcamos mensajes.</dd></div>
+            <div><dt>IA</dt><dd>Texto limitado y sanitizado; se redactan credenciales y datos sensibles reconocibles.</dd></div>
+            <div><dt>Almacenamiento</dt><dd>Metadatos mínimos y resultado estructurado, no el cuerpo completo permanente.</dd></div>
+            <div><dt>Control</dt><dd>Desconectá Gmail o Calendar en forma individual cuando quieras.</dd></div>
+          </dl>
+        </div>
+      </section>
+
+      <section class="seccion seccion--centrada" id="planes" aria-labelledby="titulo-planes">
+        <p class="eyebrow">Capacidad transparente</p>
+        <h2 id="titulo-planes">Elegí según el ritmo real de tu bandeja</h2>
+        <p class="bajada-seccion">Los límites publicados coinciden con los planes activos. No hay cobros ni renovaciones automáticas.</p>
+
         <div class="planes">
-          <article><h3>Prueba</h3><p class="precio">$0 <small>/ 15 días</small></p><p>Probá el flujo completo con un límite inicial de correos.</p></article>
-          <article class="plan-destacado"><span class="etiqueta">Recomendado</span><h3>Básico</h3><p class="precio">A definir</p><p>Para organizar vencimientos personales y profesionales.</p></article>
-          <article><h3>Profesional</h3><p class="precio">A definir</p><p>Mayor volumen mensual y automatización configurable.</p></article>
+          <article>
+            <div class="plan__encabezado"><h3>Prueba</h3><span>15 días</span></div>
+            <p class="plan__capacidad"><strong>50</strong> correos / mes</p>
+            <ul>
+              <li>Análisis manual</li>
+              <li>Agenda interna</li>
+              <li>Clasificación por grupos</li>
+            </ul>
+            <button class="boton boton--secundario" type="button" data-login><span data-login-label>Empezar prueba</span></button>
+          </article>
+
+          <article>
+            <div class="plan__encabezado"><h3>Básico</h3><span>Uso personal</span></div>
+            <p class="plan__capacidad"><strong>300</strong> correos / mes</p>
+            <ul>
+              <li>Mayor capacidad mensual</li>
+              <li>Panel de vencimientos</li>
+              <li>Revisión antes de crear eventos</li>
+            </ul>
+            <button class="boton boton--secundario" type="button" data-login><span data-login-label>Ingresar y solicitar</span></button>
+          </article>
+
+          <article class="plan-destacado">
+            <span class="etiqueta">Automatización</span>
+            <div class="plan__encabezado"><h3>Profesional</h3><span>Seguimiento continuo</span></div>
+            <p class="plan__capacidad"><strong>1.500</strong> correos / mes</p>
+            <ul>
+              <li>Revisión periódica de Gmail</li>
+              <li>Remitentes priorizados</li>
+              <li>Sincronización con Calendar</li>
+            </ul>
+            <button class="boton boton--primario" type="button" data-login><span data-login-label>Ingresar y solicitar</span></button>
+          </article>
         </div>
-        <p class="aclaracion">El MVP no procesa pagos. La asignación de planes se gestiona manualmente.</p>
+        <p class="aclaracion">La asignación y mejora de planes se gestiona desde AgenKin. Los precios comerciales todavía no están publicados.</p>
       </section>
 
-      <section class="seccion preguntas">
-        <p class="eyebrow">Preguntas frecuentes</p>
-        <h2>Antes de conectar tu cuenta</h2>
-        <details><summary>¿AgenKin crea eventos automáticamente?</summary><p>Solo si activás esa opción. Se limita a fechas futuras, exactas y de alta confianza; el resto queda para revisión.</p></details>
-        <details><summary>¿Analiza mis correos en tiempo real?</summary><p>Podés analizar a pedido o activar una revisión incremental cada pocos minutos.</p></details>
-        <details><summary>¿Guarda el contenido de mis correos?</summary><p>No almacena permanentemente el cuerpo completo. Conserva metadatos mínimos y el resultado estructurado.</p></details>
-        <details><summary>¿El primer login autoriza Gmail y Calendar?</summary><p>No. Primero ingresás a AgenKin y luego decidís si conectás esos servicios.</p></details>
+      <section class="seccion preguntas" aria-labelledby="titulo-preguntas">
+        <div class="encabezado-seccion">
+          <p class="eyebrow">Preguntas frecuentes</p>
+          <h2 id="titulo-preguntas">Antes de conectar tu cuenta</h2>
+        </div>
+        <details>
+          <summary>¿Ingresar con Google autoriza Gmail y Calendar?</summary>
+          <p>No. El ingreso usa solo tu identidad básica. Gmail y Calendar se conectan después, por separado y con una explicación del permiso solicitado.</p>
+        </details>
+        <details>
+          <summary>¿AgenKin crea eventos automáticamente?</summary>
+          <p>Solo si tu plan lo permite y lo activás. La automatización se limita a fechas futuras de alta confianza provenientes de remitentes que hayas priorizado.</p>
+        </details>
+        <details>
+          <summary>¿Qué ocurre si Google Calendar está desconectado?</summary>
+          <p>El evento se conserva en la Agenda interna. Si luego conectás Calendar, los eventos pendientes pueden sincronizarse sin duplicarse.</p>
+        </details>
+        <details>
+          <summary>¿Guarda el contenido completo de mis correos?</summary>
+          <p>No de forma permanente. Conserva metadatos mínimos y el resultado estructurado necesario para mostrar el vencimiento.</p>
+        </details>
+        <details>
+          <summary>¿Puedo corregir una clasificación?</summary>
+          <p>Sí. Desde Correos analizados podés cambiar el grupo y el tablero actualiza sus totales.</p>
+        </details>
+        <details>
+          <summary>¿Cómo elimino mi acceso y mis datos?</summary>
+          <p>Podés revocar Google desde la configuración y consultar el procedimiento de eliminación en la <a href="./privacidad.html#eliminacion">Política de privacidad</a>.</p>
+        </details>
       </section>
 
-      <section class="cta">
-        <div><p class="eyebrow">Tu próxima fecha importante ya puede estar en un correo</p><h2>Convertí tu bandeja en una agenda más confiable.</h2></div>
-        <button class="boton boton--claro" type="button" data-login>Ingresar con Google</button>
+      <section class="cta" aria-labelledby="titulo-cta">
+        <div>
+          <p class="eyebrow">Tu próxima fecha importante ya puede estar en un correo</p>
+          <h2 id="titulo-cta">Convertí la bandeja en una agenda que podés controlar.</h2>
+          <p>Comenzá con 15 días de prueba y conectá cada servicio cuando estés listo.</p>
+        </div>
+        <button class="boton boton--claro boton--google" type="button" data-login>
+          <span class="google-g" aria-hidden="true"></span>
+          <span data-login-label>Comenzar con Google</span>
+        </button>
       </section>
     </main>
 
-    <footer class="pie">
-      <a class="marca marca--imagen marca--pie" href="./index.html"><img src="./src/assets/agenkin-logo-dark.png" alt="AgenKin"></a>
-      <p>Del correo a tu agenda, automáticamente.</p>
-      <nav aria-label="Enlaces legales"><a href="./privacidad.html">Privacidad</a><a href="./terminos.html">Términos</a></nav>
-      <small>© 2026 AgenKin</small>
+    <footer class="pie pie--landing">
+      <div class="pie__marca">
+        <a class="marca marca--imagen marca--pie" href="./index.html" aria-label="AgenKin, inicio">
+          <img src="./src/assets/agenkin-logo-dark.png" width="900" height="218" alt="AgenKin" loading="lazy" decoding="async">
+        </a>
+        <p>Fechas importantes, detectadas y organizadas bajo tu control.</p>
+      </div>
+      <nav aria-label="Producto">
+        <strong>Producto</strong>
+        <a href="#como-funciona">Cómo funciona</a>
+        <a href="#funciones">Qué organiza</a>
+        <a href="#planes">Planes</a>
+      </nav>
+      <nav aria-label="Legal y soporte">
+        <strong>Legal y soporte</strong>
+        <a href="./privacidad.html">Privacidad</a>
+        <a href="./terminos.html">Términos</a>
+        <a href="./privacidad.html#eliminacion">Eliminación de datos</a>
+        <a href="https://github.com/KinoGuerra/AgenKin/issues">Soporte</a>
+      </nav>
+      <div class="pie__cierre">
+        <small>© <span data-current-year>2026</span> AgenKin.</small>
+        <small>Google, Gmail y Google Calendar son marcas de Google LLC. AgenKin es un producto independiente.</small>
+      </div>
     </footer>
+
+    <noscript>
+      <div class="aviso aviso--advertencia aviso-noscript">
+        AgenKin necesita JavaScript para iniciar sesión y comprobar la disponibilidad del servicio.
+      </div>
+    </noscript>
+    <script>if(location.protocol==='file:'){const s=document.createElement('script');s.src='./landing-file.js';document.head.append(s)}</script>
     <script type="module" src="./src/components/theme.js"></script>
     <script type="module" src="./src/pages/landing.js"></script>
-    <script>window.addEventListener('load',()=>{if(globalThis.AgenKinTheme)return;const script=document.createElement('script');script.src='./src/components/theme.js';document.head.append(script);const status=document.querySelector('[data-auth-status]');if(status)status.textContent='Para ingresar con Google, ejecutá npm run dev.'})</script>
   </body>
 </html>

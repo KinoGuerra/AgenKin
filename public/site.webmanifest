@@ -1,0 +1,27 @@
+{
+  "name": "AgenKin — Del correo a tu agenda",
+  "short_name": "AgenKin",
+  "description": "Detectá fechas importantes en Gmail, organizalas en tu Agenda y sincronizalas con Google Calendar.",
+  "lang": "es-AR",
+  "dir": "ltr",
+  "start_url": "/AgenKin/",
+  "scope": "/AgenKin/",
+  "display": "standalone",
+  "background_color": "#e3e9e8",
+  "theme_color": "#0a8fdf",
+  "categories": ["productivity", "utilities"],
+  "icons": [
+    {
+      "src": "/AgenKin/agenkin-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/AgenKin/agenkin-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

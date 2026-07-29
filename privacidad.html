@@ -1,11 +1,18 @@
-<!doctype html>
-<html lang="es">
+<!DOCTYPE html>
+<html lang="es-AR">
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Política de privacidad de AgenKin">
+    <meta name="description" content="Política de privacidad de AgenKin: datos tratados, permisos de Google, inteligencia artificial, conservación y eliminación.">
+    <meta name="robots" content="index, follow">
     <meta name="referrer" content="strict-origin-when-cross-origin">
+    <meta name="color-scheme" content="light dark">
+    <meta name="theme-color" content="#e3e9e8" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#071018" media="(prefers-color-scheme: dark)">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'">
+    <link rel="canonical" href="https://kinoguerra.github.io/AgenKin/privacidad.html">
+    <link rel="manifest" href="./site.webmanifest">
+    <link rel="icon" type="image/png" sizes="32x32" href="./agenkin-icon-32.png">
     <script type="module" src="./src/components/frame-guard.js"></script>
     <title>Privacidad — AgenKin</title>
     <link rel="stylesheet" href="./src/styles/global.css">
@@ -20,21 +27,28 @@
       <a class="boton boton--secundario" href="./index.html">Volver</a>
     </header>
     <main class="documento">
-      <p class="eyebrow">Versión inicial · 27 de julio de 2026</p>
+      <p class="eyebrow">Vigente desde el 29 de julio de 2026</p>
       <h1>Política de privacidad</h1>
-      <p>AgenKin está diseñado para detectar fechas importantes en correos autorizados. Podés crear eventos después de revisarlos o activar voluntariamente la creación automática para hallazgos futuros de alta confianza.</p>
+      <p>AgenKin detecta fechas importantes en correos que autorizás, las organiza en una agenda propia y, si conectás Google Calendar, puede sincronizar eventos. Esta política explica qué datos se usan y qué controles tenés.</p>
+      <h2>Finalidad</h2>
+      <p>Usamos los datos exclusivamente para autenticar tu cuenta, leer los mensajes alcanzados por el permiso concedido, detectar fechas e importes, mostrarte resultados, crear eventos solicitados y mantener la sincronización que hayas activado.</p>
       <h2>Datos tratados</h2>
       <p>Tratamos datos básicos de tu cuenta, metadatos de los correos seleccionados, identificadores de sincronización, resultados estructurados de clasificación, vencimientos y referencias de eventos. El cuerpo completo del correo se procesa temporalmente y no se almacena de forma permanente.</p>
       <h2>Google</h2>
-      <p>El acceso a Gmail es de solo lectura. AgenKin no envía, elimina ni modifica correos. Los permisos de Calendar se usan para administrar el calendario secundario creado por AgenKin. Los tokens de actualización se cifran antes de almacenarse.</p>
+      <p>El acceso a Gmail es de solo lectura. AgenKin no envía, elimina ni modifica correos. Calendar se autoriza por separado y se usa para administrar el calendario secundario creado por AgenKin. Los tokens de actualización se cifran antes de almacenarse.</p>
+      <p>El uso y la transferencia de información recibida desde las APIs de Google se ajustan a la <a href="https://developers.google.com/terms/api-services-user-data-policy">Política de Datos del Usuario de los Servicios de API de Google</a>, incluidos sus requisitos de Uso Limitado.</p>
       <h2>Inteligencia artificial</h2>
-      <p>Se envía al proveedor configurado solamente el texto necesario para clasificar el correo y extraer fechas. Antes del envío, AgenKin redacta direcciones de correo, secuencias numéricas largas, parámetros de URL y credenciales reconocibles. La política del proveedor debe revisarse antes de habilitar la integración.</p>
+      <p>Cuando solicitás un análisis, se envía al proveedor de inteligencia artificial configurado solamente el texto necesario para clasificar el correo y extraer fechas. Antes del envío, AgenKin limita el contenido y redacta direcciones de correo, secuencias numéricas largas, parámetros de URL y credenciales reconocibles. Estos datos no se usan para publicidad ni para entrenar un modelo fundacional de uso general por AgenKin.</p>
+      <h2>Proveedores y transferencias</h2>
+      <p>Supabase presta servicios de autenticación, base de datos y funciones; Google presta Gmail y Calendar; y el proveedor de inteligencia artificial procesa el análisis solicitado. Estos proveedores pueden tratar datos en otros países conforme a sus términos y medidas de seguridad.</p>
       <h2>Seguridad y conservación</h2>
-      <p>Supabase aplica políticas de seguridad por fila. No se exponen claves secretas en el navegador. Conservamos los datos mientras la cuenta permanezca activa o según obligaciones legales aplicables.</p>
+      <p>Supabase aplica políticas de seguridad por fila. Los tokens de Google se cifran y las claves secretas no se exponen en el navegador. Los estados OAuth vencen a los diez minutos y se eliminan periódicamente. Conservamos metadatos y resultados estructurados mientras la cuenta permanezca activa o hasta que solicites su eliminación, salvo obligación legal aplicable.</p>
+      <h2>Almacenamiento en el navegador</h2>
+      <p>La aplicación guarda la preferencia de tema y la sesión necesaria para mantener tu acceso. No usa cookies publicitarias ni incorpora rastreadores comerciales en la landing.</p>
       <h2 id="eliminacion">Eliminación de cuenta y datos</h2>
-      <p>Durante el MVP, solicitá la eliminación al propietario desde el canal de soporte comunicado al habilitar tu cuenta. La solicitud incluye el perfil, conexiones, correos procesados, vencimientos, reglas y eventos registrados. El acceso de Google también puede revocarse desde tu cuenta de Google.</p>
+      <p>Podés desconectar Gmail y Calendar desde Configuración y revocar AgenKin desde tu cuenta de Google. Para eliminar integralmente el perfil, conexiones, correos procesados, vencimientos, reglas y eventos, iniciá una solicitud en el canal de soporte y seguí la verificación privada indicada por el administrador. No publiques datos personales ni credenciales en una incidencia pública.</p>
       <h2>Contacto y cambios</h2>
-      <p>Podés comunicar una consulta o solicitud mediante el <a href="https://github.com/KinoGuerra/AgenKin/issues">canal de soporte de AgenKin</a>. Los cambios materiales a esta política se comunicarán en la aplicación.</p>
+      <p>Podés comunicar una consulta general mediante el <a href="https://github.com/KinoGuerra/AgenKin/issues">canal de soporte de AgenKin</a>. Los cambios materiales a esta política se publicarán en esta página y, cuando corresponda, se comunicarán dentro de la aplicación.</p>
     </main>
     <footer class="pie pie--simple"><a href="./terminos.html">Términos y condiciones</a></footer>
     <script type="module" src="./src/components/theme.js"></script>

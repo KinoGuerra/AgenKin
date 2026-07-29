@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /AgenKin/
+Disallow: /AgenKin/admin.html
+Disallow: /AgenKin/access.html
+Disallow: /AgenKin/app.html
+Disallow: /AgenKin/agenda.html
+Disallow: /AgenKin/configuracion.html
+Disallow: /AgenKin/correos.html
+Disallow: /AgenKin/mfa.html
+Disallow: /AgenKin/reglas.html
+Disallow: /AgenKin/vencimientos.html
+
+Sitemap: https://kinoguerra.github.io/AgenKin/sitemap.xml
