@@ -2,6 +2,9 @@ project_id = "kpqzwbhprqlapwhadejt"
 
 [auth]
 site_url = "https://kinoguerra.github.io/AgenKin/"
+jwt_expiry = 900
+enable_refresh_token_rotation = true
+refresh_token_reuse_interval = 10
 additional_redirect_urls = [
   "http://localhost:5173/AgenKin/auth-callback.html",
   "http://127.0.0.1:5173/AgenKin/auth-callback.html",
@@ -13,7 +16,10 @@ enroll_enabled = true
 verify_enabled = true
 
 [auth.email]
+enable_signup = false
+double_confirm_changes = true
 enable_confirmations = true
+secure_password_change = true
 max_frequency = "1m"
 otp_length = 8
 

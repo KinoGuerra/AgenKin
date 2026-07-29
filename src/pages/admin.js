@@ -259,9 +259,13 @@ formulario.addEventListener('submit', async (evento) => {
 
   setCargando(boton, true, 'Aplicando…')
   try {
-    await invocarFuncion('admin-manage-user', datos)
+    const resultado = await invocarFuncion('admin-manage-user', datos)
     dialogo.close()
-    mostrarAviso('La acción se aplicó y quedó registrada en auditoría.', 'exito')
+    mostrarAviso(
+      resultado?.advertencia
+        || 'La acción se aplicó y quedó registrada en auditoría.',
+      resultado?.advertencia ? 'advertencia' : 'exito',
+    )
     await cargar()
   } catch (error) {
     mostrarAviso(error.message, 'error')

@@ -11,6 +11,12 @@ export const correosFicticios = {
     fecha: 'Mon, 27 Jul 2026 10:00:00 -0300',
     texto: 'Tu cuota vence mañana.',
   },
+  servicioExplicito: {
+    asunto: 'Pago de servicio',
+    remitente: 'Juan Ejemplo <persona@example.test>',
+    fecha: 'Mon, 27 Jul 2026 10:00:00 -0300',
+    texto: 'Tenés hasta el día 30/07/2026 para pagarme los $100000 del servicio.',
+  },
   renovacion: {
     asunto: 'Renovación del servicio',
     remitente: 'cuentas@software.example',

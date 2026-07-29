@@ -40,3 +40,7 @@ export function rutaPermitida(perfil, pagina) {
   if (pagina === 'admin' || pagina === 'access') return perfil.rol === 'superadministrador'
   return pagina === 'app'
 }
+
+export function requiereMfaAdministrativa(pagina, nivelAutenticacion) {
+  return pagina === 'admin' && nivelAutenticacion !== 'aal2'
+}

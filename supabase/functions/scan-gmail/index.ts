@@ -306,6 +306,6 @@ Deno.serve(async (request) => {
     if (error instanceof ErrorIA) {
       return json({ error: mensajeSeguroIA(error), codigo: error.codigo }, error.estadoHttp)
     }
-    return errorSeguro(error)
+    return errorSeguro(error, 400, 'No se pudo completar el análisis de correos.')
   }
 })

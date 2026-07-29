@@ -5,7 +5,7 @@ import { cerrarSesion } from '../services/auth.js'
 import { invocarFuncion } from '../services/edge.js'
 import { cargarEventosAgenda, cargarPortal } from '../services/portal.js'
 import { supabase } from '../services/supabase.js'
-import { formatearAvisoDia } from '../utils/clasificacion.js'
+import { formatearAvisoDia, formatearMontoARS } from '../utils/clasificacion.js'
 import { formatearFecha, formatearFechaHora } from '../utils/fechas.js'
 
 let datosPortal
@@ -126,7 +126,7 @@ function renderCorreos(correos) {
       crearCelda(formatearFecha(item.fecha_correo)),
       crearCelda(item.remitente),
       crearCelda(item.asunto),
-      crearCelda(item.categoria),
+      crearDetalleCorreo(item),
     )
     const grupo = document.createElement('td')
     const selector = document.createElement('select')
@@ -143,6 +143,46 @@ function renderCorreos(correos) {
     fila.append(grupo, crearCelda(item.estado_procesamiento))
     cuerpo.append(fila)
   })
+}
+
+function primerVencimiento(correo) {
+  const vencimientos = correo.vencimientos_detectados
+  return Array.isArray(vencimientos) ? vencimientos[0] : vencimientos
+}
+
+function etiquetaCategoria(categoria) {
+  const texto = String(categoria || 'otro').replaceAll('_', ' ')
+  return `${texto.charAt(0).toUpperCase()}${texto.slice(1)}`
+}
+
+function crearDetalleCorreo(correo) {
+  const celda = document.createElement('td')
+  celda.className = 'detalle-ia'
+  const titulo = document.createElement('strong')
+  const resumen = document.createElement('small')
+  const metadatos = document.createElement('span')
+  const vencimiento = primerVencimiento(correo)
+
+  if (correo.estado_procesamiento === 'error') {
+    titulo.textContent = 'Análisis incompleto'
+    resumen.textContent = 'Se reintentará en el próximo análisis.'
+  } else if (vencimiento) {
+    titulo.textContent = vencimiento.titulo || etiquetaCategoria(correo.categoria)
+    resumen.textContent = vencimiento.descripcion || 'Se detectó una fecha accionable.'
+    metadatos.textContent = [
+      `Vence ${formatearFecha(vencimiento.fecha_vencimiento)}`,
+      formatearMontoARS(vencimiento.monto, null),
+    ].filter(Boolean).join(' · ')
+  } else {
+    titulo.textContent = etiquetaCategoria(correo.categoria)
+    resumen.textContent = correo.relevante
+      ? 'Requiere revisión: no se determinó una fecha.'
+      : 'Sin fecha accionable.'
+  }
+
+  celda.append(titulo, resumen)
+  if (metadatos.textContent) celda.append(metadatos)
+  return celda
 }
 
 function claveFecha(valor) {
@@ -333,11 +373,12 @@ function renderPortal(datos) {
   document.querySelector('[data-disconnect-calendar]')?.classList.toggle('oculto', !conexion.calendar_conectado)
   document.querySelector('[data-revoke-google]')?.classList.toggle('oculto', !conexion.conectado)
   if (formularioAutomatizacion) {
+    const planPermiteAutomatizacion = Boolean(resumen.suscripcion?.permite_automatizacion)
     sincronizacionAutomatica.checked = Boolean(conexion.sincronizacion_automatica)
     eventosAutomaticos.checked = Boolean(conexion.creacion_automatica_eventos)
     umbralAutomatico.value = Number(conexion.umbral_confianza_automatica || 0.9).toFixed(2)
     formularioAutomatizacion.querySelectorAll('input, select, button').forEach((control) => {
-      control.disabled = !conexion.gmail_conectado
+      control.disabled = !conexion.gmail_conectado || !planPermiteAutomatizacion
     })
     definirTexto('[data-auto-estado]', conexion.sincronizacion_automatica ? 'Activa' : 'Desactivada')
     const pendientes = Number(conexion.tareas_pendientes || 0)
@@ -345,9 +386,11 @@ function renderPortal(datos) {
     const ultima = formatearFecha(conexion.ultima_sincronizacion_exitosa)
     definirTexto(
       '[data-auto-detalle]',
-      conexion.gmail_conectado
-        ? `${pendientes} en cola · ${conError} con error · última revisión completa: ${ultima}`
-        : 'Conectá Gmail para activar esta función.',
+      !planPermiteAutomatizacion
+        ? 'La automatización está disponible en el plan Profesional.'
+        : conexion.gmail_conectado
+          ? `${pendientes} en cola · ${conError} con error · última revisión completa: ${ultima}`
+          : 'Conectá Gmail para activar esta función.',
     )
   }
 
@@ -568,7 +611,7 @@ formularioAutomatizacion?.addEventListener('submit', async (evento) => {
   const activarEventos = eventosAutomaticos.checked
   if (activarEventos && !datosPortal.conexion?.creacion_automatica_eventos) {
     const aceptado = confirm(
-      'AgenKin creará eventos futuros automáticamente cuando la IA no requiera revisión y alcance la confianza elegida. ¿Querés activarlo?',
+      'AgenKin creará eventos futuros automáticamente solo para remitentes priorizados, cuando la IA no requiera revisión y alcance la confianza elegida. ¿Querés activarlo?',
     )
     if (!aceptado) return
   }

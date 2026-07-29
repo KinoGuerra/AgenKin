@@ -37,6 +37,10 @@ Deno.serve(async (request) => {
       .select('usuario_id,servicio')
       .maybeSingle()
     if (!registro) return redirigir('error')
+    const { data: habilitado } = await cliente.rpc('usuario_habilitado', {
+      usuario: registro.usuario_id,
+    })
+    if (!habilitado) return redirigir('error')
 
     const respuestaToken = await fetch('https://oauth2.googleapis.com/token', {
       method: 'POST',

@@ -5,7 +5,9 @@
 - El frontend no decide roles, identidad, suscripción ni cupos.
 - Supabase obtiene la identidad desde el JWT.
 - RLS protege las consultas propias.
+- Las cuentas suspendidas o bloqueadas pierden acceso en RLS, no solo en la interfaz.
 - Las operaciones administrativas y de Google usan Edge Functions.
+- La administración exige un JWT con nivel de autenticación `aal2`.
 - La función SQL administrativa verifica el rol, bloquea el auto-bloqueo, actualiza y audita dentro de una transacción.
 
 ## Tokens y secretos
@@ -40,6 +42,8 @@ Secretos requeridos:
 - Groq se invoca solo desde `scan-gmail`; no existe una llamada desde el navegador.
 - La clave de Groq vive únicamente en Supabase Secrets y nunca usa prefijo `VITE_`.
 - Se envían únicamente asunto, remitente, fecha y texto plano sanitizado.
+- Antes del envío se redactan direcciones de correo, secuencias numéricas largas,
+  parámetros de URL y credenciales reconocibles.
 - No se envían tokens OAuth, identificadores internos, roles, datos de
   suscripción, adjuntos, HTML completo ni historial innecesario.
 - El asunto se limita a 500 caracteres, el remitente a 300 y el texto a 12.000.
@@ -49,6 +53,9 @@ Secretos requeridos:
   tipos, confianza, fecha, hora, zona horaria, coherencia y longitudes.
 - Los correos se deduplican por `usuario_id + gmail_message_id` y cada correo
   puede generar como máximo un vencimiento.
+- La automatización requiere un plan habilitado y una regla personal
+  `Priorizar`; la confianza del modelo no reemplaza la confianza del remitente.
+- La creación automática se limita a veinte eventos diarios por usuario.
 - Un fallo técnico de IA devuelve el cupo mensual. Los intentos internos no
   vuelven a reservarlo; el correo queda en estado recuperable.
 - Los logs técnicos incluyen solamente proveedor, modelo, duración, estado HTTP,
@@ -63,12 +70,19 @@ La configuración operativa está en
 ## OAuth
 
 - `state` tiene entropía criptográfica, se almacena como hash, vence en diez minutos y es de un solo uso.
+- Solo se conserva un intento pendiente por usuario y servicio; los estados
+  vencidos o utilizados se eliminan diariamente.
 - Las URLs de aplicación y callback deben usar HTTPS, salvo localhost.
 - El callback nunca agrega tokens a la redirección.
 
 ## Frontend y GitHub Pages
 
-GitHub Pages no permite definir encabezados HTTP arbitrarios. Cada página pública principal usa una política CSP mediante `<meta>`. Esto no reemplaza encabezados como HSTS o `frame-ancestors`; si el producto requiere controles completos, publicar el frontend detrás de un servicio que permita encabezados.
+GitHub Pages no permite definir encabezados HTTP arbitrarios. Cada página
+principal usa una política CSP mediante `<meta>`, una política de referer y un
+guardia temprano que oculta la aplicación si se carga dentro de un marco. Este
+último es una mitigación adicional, pero no reemplaza un encabezado
+`frame-ancestors`. Antes de manejar operaciones de mayor riesgo, publicar el
+frontend detrás de un servicio que permita encabezados CSP completos.
 
 El código dinámico usa `textContent` y creación de nodos; no inserta datos externos con `innerHTML`.
 

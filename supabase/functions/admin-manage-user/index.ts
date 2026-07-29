@@ -65,6 +65,16 @@ Deno.serve(async (request) => {
 
     if (!ACCIONES.has(body.accion)) return json({ error: 'Acción no permitida' }, 400)
     if (!/^[0-9a-f-]{36}$/i.test(body.usuario_id || '')) return json({ error: 'Usuario inválido' }, 400)
+    const habilitaAcceso = body.accion === 'activar' || body.accion === 'desbloquear'
+    const restringeAcceso = body.accion === 'suspender' || body.accion === 'bloquear'
+
+    if (habilitaAcceso) {
+      const { error: errorAuth } = await cliente.auth.admin.updateUserById(body.usuario_id, {
+        ban_duration: 'none',
+      })
+      if (errorAuth) throw new Error('No se pudo habilitar el acceso de autenticación')
+    }
+
     const { error } = await cliente.rpc('aplicar_accion_administrativa', {
       p_administrador_id: usuario.id,
       p_usuario_id: body.usuario_id,
@@ -73,9 +83,27 @@ Deno.serve(async (request) => {
       p_fecha_vencimiento: body.fecha_vencimiento || null,
       p_observacion: String(body.observacion || '').slice(0, 1000) || null,
     })
-    if (error) throw new Error(error.message)
-    return json({ ok: true })
+    if (error) throw new Error('No se pudo aplicar la acción administrativa')
+
+    let advertencia: string | null = null
+    if (restringeAcceso) {
+      const { error: errorAuth } = await cliente.auth.admin.updateUserById(body.usuario_id, {
+        ban_duration: '876000h',
+      })
+      if (errorAuth) {
+        advertencia = 'El acceso a los datos quedó bloqueado, pero no se pudieron revocar las sesiones de Auth.'
+      }
+    }
+    return json({ ok: true, advertencia })
   } catch (error) {
-    return errorSeguro(error, error instanceof Error && error.message.includes('denegado') ? 403 : 400)
+    const accesoDenegado = error instanceof Error
+      && (error.message.includes('denegado') || error.message.includes('reforzada'))
+    return errorSeguro(
+      error,
+      accesoDenegado ? 403 : 400,
+      accesoDenegado
+        ? 'Acceso administrativo denegado. Verificá el segundo factor.'
+        : 'No se pudo completar la acción administrativa.',
+    )
   }
 })

@@ -15,11 +15,19 @@ Deno.serve(async (request) => {
     const redirect = new URL(GOOGLE_REDIRECT_URI)
     if (redirect.protocol !== 'https:' && redirect.hostname !== 'localhost') throw new Error('GOOGLE_REDIRECT_URI no es segura')
     const { usuario, cliente } = await usuarioAutenticado(request)
+    const { data: habilitado } = await cliente.rpc('usuario_habilitado', { usuario: usuario.id })
+    if (!habilitado) return json({ error: 'La cuenta o suscripción no está habilitada' }, 403)
     const { data: conexion } = await cliente
       .from('conexiones_google')
       .select('google_email')
       .eq('usuario_id', usuario.id)
       .maybeSingle()
+    await cliente
+      .from('oauth_states')
+      .delete()
+      .eq('usuario_id', usuario.id)
+      .eq('servicio', servicio)
+      .is('usado_en', null)
     const estado = crypto.randomUUID() + crypto.randomUUID()
     const { error } = await cliente.from('oauth_states').insert({
       hash_estado: await hashEstado(estado),
@@ -48,6 +56,6 @@ Deno.serve(async (request) => {
     if (conexion?.google_email) url.searchParams.set('login_hint', conexion.google_email)
     return json({ url: url.href })
   } catch (error) {
-    return errorSeguro(error, 400)
+    return errorSeguro(error, 400, 'No se pudo iniciar la autorización con Google.')
   }
 })

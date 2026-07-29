@@ -20,8 +20,15 @@ export function verificarCron(request: Request) {
   }
 }
 
-export function errorSeguro(error: unknown, status = 400) {
-  const mensaje = error instanceof Error ? error.message : 'La operación no pudo completarse'
+export function errorSeguro(
+  error: unknown,
+  status = 400,
+  mensaje = 'La operación no pudo completarse',
+) {
+  console.warn('Solicitud rechazada', {
+    status,
+    tipo: error instanceof Error ? error.name : 'ErrorDesconocido',
+  })
   return json({ error: mensaje }, status)
 }
 
