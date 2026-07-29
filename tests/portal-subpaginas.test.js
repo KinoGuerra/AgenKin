@@ -22,10 +22,14 @@ describe('portal separado por subpáginas', () => {
 
   it('muestra avisos del día desde un RPC restringido al usuario', () => {
     const portada = leer('app.html')
+    const cabecera = portada.slice(portada.indexOf('<header class="cabecera-portal'), portada.indexOf('</header>'))
+    const dashboard = portada.slice(portada.indexOf('<section id="inicio"'))
     const migracion = leer('supabase/migrations/20260728225511_agregar_avisos_del_dia.sql')
     expect(portada).toContain('data-avisos-dia')
     expect(portada).toContain('Avisos del día')
     expect(portada).toContain('>Dashboard<')
+    expect(cabecera).not.toContain('data-avisos-dia')
+    expect(dashboard).toContain('data-avisos-dia')
     expect(migracion).toContain("'avisos_del_dia'")
     expect(migracion).toContain('where v.usuario_id = (select auth.uid())')
     expect(migracion).toContain('vencimientos_usuario_fecha_activos_idx')

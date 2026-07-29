@@ -61,15 +61,6 @@
             <button class="boton boton--primario boton--sincronizar-agenda" data-scan aria-label="Actualizar correos y eventos de Agenda ahora">Actualizar Agenda</button>
           </div>
         </article>
-        <article class="cuadrante-estado cuadrante-estado--avisos" aria-labelledby="titulo-avisos-dia">
-          <div class="avisos-dia__encabezado">
-            <p id="titulo-avisos-dia">Avisos del día</p>
-            <a href="./vencimientos.html">Ver todos <span aria-hidden="true">→</span></a>
-          </div>
-          <ul class="avisos-dia__lista" data-avisos-dia aria-live="polite">
-            <li class="avisos-dia__vacio">Consultando vencimientos…</li>
-          </ul>
-        </article>
       </header>
       <div data-alertas></div>
 
@@ -105,6 +96,15 @@
             <strong data-metrica="correos-hoy">—</strong>
             <small>zona horaria argentina</small>
           </a>
+          <article class="dashboard-card dashboard-card--avisos" aria-labelledby="titulo-avisos-dia">
+            <div class="dashboard-card__cabecera avisos-dia__encabezado">
+              <div><span class="dashboard-card__etiqueta">Próximas acciones</span><h3 id="titulo-avisos-dia">Avisos del día</h3></div>
+              <a class="accion-sutil" href="./vencimientos.html">Ver todos <span aria-hidden="true">→</span></a>
+            </div>
+            <ul class="avisos-dia__lista" data-avisos-dia aria-live="polite">
+              <li class="avisos-dia__vacio">Consultando vencimientos…</li>
+            </ul>
+          </article>
           <article class="dashboard-card dashboard-card--categorias">
             <div class="dashboard-card__cabecera">
               <div><span class="dashboard-card__etiqueta">Mapa de correos</span><h3>Distribución por grupo</h3></div>

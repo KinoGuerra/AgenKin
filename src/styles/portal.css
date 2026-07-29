@@ -108,8 +108,7 @@
   grid-template-columns:
     minmax(270px, 1.15fr)
     minmax(185px, .8fr)
-    minmax(215px, .9fr)
-    minmax(240px, 1fr);
+    minmax(215px, .9fr);
 }
 .cabecera-portal--inicio .cabecera-portal__identidad {
   display: grid;
@@ -235,36 +234,12 @@
   content: "";
 }
 .cuadrante-estado--agenda strong { position: relative; z-index: 1; font-size: clamp(.82rem, 1.25vw, 1rem); }
-.cuadrante-estado--avisos {
-  min-height: 150px;
-  align-content: stretch;
-  grid-template-rows: auto minmax(0, 1fr);
-  background:
-    radial-gradient(circle at 100% 0%, color-mix(in srgb, #f0a949 14%, transparent), transparent 55%),
-    linear-gradient(135deg, color-mix(in srgb, var(--verde) 5%, var(--superficie)), var(--superficie));
-}
-.cuadrante-estado > .avisos-dia__encabezado { align-items: center; }
-.avisos-dia__encabezado p {
-  margin: 0;
-  color: var(--tinta-suave);
-  font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
-  font-size: .66rem;
-  font-weight: 850;
-  letter-spacing: .12em;
-  text-transform: uppercase;
-}
-.avisos-dia__encabezado a {
-  color: var(--verde);
-  font-size: .62rem;
-  font-weight: 800;
-  text-decoration: none;
-}
 .avisos-dia__lista {
   display: grid;
   align-content: start;
   gap: .2rem;
-  max-height: 110px;
-  margin: .35rem 0 0;
+  max-height: 240px;
+  margin: .65rem 0 0;
   padding: 0 .25rem 0 0;
   overflow-y: auto;
   list-style: none;
@@ -457,7 +432,17 @@ a.dashboard-card:hover { border-color: color-mix(in srgb, var(--verde) 52%, var(
     radial-gradient(circle at 90% 10%, color-mix(in srgb, var(--verde) 17%, transparent), transparent 42%),
     linear-gradient(145deg, var(--superficie), color-mix(in srgb, var(--verde) 7%, var(--superficie-suave)));
 }
-.dashboard-card--categorias { grid-column: 1 / -1; padding: clamp(1rem, 2.5vw, 1.6rem); }
+.dashboard-card--avisos {
+  grid-column: span 4;
+  align-content: stretch;
+  grid-template-rows: auto minmax(0, 1fr);
+  min-height: 250px;
+  border-top-color: #f0a949;
+  background:
+    radial-gradient(circle at 100% 0%, color-mix(in srgb, #f0a949 15%, transparent), transparent 48%),
+    linear-gradient(145deg, var(--superficie), color-mix(in srgb, #f0a949 4%, var(--superficie-suave)));
+}
+.dashboard-card--categorias { grid-column: span 8; padding: clamp(1rem, 2.5vw, 1.6rem); }
 .dashboard-card__etiqueta {
   color: var(--tinta-suave);
   font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
@@ -909,13 +894,11 @@ td select { min-width: 150px; padding: .4rem; font-size: .75rem; }
 @media (max-width: 1200px) {
   .cabecera-portal--inicio { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .cabecera-portal--inicio .cabecera-portal__identidad { grid-column: 1 / -1; }
-  .cabecera-portal--inicio .cuadrante-estado--avisos { grid-column: 1 / -1; }
 }
 
 @media (max-width: 1050px) {
   .cabecera-portal { grid-template-columns: 1fr; }
   .cabecera-portal--inicio .cabecera-portal__identidad { grid-column: auto; }
-  .cabecera-portal--inicio .cuadrante-estado--avisos { grid-column: auto; }
   .accesos-rapidos { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .dashboard-card--dias, .dashboard-card--correos, .dashboard-card--hoy { grid-column: span 4; }
   .metricas { grid-template-columns: repeat(2, 1fr); }
@@ -938,6 +921,7 @@ td select { min-width: 150px; padding: .4rem; font-size: .75rem; }
   .cabecera-subpagina__acciones { grid-column: 3; grid-row: 2; justify-content: flex-start; }
   .accesos-rapidos { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .dashboard-card--dias, .dashboard-card--correos, .dashboard-card--hoy { grid-column: 1 / -1; min-height: 135px; }
+  .dashboard-card--avisos, .dashboard-card--categorias { grid-column: 1 / -1; }
   .dashboard-card > strong { margin-block: .8rem; }
   .dashboard-titulo { align-items: flex-start; }
   .titulo-seccion, .panel-google__cabecera { align-items: flex-start; flex-direction: column; }
