@@ -525,7 +525,7 @@ body {
 
 .planes {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 235px), 1fr));
   gap: 1rem;
   margin-top: 3.5rem;
   text-align: left;
@@ -534,7 +534,7 @@ body {
 .planes article {
   position: relative;
   display: flex;
-  min-height: 430px;
+  min-height: 400px;
   flex-direction: column;
   padding: clamp(1.5rem, 3vw, 2rem);
   border: 1px solid var(--borde);

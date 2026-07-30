@@ -25,7 +25,7 @@
     <meta name="twitter:title" content="AgenKin — Del correo a tu agenda">
     <meta name="twitter:description" content="Tus fechas importantes, detectadas y organizadas bajo tu control.">
     <meta name="twitter:image" content="https://kinoguerra.github.io/AgenKin/agenkin-social.png">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-QxaPIx9nlMui1iac5f55oalBanFxsFcvwXftisMxWSQ='; style-src 'self'; img-src 'self' data:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; font-src 'self'; manifest-src 'self'; frame-src 'none'; media-src 'none'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-QxaPIx9nlMui1iac5f55oalBanFxsFcvwXftisMxWSQ='; style-src 'self'; img-src 'self' data:; connect-src 'self' https://kpqzwbhprqlapwhadejt.supabase.co; font-src 'self'; manifest-src 'self'; frame-src 'none'; media-src 'none'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'">
     <link rel="canonical" href="https://kinoguerra.github.io/AgenKin/">
     <link rel="manifest" href="./site.webmanifest">
     <link rel="icon" type="image/png" sizes="32x32" href="./agenkin-icon-32.png">
@@ -250,15 +250,15 @@
 
       <section class="seccion seccion--centrada" id="planes" aria-labelledby="titulo-planes">
         <p class="eyebrow">Capacidad transparente</p>
-        <h2 id="titulo-planes">Elegí según el ritmo real de tu bandeja</h2>
-        <p class="bajada-seccion">Los límites publicados coinciden con los planes activos. No hay cobros ni renovaciones automáticas.</p>
+        <h2 id="titulo-planes">Elegí cuántas cuentas querés sincronizar</h2>
+        <p class="bajada-seccion">No aplicamos un cupo comercial por mensajes: si hay mucho volumen, se procesa en cola. Cada plan define cuántas cuentas Gmail podés conectar; durante la beta todos tienen precio cero.</p>
 
         <div class="planes">
           <article>
             <div class="plan__encabezado"><h3>Prueba</h3><span>15 días</span></div>
-            <p class="plan__capacidad"><strong>50</strong> correos / mes</p>
+            <p class="plan__capacidad"><strong>1</strong> cuenta Gmail</p>
             <ul>
-              <li>Análisis manual</li>
+              <li>Sincronización automática o manual</li>
               <li>Agenda interna</li>
               <li>Clasificación por grupos</li>
             </ul>
@@ -267,25 +267,47 @@
 
           <article>
             <div class="plan__encabezado"><h3>Básico</h3><span>Uso personal</span></div>
-            <p class="plan__capacidad"><strong>300</strong> correos / mes</p>
+            <p class="plan__capacidad"><strong>1</strong> cuenta Gmail</p>
             <ul>
-              <li>Mayor capacidad mensual</li>
+              <li>Sin cupo comercial por mensajes</li>
               <li>Panel de vencimientos</li>
               <li>Revisión antes de crear eventos</li>
             </ul>
-            <button class="boton boton--secundario" type="button" data-login><span data-login-label>Ingresar y solicitar</span></button>
+            <button class="boton boton--secundario" type="button" data-login><span data-login-label>Ingresar a AgenKin</span></button>
+          </article>
+
+          <article>
+            <div class="plan__encabezado"><h3>Dúo</h3><span>Dos bandejas</span></div>
+            <p class="plan__capacidad"><strong>2</strong> cuentas Gmail</p>
+            <ul>
+              <li>Sincronización independiente</li>
+              <li>Una Agenda consolidada</li>
+              <li>Sincronización con Calendar</li>
+            </ul>
+            <button class="boton boton--secundario" type="button" data-login><span data-login-label>Ingresar a AgenKin</span></button>
           </article>
 
           <article class="plan-destacado">
-            <span class="etiqueta">Automatización</span>
-            <div class="plan__encabezado"><h3>Profesional</h3><span>Seguimiento continuo</span></div>
-            <p class="plan__capacidad"><strong>1.500</strong> correos / mes</p>
+            <span class="etiqueta">Recomendado</span>
+            <div class="plan__encabezado"><h3>Pro</h3><span>Seguimiento continuo</span></div>
+            <p class="plan__capacidad"><strong>3</strong> cuentas Gmail</p>
             <ul>
-              <li>Revisión periódica de Gmail</li>
-              <li>Remitentes priorizados</li>
-              <li>Sincronización con Calendar</li>
+              <li>Sincronización incremental</li>
+              <li>Patrones que reducen uso de IA</li>
+              <li>Un Calendar elegido</li>
             </ul>
-            <button class="boton boton--primario" type="button" data-login><span data-login-label>Ingresar y solicitar</span></button>
+            <button class="boton boton--primario" type="button" data-login><span data-login-label>Ingresar a AgenKin</span></button>
+          </article>
+
+          <article>
+            <div class="plan__encabezado"><h3>Ultra</h3><span>Máxima capacidad</span></div>
+            <p class="plan__capacidad"><strong>5</strong> cuentas Gmail</p>
+            <ul>
+              <li>Sin límite comercial de mensajes</li>
+              <li>Procesamiento justo entre cuentas</li>
+              <li>Agenda y métricas unificadas</li>
+            </ul>
+            <button class="boton boton--secundario" type="button" data-login><span data-login-label>Ingresar a AgenKin</span></button>
           </article>
         </div>
         <p class="aclaracion">La asignación y mejora de planes se gestiona desde AgenKin. Los precios comerciales todavía no están publicados.</p>
@@ -302,7 +324,7 @@
         </details>
         <details>
           <summary>¿AgenKin crea eventos automáticamente?</summary>
-          <p>Solo si tu plan lo permite y lo activás. La automatización se limita a fechas futuras de alta confianza provenientes de remitentes que hayas priorizado.</p>
+          <p>Solo si la activás. Todos los planes permiten sincronización automática o manual; la creación automática se limita a fechas futuras de alta confianza provenientes de remitentes que hayas priorizado.</p>
         </details>
         <details>
           <summary>¿Qué ocurre si Google Calendar está desconectado?</summary>

@@ -1,4 +1,5 @@
 import { sincronizarEventoAgenda } from '../_shared/calendar.ts'
+import { ErrorGoogle } from '../_shared/google.ts'
 import { errorSeguro, json, manejarPreflight, verificarCron } from '../_shared/http.ts'
 import { clienteServicio } from '../_shared/supabase.ts'
 
@@ -27,10 +28,15 @@ Deno.serve(async (request) => {
       try {
         const googleId = await sincronizarEventoAgenda(cliente, tarea.usuario_id, tarea.evento_id)
         if (!googleId) codigoError = 'CALENDAR_DESCONECTADO'
-      } catch {
-        codigoError = 'SINCRONIZACION_GOOGLE_FALLIDA'
+      } catch (errorTarea) {
+        codigoError = errorTarea instanceof ErrorGoogle
+          ? errorTarea.codigo
+          : 'SINCRONIZACION_GOOGLE_FALLIDA'
       }
-      const reintentar = codigoError === 'SINCRONIZACION_GOOGLE_FALLIDA'
+      const reintentar = [
+        'GOOGLE_TEMPORAL',
+        'SINCRONIZACION_GOOGLE_FALLIDA',
+      ].includes(codigoError || '')
         && tarea.intentos + 1 < MAXIMO_INTENTOS
       const { error: errorFinalizacion } = await cliente.rpc('finalizar_tarea_calendar', {
         p_msg_id: tarea.msg_id,

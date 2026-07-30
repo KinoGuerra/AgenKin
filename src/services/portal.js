@@ -1,17 +1,19 @@
 import { supabase } from './supabase.js'
 
-export async function cargarPortal(pagina = 'inicio') {
+export async function cargarPortal(pagina = 'inicio', opciones = {}) {
   const consultas = {}
   if (['inicio', 'configuracion'].includes(pagina)) {
     consultas.resumen = supabase.rpc('obtener_panel_usuario')
     consultas.conexion = supabase.rpc('obtener_estado_conexion_google')
   }
   if (pagina === 'correos') {
+    const paginaCorreos = Math.max(1, Number(opciones.paginaCorreos) || 1)
+    const desde = (paginaCorreos - 1) * 25
     consultas.correos = supabase
       .from('correos_procesados')
-      .select('id,remitente,asunto,fecha_correo,categoria,grupo_resumen,grupo_asignado_por,relevante,estado_procesamiento,error_procesamiento,vencimientos_detectados(titulo,descripcion,fecha_vencimiento,monto)')
+      .select('id,remitente,asunto,fecha_correo,categoria,grupo_resumen,grupo_asignado_por,relevante,estado_procesamiento,error_procesamiento,detalle_compactado,vencimientos_detectados(titulo,descripcion,fecha_vencimiento,monto)', { count: 'exact' })
       .order('fecha_correo', { ascending: false })
-      .limit(50)
+      .range(desde, desde + 24)
   }
   if (pagina === 'vencimientos') {
     consultas.vencimientos = supabase.from('vencimientos_detectados').select('id,tipo,titulo,descripcion,fecha_vencimiento,hora_vencimiento,zona_horaria,confianza,estado,requiere_revision,correos_procesados(asunto)').order('creado_en', { ascending: false }).limit(50)
@@ -24,6 +26,10 @@ export async function cargarPortal(pagina = 'inicio') {
   const error = resultados.find((resultado) => resultado.error)?.error
   if (error) throw error
   const datos = Object.fromEntries(entradas.map(([clave], indice) => [clave, resultados[indice].data]))
+  if (pagina === 'correos') {
+    const indiceCorreos = entradas.findIndex(([clave]) => clave === 'correos')
+    datos.correos_total = resultados[indiceCorreos]?.count || 0
+  }
   return { vencimientos: [], correos: [], reglas: [], ...datos }
 }
 

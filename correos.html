@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex">
     <meta name="referrer" content="strict-origin-when-cross-origin">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; object-src 'none'; base-uri 'self'; frame-ancestors 'none'">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: https:; connect-src 'self' https://kpqzwbhprqlapwhadejt.supabase.co; frame-src 'none'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'">
     <script type="module" src="./src/components/frame-guard.js"></script>
     <title>Correos analizados — AgenKin</title>
     <link rel="stylesheet" href="./src/styles/global.css">
@@ -42,6 +42,11 @@
       <section class="panel panel--pagina">
         <div class="titulo-seccion"><div><h2>Últimos correos</h2><p>Podés corregir el grupo asignado y el tablero se actualizará automáticamente.</p></div></div>
         <div class="tabla-scroll"><table><thead><tr><th>Fecha</th><th>Remitente</th><th>Asunto</th><th>Detalle IA</th><th>Grupo</th><th>Estado</th></tr></thead><tbody data-correos><tr><td colspan="6">Cargando correos…</td></tr></tbody></table></div>
+        <nav class="paginacion" aria-label="Paginación de correos">
+          <button class="boton boton--secundario" type="button" data-correos-anterior disabled>Anterior</button>
+          <span data-correos-pagina>1 de 1</span>
+          <button class="boton boton--secundario" type="button" data-correos-siguiente disabled>Siguiente</button>
+        </nav>
       </section>
     </main>
     <script type="module" src="./src/pages/app.js"></script>

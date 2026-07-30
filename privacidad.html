@@ -9,7 +9,7 @@
     <meta name="color-scheme" content="light dark">
     <meta name="theme-color" content="#e3e9e8" media="(prefers-color-scheme: light)">
     <meta name="theme-color" content="#071018" media="(prefers-color-scheme: dark)">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; frame-src 'none'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'none'">
     <link rel="canonical" href="https://kinoguerra.github.io/AgenKin/privacidad.html">
     <link rel="manifest" href="./site.webmanifest">
     <link rel="icon" type="image/png" sizes="32x32" href="./agenkin-icon-32.png">
@@ -38,11 +38,11 @@
       <p>El acceso a Gmail es de solo lectura. AgenKin no envía, elimina ni modifica correos. Calendar se autoriza por separado y se usa para administrar el calendario secundario creado por AgenKin. Los tokens de actualización se cifran antes de almacenarse.</p>
       <p>El uso y la transferencia de información recibida desde las APIs de Google se ajustan a la <a href="https://developers.google.com/terms/api-services-user-data-policy">Política de Datos del Usuario de los Servicios de API de Google</a>, incluidos sus requisitos de Uso Limitado.</p>
       <h2>Inteligencia artificial</h2>
-      <p>Cuando solicitás un análisis, se envía al proveedor de inteligencia artificial configurado solamente el texto necesario para clasificar el correo y extraer fechas. Antes del envío, AgenKin limita el contenido y redacta direcciones de correo, secuencias numéricas largas, parámetros de URL y credenciales reconocibles. Estos datos no se usan para publicidad ni para entrenar un modelo fundacional de uso general por AgenKin.</p>
+      <p>Cuando solicitás un análisis, se envía al proveedor de inteligencia artificial configurado solamente el texto necesario para clasificar el correo y extraer fechas. Antes del envío, AgenKin limita el contenido y redacta direcciones de correo, secuencias numéricas largas, enlaces completos y credenciales reconocibles. Estos datos no se usan para publicidad ni para entrenar un modelo fundacional de uso general por AgenKin.</p>
       <h2>Proveedores y transferencias</h2>
       <p>Supabase presta servicios de autenticación, base de datos y funciones; Google presta Gmail y Calendar; y el proveedor de inteligencia artificial procesa el análisis solicitado. Estos proveedores pueden tratar datos en otros países conforme a sus términos y medidas de seguridad.</p>
       <h2>Seguridad y conservación</h2>
-      <p>Supabase aplica políticas de seguridad por fila. Los tokens de Google se cifran y las claves secretas no se exponen en el navegador. Los estados OAuth vencen a los diez minutos y se eliminan periódicamente. Conservamos metadatos y resultados estructurados mientras la cuenta permanezca activa o hasta que solicites su eliminación, salvo obligación legal aplicable.</p>
+      <p>Supabase aplica políticas de seguridad por fila. Los tokens de Google se cifran y las claves secretas no se exponen en el navegador. Los estados OAuth vencen a los diez minutos y se eliminan periódicamente. El detalle de un hallazgo se compacta quince días después de su vencimiento; los correos sin fecha o irrelevantes se compactan a los treinta días. Se conserva durante un máximo de 120 días un registro técnico mínimo para evitar duplicados. Las métricas mensuales agregadas pueden conservarse por más tiempo y no contienen el cuerpo del correo.</p>
       <h2>Almacenamiento en el navegador</h2>
       <p>La aplicación guarda la preferencia de tema y la sesión necesaria para mantener tu acceso. No usa cookies publicitarias ni incorpora rastreadores comerciales en la landing.</p>
       <h2 id="eliminacion">Eliminación de cuenta y datos</h2>

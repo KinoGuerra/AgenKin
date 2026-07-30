@@ -43,4 +43,19 @@ describe('portal separado por subpáginas', () => {
     expect(pagina).toContain('Se reintentará en el próximo análisis.')
     expect(servicio).not.toContain('cuerpo')
   })
+
+  it('descarta vencimientos mediante una transición controlada', () => {
+    const pagina = leer('src/pages/app.js')
+    expect(pagina).toContain("supabase.rpc('descartar_vencimiento'")
+    expect(pagina).toContain('p_vencimiento_id: id')
+    expect(pagina).not.toContain(".update({ estado: 'descartado' })")
+  })
+
+  it('mantiene accesibles el menú móvil y la selección de Agenda', () => {
+    const pagina = leer('src/pages/app.js')
+    expect(pagina).toContain("evento.key !== 'Escape'")
+    expect(pagina).toContain("'aria-controls'")
+    expect(pagina).toContain("'aria-label', abierto ? 'Cerrar menú' : 'Abrir menú'")
+    expect(pagina).toContain("'aria-pressed', String(seleccionado)")
+  })
 })

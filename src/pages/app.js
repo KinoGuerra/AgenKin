@@ -13,6 +13,8 @@ let usuarioActualId
 let eventosAgenda = []
 let mesAgenda = new Date()
 mesAgenda = new Date(mesAgenda.getFullYear(), mesAgenda.getMonth(), 1)
+let temporizadorSincronizacion
+let paginaCorreos = 1
 const paginaPortal = document.body.dataset.portalPage || 'inicio'
 const tbodyVencimientos = document.querySelector('[data-vencimientos]')
 const dialogoEvento = document.querySelector('[data-evento-dialog]')
@@ -23,6 +25,8 @@ const formularioAutomatizacion = document.querySelector('[data-auto-form]')
 const sincronizacionAutomatica = document.querySelector('[data-auto-sync]')
 const eventosAutomaticos = document.querySelector('[data-auto-events]')
 const umbralAutomatico = document.querySelector('[data-auto-threshold]')
+const botonMenu = document.querySelector('[data-menu]')
+const barraLateral = document.querySelector('.barra-lateral')
 const GRUPOS = [
   ['tarjetas', 'Tarjetas'],
   ['servicios', 'Servicios'],
@@ -124,8 +128,8 @@ function renderCorreos(correos) {
     const fila = document.createElement('tr')
     fila.append(
       crearCelda(formatearFecha(item.fecha_correo)),
-      crearCelda(item.remitente),
-      crearCelda(item.asunto),
+      crearCelda(item.remitente || (item.detalle_compactado ? 'Dato eliminado' : '—')),
+      crearCelda(item.asunto || (item.detalle_compactado ? 'Dato eliminado' : 'Sin asunto')),
       crearDetalleCorreo(item),
     )
     const grupo = document.createElement('td')
@@ -139,10 +143,24 @@ function renderCorreos(correos) {
       opcion.selected = item.grupo_resumen === valor
       selector.append(opcion)
     })
+    selector.disabled = Boolean(item.detalle_compactado)
+    if (item.detalle_compactado) {
+      selector.setAttribute('aria-label', 'Detalle compactado; la categoría histórica ya no se puede editar')
+    }
     grupo.append(selector)
     fila.append(grupo, crearCelda(item.estado_procesamiento))
     cuerpo.append(fila)
   })
+}
+
+function renderPaginacionCorreos(total = 0) {
+  const paginas = Math.max(1, Math.ceil(Number(total) / 25))
+  const estado = document.querySelector('[data-correos-pagina]')
+  if (estado) estado.textContent = `${paginaCorreos} de ${paginas}`
+  const anterior = document.querySelector('[data-correos-anterior]')
+  const siguiente = document.querySelector('[data-correos-siguiente]')
+  if (anterior) anterior.disabled = paginaCorreos <= 1
+  if (siguiente) siguiente.disabled = paginaCorreos >= paginas
 }
 
 function primerVencimiento(correo) {
@@ -163,7 +181,10 @@ function crearDetalleCorreo(correo) {
   const metadatos = document.createElement('span')
   const vencimiento = primerVencimiento(correo)
 
-  if (correo.estado_procesamiento === 'error') {
+  if (correo.detalle_compactado) {
+    titulo.textContent = 'Detalle compactado'
+    resumen.textContent = 'Se conserva únicamente el registro antirrepetición y la métrica histórica.'
+  } else if (correo.estado_procesamiento === 'error') {
     titulo.textContent = 'Análisis incompleto'
     resumen.textContent = 'Se reintentará en el próximo análisis.'
   } else if (vencimiento) {
@@ -267,6 +288,7 @@ function renderAgenda() {
     if (clave === hoy) dia.classList.add('dia-agenda--hoy')
     dia.dataset.agendaFecha = clave
     dia.setAttribute('aria-label', `${fecha.getDate()} de ${new Intl.DateTimeFormat('es-AR', { month: 'long' }).format(fecha)}, ${eventos.length} eventos`)
+    dia.setAttribute('aria-pressed', 'false')
     const numero = document.createElement('span')
     numero.textContent = fecha.getDate()
     dia.append(numero)
@@ -299,13 +321,106 @@ async function cargarMesAgenda() {
       ? claveFecha(hoy)
       : claveFecha(mesAgenda)
   const diaInicial = document.querySelector(`[data-agenda-fecha="${fechaInicial}"]`)
-  if (diaInicial) diaInicial.dataset.seleccionado = 'true'
+  if (diaInicial) {
+    diaInicial.dataset.seleccionado = 'true'
+    diaInicial.setAttribute('aria-pressed', 'true')
+  }
   renderDetalleAgenda(fechaInicial)
 }
 
 function definirTexto(selector, valor) {
   const elemento = document.querySelector(selector)
   if (elemento) elemento.textContent = valor
+}
+
+function crearBotonCuenta(texto, clase, datos = {}) {
+  const boton = document.createElement('button')
+  boton.type = 'button'
+  boton.className = clase
+  boton.textContent = texto
+  Object.entries(datos).forEach(([nombre, valor]) => {
+    boton.dataset[nombre] = valor
+  })
+  return boton
+}
+
+function renderCuentasGoogle(cuentas = [], calendar = {}) {
+  const contenedor = document.querySelector('[data-gmail-cuentas]')
+  if (!contenedor) return
+  contenedor.replaceChildren()
+  if (!cuentas.length) {
+    contenedor.append(estadoVacio('Todavía no conectaste una cuenta Gmail.'))
+    return
+  }
+
+  cuentas.forEach((cuenta) => {
+    const tarjeta = document.createElement('article')
+    tarjeta.className = 'cuenta-google'
+    const identidad = document.createElement('div')
+    identidad.className = 'cuenta-google__identidad'
+    const icono = document.createElement('span')
+    icono.className = 'servicio-icono'
+    icono.textContent = 'G'
+    icono.setAttribute('aria-hidden', 'true')
+    const textos = document.createElement('div')
+    const email = document.createElement('strong')
+    email.textContent = cuenta.email || 'Cuenta Google'
+    const detalle = document.createElement('small')
+    detalle.textContent = `Última lectura: ${formatearFechaHora(cuenta.ultima_lectura_en)}`
+    textos.append(email, detalle)
+    identidad.append(icono, textos)
+
+    const estado = document.createElement('span')
+    estado.className = 'cuenta-google__estado'
+    estado.dataset.estado = cuenta.conectado ? 'conectado' : 'desconectado'
+    estado.textContent = cuenta.conectado ? 'Gmail conectado' : 'Desconectado'
+
+    const acciones = document.createElement('div')
+    acciones.className = 'cuenta-google__acciones'
+    if (calendar.conexion_id === cuenta.id) {
+      acciones.append(
+        crearBotonCuenta(
+          'Desactivar Calendar',
+          'boton boton--mini boton--texto',
+          { disconnectGoogle: 'calendar', conexionId: cuenta.id },
+        ),
+      )
+    } else {
+      acciones.append(
+        crearBotonCuenta(
+          'Usar para Calendar',
+          'boton boton--mini boton--secundario',
+          { useCalendar: cuenta.id },
+        ),
+      )
+    }
+    acciones.append(
+      crearBotonCuenta(
+        'Desactivar Gmail',
+        'boton boton--mini boton--texto',
+        { disconnectGoogle: 'gmail', conexionId: cuenta.id },
+      ),
+      crearBotonCuenta(
+        'Revocar acceso',
+        'boton boton--mini boton--peligro',
+        { revokeGoogle: cuenta.id },
+      ),
+    )
+    tarjeta.append(identidad, estado, acciones)
+    contenedor.append(tarjeta)
+  })
+}
+
+function seguirSincronizacion(cantidadPendiente) {
+  window.clearTimeout(temporizadorSincronizacion)
+  if (!cantidadPendiente || !['inicio', 'configuracion'].includes(paginaPortal)) return
+  temporizadorSincronizacion = window.setTimeout(async () => {
+    try {
+      await refrescar()
+    } catch {
+      window.clearTimeout(temporizadorSincronizacion)
+    }
+  }, 5000)
 }
 
 function renderPortal(datos) {
@@ -318,6 +433,7 @@ function renderPortal(datos) {
   }).forEach(([nombre, valor]) => definirTexto(`[data-metrica="${nombre}"]`, valor))
   renderVencimientos(datos.vencimientos)
   renderCorreos(datos.correos)
+  renderPaginacionCorreos(datos.correos_total)
   renderCategorias(resumen.categorias_resumen)
 
   const reglas = document.querySelector('[data-reglas]')
@@ -342,13 +458,19 @@ function renderPortal(datos) {
   }
 
   const conexion = datos.conexion || {}
-  const estadoGmail = conexion.gmail_conectado ? 'Conectado' : 'Desconectado'
-  const estadoCalendar = conexion.calendar_conectado ? 'Conectado' : 'Desconectado'
+  const gmail = conexion.gmail || { usadas: 0, limite: 1, cuentas: [] }
+  const calendar = conexion.calendar || { conectado: false }
+  const cuentas = Array.isArray(gmail.cuentas) ? gmail.cuentas : []
+  const gmailConectado = Number(gmail.usadas || 0) > 0
+  const estadoGmail = gmailConectado
+    ? `${gmail.usadas} de ${gmail.limite} conectadas`
+    : 'Desconectado'
+  const estadoCalendar = calendar.conectado ? 'Conectado' : 'Desconectado'
   const indicadores = [
-    [document.querySelector('[data-header-gmail]'), estadoGmail, conexion.gmail_conectado],
-    [document.querySelector('[data-header-calendar]'), estadoCalendar, conexion.calendar_conectado],
-    [document.querySelector('[data-servicio-gmail]'), estadoGmail, conexion.gmail_conectado],
-    [document.querySelector('[data-servicio-calendar]'), estadoCalendar, conexion.calendar_conectado],
+    [document.querySelector('[data-header-gmail]'), estadoGmail, gmailConectado],
+    [document.querySelector('[data-header-calendar]'), estadoCalendar, calendar.conectado],
+    [document.querySelector('[data-servicio-gmail]'), estadoGmail, gmailConectado],
+    [document.querySelector('[data-servicio-calendar]'), estadoCalendar, calendar.conectado],
   ].filter(([indicador]) => indicador)
   indicadores.forEach(([indicador, texto, conectado]) => {
     indicador.textContent = texto
@@ -356,29 +478,30 @@ function renderPortal(datos) {
   })
   definirTexto(
     '[data-servicio-gmail-detalle]',
-    conexion.gmail_conectado
-      ? `${conexion.gmail_email || conexion.google_email || 'Cuenta de Google'} · última lectura ${formatearFechaHora(conexion.gmail_ultima_lectura_en)}`
-      : 'Sin cuenta asociada',
+    gmailConectado
+      ? `${gmail.usadas} cuenta${gmail.usadas === 1 ? '' : 's'} · última lectura ${formatearFechaHora(conexion.gmail_ultima_lectura_en)}`
+      : 'Sin cuentas asociadas',
   )
   definirTexto(
     '[data-servicio-calendar-detalle]',
-    conexion.calendar_conectado
-      ? `${conexion.calendar_email || conexion.google_email || 'Cuenta de Google'} · última sincronización ${formatearFechaHora(conexion.calendar_ultima_sincronizacion_en)}`
+    calendar.conectado
+      ? `${calendar.email || 'Cuenta de Google'} · última sincronización ${formatearFechaHora(calendar.ultima_sincronizacion_en)}`
       : 'Sin cuenta asociada',
   )
   definirTexto('[data-header-agenda]', formatearFechaHora(conexion.agenda_ultima_actualizacion_en))
-  document.querySelector('[data-connect-gmail]')?.classList.toggle('oculto', Boolean(conexion.gmail_conectado))
-  document.querySelector('[data-disconnect-gmail]')?.classList.toggle('oculto', !conexion.gmail_conectado)
-  document.querySelector('[data-connect-calendar]')?.classList.toggle('oculto', Boolean(conexion.calendar_conectado))
-  document.querySelector('[data-disconnect-calendar]')?.classList.toggle('oculto', !conexion.calendar_conectado)
-  document.querySelector('[data-revoke-google]')?.classList.toggle('oculto', !conexion.conectado)
+  const botonAgregar = document.querySelector('[data-connect-gmail]')
+  if (botonAgregar) {
+    const completo = Number(gmail.usadas || 0) >= Number(gmail.limite || 1)
+    botonAgregar.disabled = completo
+    botonAgregar.textContent = completo ? 'Cupo de cuentas completo' : 'Agregar cuenta Gmail'
+  }
+  renderCuentasGoogle(cuentas, calendar)
   if (formularioAutomatizacion) {
-    const planPermiteAutomatizacion = Boolean(resumen.suscripcion?.permite_automatizacion)
     sincronizacionAutomatica.checked = Boolean(conexion.sincronizacion_automatica)
     eventosAutomaticos.checked = Boolean(conexion.creacion_automatica_eventos)
     umbralAutomatico.value = Number(conexion.umbral_confianza_automatica || 0.9).toFixed(2)
     formularioAutomatizacion.querySelectorAll('input, select, button').forEach((control) => {
-      control.disabled = !conexion.gmail_conectado || !planPermiteAutomatizacion
+      control.disabled = !gmailConectado
     })
     definirTexto('[data-auto-estado]', conexion.sincronizacion_automatica ? 'Activa' : 'Desactivada')
     const pendientes = Number(conexion.tareas_pendientes || 0)
@@ -386,13 +509,12 @@ function renderPortal(datos) {
     const ultima = formatearFecha(conexion.ultima_sincronizacion_exitosa)
     definirTexto(
       '[data-auto-detalle]',
-      !planPermiteAutomatizacion
-        ? 'La automatización está disponible en el plan Profesional.'
-        : conexion.gmail_conectado
-          ? `${pendientes} en cola · ${conError} con error · última revisión completa: ${ultima}`
-          : 'Conectá Gmail para activar esta función.',
+      gmailConectado
+        ? `${pendientes} en cola · ${conError} con error · última revisión completa: ${ultima}`
+        : 'Conectá Gmail para activar esta función.',
     )
   }
+  seguirSincronizacion(Number(conexion.tareas_pendientes || 0))
 
   const suscripcion = resumen.suscripcion || {}
   definirTexto('[data-plan-cabecera]', suscripcion.plan || 'Sin plan')
@@ -407,15 +529,18 @@ function renderPortal(datos) {
     vencimiento: formatearFecha(suscripcion.fecha_vencimiento),
   }
   Object.entries(campos).forEach(([campo, valor]) => definirTexto(`[data-suscripcion="${campo}"]`, valor))
-  const usados = Number(suscripcion.correos_mes || 0)
-  const limite = Number(suscripcion.limite_correos_mensuales || 0)
+  const usados = Number(suscripcion.cuentas_gmail_usadas || 0)
+  const limite = Number(suscripcion.limite_cuentas_gmail || 0)
   const uso = document.querySelector('[data-uso]')
   if (uso) uso.value = limite ? Math.min(100, (usados / limite) * 100) : 0
-  definirTexto('[data-uso-texto]', `${usados} de ${limite || '—'} correos procesados`)
+  definirTexto('[data-uso-texto]', `${usados} de ${limite || '—'} cuentas Gmail conectadas`)
   const botonPlan = document.querySelector('[data-request-plan]')
   if (botonPlan) {
+    botonPlan.classList.toggle('oculto', Boolean(suscripcion.es_interno))
     botonPlan.disabled = Boolean(suscripcion.solicitud_mejora_pendiente)
-    botonPlan.textContent = suscripcion.solicitud_mejora_pendiente ? 'Solicitud enviada' : 'Solicitar mejora'
+    botonPlan.textContent = suscripcion.solicitud_mejora_pendiente
+      ? 'Solicitud enviada'
+      : 'Solicitar mejora'
   }
   definirTexto(
     '[data-dashboard-fecha]',
@@ -424,7 +549,7 @@ function renderPortal(datos) {
 }
 
 async function refrescar() {
-  datosPortal = await cargarPortal(paginaPortal)
+  datosPortal = await cargarPortal(paginaPortal, { paginaCorreos })
   renderPortal(datosPortal)
   if (paginaPortal === 'agenda') await cargarMesAgenda()
 }
@@ -441,8 +566,12 @@ async function iniciar() {
     if (parametros.get('google') === 'conectado') {
       const servicio = parametros.get('servicio') === 'calendar' ? 'Google Calendar' : 'Gmail'
       mostrarAviso(`${servicio} quedó conectado.`, 'exito')
+    } else if (parametros.get('motivo') === 'cupo_cuentas_gmail') {
+      mostrarAviso('Tu plan ya tiene conectadas todas las cuentas Gmail disponibles.', 'error')
+    } else if (parametros.get('motivo') === 'cuenta_calendar_distinta') {
+      mostrarAviso('Calendar debe autorizarse con la misma cuenta Gmail que seleccionaste.', 'error')
     } else if (parametros.get('motivo') === 'cuenta_google_distinta') {
-      mostrarAviso('Usá la misma cuenta Google que ya está asociada al otro servicio.', 'error')
+      mostrarAviso('La cuenta Google autorizada no coincide con la seleccionada.', 'error')
     } else if (parametros.get('google') === 'error') {
       mostrarAviso('No se pudo completar la conexión con Google. Intentá nuevamente.', 'error')
     }
@@ -454,9 +583,36 @@ async function iniciar() {
   }
 }
 
-document.querySelector('[data-menu]')?.addEventListener('click', (evento) => {
+function cerrarMenuPortal() {
+  document.body.classList.remove('menu-abierto')
+  botonMenu?.setAttribute('aria-expanded', 'false')
+  botonMenu?.setAttribute('aria-label', 'Abrir menú')
+}
+
+if (botonMenu && barraLateral) {
+  barraLateral.id ||= 'menu-portal'
+  botonMenu.setAttribute('aria-controls', barraLateral.id)
+}
+
+botonMenu?.addEventListener('click', (evento) => {
   const abierto = document.body.classList.toggle('menu-abierto')
   evento.currentTarget.setAttribute('aria-expanded', String(abierto))
+  evento.currentTarget.setAttribute('aria-label', abierto ? 'Cerrar menú' : 'Abrir menú')
+})
+barraLateral?.querySelectorAll('nav a').forEach((enlace) => {
+  enlace.addEventListener('click', cerrarMenuPortal)
+})
+document.addEventListener('keydown', (evento) => {
+  if (evento.key !== 'Escape' || !document.body.classList.contains('menu-abierto')) return
+  cerrarMenuPortal()
+  botonMenu?.focus()
+})
+document.addEventListener('click', (evento) => {
+  if (
+    document.body.classList.contains('menu-abierto')
+    && !barraLateral?.contains(evento.target)
+    && !botonMenu?.contains(evento.target)
+  ) cerrarMenuPortal()
 })
 document.querySelector('[data-logout]')?.addEventListener('click', async (evento) => {
   setCargando(evento.currentTarget, true)
@@ -488,27 +644,29 @@ document.querySelector('[data-scan]')?.addEventListener('click', async (evento) 
   setCargando(boton, true, 'Actualizando…')
   try {
     const resultado = await invocarFuncion('scan-gmail', {})
-    const procesados = resultado.procesados || 0
+    const descubiertos = resultado.descubiertos || 0
+    const encolados = resultado.encolados || 0
     const errores = resultado.errores || 0
-    const ignorados = resultado.ignorados || 0
-    const detectados = resultado.detectados || 0
-    const limite = resultado.limite_alcanzado ? ' Se alcanzó el límite mensual.' : ''
-    const pendientes = resultado.hay_mas
-      ? ' Quedan correos pendientes; volvé a ejecutar el análisis para continuar.'
-      : ''
-    const mensaje = errores
-      ? `Análisis terminado: ${procesados} correctos, ${errores} con error, ${ignorados} ignorados y ${detectados} vencimientos detectados.${limite}${pendientes}`
-      : `Análisis terminado: ${procesados} correos, ${ignorados} ignorados y ${detectados} vencimientos detectados.${limite}${pendientes}`
-    mostrarAviso(`Agenda actualizada. ${mensaje}`, errores ? 'error' : 'exito')
+    const noDisponibles = resultado.no_disponibles || 0
+    const mensaje = `${descubiertos} mensajes nuevos encontrados y ${encolados} agregados a la cola. AgenKin actualizará la Agenda en segundo plano.`
+    mostrarAviso(
+      errores || noDisponibles
+        ? `${mensaje} ${errores + noDisponibles} cuentas no estaban disponibles.`
+        : mensaje,
+      errores || noDisponibles ? 'advertencia' : 'exito',
+    )
     await refrescar()
   } catch (error) {
     mostrarAviso(error.message, 'error')
   } finally { setCargando(boton, false) }
 })
-async function conectarServicio(servicio, boton) {
+async function conectarServicio(servicio, boton, conexionId = null) {
   setCargando(boton, true, 'Preparando conexión…')
   try {
-    const { url } = await invocarFuncion('google-oauth-start', { servicio })
+    const { url } = await invocarFuncion('google-oauth-start', {
+      servicio,
+      ...(conexionId ? { conexion_id: conexionId } : {}),
+    })
     window.location.assign(url)
   } catch (error) {
     mostrarAviso(error.message, 'error')
@@ -516,17 +674,38 @@ async function conectarServicio(servicio, boton) {
   }
 }
 
-async function desconectarServicio(servicio, boton) {
+async function desconectarServicio(servicio, conexionId, boton) {
   const nombre = servicio === 'gmail' ? 'Gmail' : 'Google Calendar'
   if (!confirm(`¿Desactivar ${nombre} en AgenKin?`)) return
 
   setCargando(boton, true, 'Desactivando…')
   try {
-    await invocarFuncion('google-disconnect', { servicio })
+    await invocarFuncion('google-disconnect', {
+      servicio,
+      conexion_id: conexionId,
+    })
     mostrarAviso(`${nombre} fue desactivado.`, 'exito')
     await refrescar()
   } catch (error) {
-    mostrarAviso(error.message, 'error')
+    const usaCalendar = servicio === 'gmail' && error.message.includes('Calendar')
+    if (usaCalendar && confirm('Esta cuenta también usa Calendar. ¿Desactivar ambos servicios sin revocar el permiso de Google?')) {
+      try {
+        await invocarFuncion('google-disconnect', {
+          servicio: 'calendar',
+          conexion_id: conexionId,
+        })
+        await invocarFuncion('google-disconnect', {
+          servicio: 'gmail',
+          conexion_id: conexionId,
+        })
+        mostrarAviso('Gmail y Calendar fueron desactivados.', 'exito')
+        await refrescar()
+      } catch (errorCombinado) {
+        mostrarAviso(errorCombinado.message, 'error')
+      }
+    } else {
+      mostrarAviso(error.message, 'error')
+    }
   } finally {
     setCargando(boton, false)
   }
@@ -535,28 +714,40 @@ async function desconectarServicio(servicio, boton) {
 document.querySelector('[data-connect-gmail]')?.addEventListener('click', (evento) => {
   conectarServicio('gmail', evento.currentTarget)
 })
-document.querySelector('[data-connect-calendar]')?.addEventListener('click', (evento) => {
-  conectarServicio('calendar', evento.currentTarget)
-})
-document.querySelector('[data-disconnect-gmail]')?.addEventListener('click', (evento) => {
-  desconectarServicio('gmail', evento.currentTarget)
-})
-document.querySelector('[data-disconnect-calendar]')?.addEventListener('click', (evento) => {
-  desconectarServicio('calendar', evento.currentTarget)
-})
-document.querySelector('[data-revoke-google]')?.addEventListener('click', async (evento) => {
-  if (!confirm('Esto revocará el acceso de AgenKin a Google y desconectará Gmail y Calendar. ¿Continuar?')) return
+document.querySelector('[data-gmail-cuentas]')?.addEventListener('click', async (evento) => {
+  const usarCalendar = evento.target.closest('[data-use-calendar]')
+  if (usarCalendar) {
+    return conectarServicio('calendar', usarCalendar, usarCalendar.dataset.useCalendar)
+  }
 
-  const boton = evento.currentTarget
-  setCargando(boton, true, 'Revocando…')
+  const desconectar = evento.target.closest('[data-disconnect-google]')
+  if (desconectar) {
+    const servicio = desconectar.dataset.disconnectGoogle
+    const conexionId = desconectar.dataset.conexionId
+    try {
+      await desconectarServicio(servicio, conexionId, desconectar)
+    } catch {
+      // desconectarServicio muestra el estado al usuario.
+    }
+    return
+  }
+
+  const revocar = evento.target.closest('[data-revoke-google]')
+  if (!revocar) return
+  if (!confirm('Esto revocará el acceso de AgenKin a esta cuenta Google y desconectará Gmail y Calendar. ¿Continuar?')) return
+
+  setCargando(revocar, true, 'Revocando…')
   try {
-    await invocarFuncion('google-disconnect', { servicio: 'todo' })
-    mostrarAviso('El acceso de Google fue revocado.', 'exito')
+    await invocarFuncion('google-disconnect', {
+      servicio: 'todo',
+      conexion_id: revocar.dataset.revokeGoogle,
+    })
+    mostrarAviso('El acceso de esa cuenta Google fue revocado.', 'exito')
     await refrescar()
   } catch (error) {
     mostrarAviso(error.message, 'error')
   } finally {
-    setCargando(boton, false)
+    setCargando(revocar, false)
   }
 })
 
@@ -578,6 +769,14 @@ document.querySelector('[data-correos]')?.addEventListener('change', async (even
     await refrescar()
   }
 })
+document.querySelector('[data-correos-anterior]')?.addEventListener('click', async () => {
+  paginaCorreos = Math.max(1, paginaCorreos - 1)
+  await refrescar()
+})
+document.querySelector('[data-correos-siguiente]')?.addEventListener('click', async () => {
+  paginaCorreos += 1
+  await refrescar()
+})
 
 document.querySelector('[data-agenda-anterior]')?.addEventListener('click', async () => {
   mesAgenda = new Date(mesAgenda.getFullYear(), mesAgenda.getMonth() - 1, 1)
@@ -596,7 +795,9 @@ document.querySelector('[data-agenda-grid]')?.addEventListener('click', (evento)
   const dia = evento.target.closest('[data-agenda-fecha]')
   if (!dia) return
   document.querySelectorAll('[data-agenda-fecha]').forEach((elemento) => {
-    elemento.dataset.seleccionado = String(elemento === dia)
+    const seleccionado = elemento === dia
+    elemento.dataset.seleccionado = String(seleccionado)
+    elemento.setAttribute('aria-pressed', String(seleccionado))
   })
   renderDetalleAgenda(dia.dataset.agendaFecha)
 })
@@ -638,8 +839,10 @@ tbodyVencimientos?.addEventListener('click', async (evento) => {
   const item = datosPortal.vencimientos.find((vencimiento) => vencimiento.id === id)
   if (evento.target.dataset.descartar) {
     if (!confirm('¿Descartar este vencimiento?')) return
-    const { error } = await supabase.from('vencimientos_detectados').update({ estado: 'descartado' }).eq('id', id)
-    if (error) mostrarAviso('No se pudo descartar el vencimiento.', 'error')
+    const { data, error } = await supabase.rpc('descartar_vencimiento', {
+      p_vencimiento_id: id,
+    })
+    if (error || data !== true) mostrarAviso('No se pudo descartar el vencimiento.', 'error')
     else await refrescar()
     return
   }

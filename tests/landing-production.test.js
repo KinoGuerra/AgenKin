@@ -24,11 +24,16 @@ describe('landing preparada para producción', () => {
     expect(landing).not.toContain('El MVP')
   })
 
-  it('muestra los límites reales de los planes activos', () => {
-    expect(landing).toContain('<strong>50</strong> correos / mes')
-    expect(landing).toContain('<strong>300</strong> correos / mes')
-    expect(landing).toContain('<strong>1.500</strong> correos / mes')
+  it('muestra los límites multicuenta de los planes públicos', () => {
+    expect(landing).toContain('<h3>Prueba</h3>')
+    expect(landing).toContain('<h3>Dúo</h3>')
+    expect(landing).toContain('<h3>Pro</h3>')
+    expect(landing).toContain('<h3>Ultra</h3>')
+    expect(landing).toContain('<strong>5</strong> cuentas Gmail')
+    expect(landing).toContain('No aplicamos un cupo comercial por mensajes')
+    expect(landing).not.toContain('<h3>AgenKin</h3>')
     expect(landing).toContain('Los precios comerciales todavía no están publicados.')
+    expect(landing).not.toContain('Ingresar y solicitar')
   })
 
   it('mantiene una política CSP sin ejecución insegura', () => {
@@ -38,9 +43,34 @@ describe('landing preparada para producción', () => {
     expect(cargadorLocal).toBeTruthy()
     expect(csp).not.toContain("'unsafe-inline'")
     expect(csp).not.toContain("'unsafe-eval'")
+    expect(csp).not.toContain('*.supabase.co')
+    expect(csp).not.toContain('wss:')
+    expect(csp).toContain('https://kpqzwbhprqlapwhadejt.supabase.co')
     expect(csp).toContain("object-src 'none'")
     expect(csp).toContain("base-uri 'self'")
     expect(csp).toContain(`'sha256-${createHash('sha256').update(cargadorLocal).digest('base64')}'`)
+  })
+
+  it('restringe las conexiones del frontend al proyecto Supabase de AgenKin', () => {
+    ;[
+      'index.html',
+      'app.html',
+      'configuracion.html',
+      'correos.html',
+      'vencimientos.html',
+      'agenda.html',
+      'reglas.html',
+      'admin.html',
+      'access.html',
+      'mfa.html',
+      'auth-callback.html',
+      'cuenta-bloqueada.html',
+    ].forEach((pagina) => {
+      const csp = leer(pagina).match(/http-equiv="Content-Security-Policy" content="([^"]+)"/)?.[1]
+      expect(csp).toContain('https://kpqzwbhprqlapwhadejt.supabase.co')
+      expect(csp).not.toContain('*.supabase.co')
+      expect(csp).not.toContain('wss:')
+    })
   })
 
   it('incluye recursos de indexación e instalación válidos', () => {
@@ -58,5 +88,19 @@ describe('landing preparada para producción', () => {
     ].forEach((ruta) => {
       expect(existsSync(new URL(`../${ruta}`, import.meta.url))).toBe(true)
     })
+  })
+
+  it('concede permisos de publicación solamente al job de deploy', () => {
+    const workflow = leer('.github/workflows/deploy-pages.yml')
+    const permisosGlobales = workflow.slice(
+      workflow.indexOf('permissions:'),
+      workflow.indexOf('concurrency:'),
+    )
+    const deploy = workflow.slice(workflow.indexOf('  deploy:'))
+    expect(permisosGlobales).toContain('contents: read')
+    expect(permisosGlobales).not.toContain('pages: write')
+    expect(permisosGlobales).not.toContain('id-token: write')
+    expect(deploy).toContain('pages: write')
+    expect(deploy).toContain('id-token: write')
   })
 })

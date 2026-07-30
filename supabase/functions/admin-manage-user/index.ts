@@ -21,7 +21,7 @@ Deno.serve(async (request) => {
       const termino = String(body.buscar || '').replace(/[,%()]/g, '').trim().slice(0, 80)
       let consulta = cliente
         .from('perfiles')
-        .select('id,nombre_completo,email,estado_acceso,ultimo_acceso,suscripciones(plan_id,estado,fecha_vencimiento,planes(nombre,limite_correos_mensuales)),consumos_mensuales(correos_procesados,periodo)', { count: 'exact' })
+        .select('id,nombre_completo,email,estado_acceso,ultimo_acceso,suscripciones(plan_id,estado,fecha_vencimiento,planes(nombre,limite_cuentas_gmail)),consumos_mensuales(correos_procesados,periodo),conexiones_google(id,gmail_conectado,estado_conexion)', { count: 'exact' })
         .order('fecha_registro', { ascending: false })
         .range(desde, desde + TAMANO_PAGINA - 1)
       if (body.estado) consulta = consulta.eq('estado_acceso', body.estado)
@@ -45,10 +45,13 @@ Deno.serve(async (request) => {
           estado_acceso: perfil.estado_acceso,
           ultimo_acceso: perfil.ultimo_acceso,
           plan: plan?.nombre,
-          limite_correos_mensuales: plan?.limite_correos_mensuales,
+          limite_cuentas_gmail: plan?.limite_cuentas_gmail,
           estado_suscripcion: suscripcion?.estado,
           fecha_vencimiento: suscripcion?.fecha_vencimiento,
           correos_procesados: consumo?.correos_procesados || 0,
+          cuentas_gmail: (perfil.conexiones_google || []).filter((conexion) =>
+            conexion.gmail_conectado && conexion.estado_conexion === 'activa'
+          ).length,
         }
       })
 

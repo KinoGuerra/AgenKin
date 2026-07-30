@@ -161,12 +161,19 @@ export type CodigoErrorIA =
 export class ErrorIA extends Error {
   codigo: CodigoErrorIA
   estadoHttp: number
+  reintentoDespuesMs: number | null
 
-  constructor(codigo: CodigoErrorIA, mensaje: string, estadoHttp = 503) {
+  constructor(
+    codigo: CodigoErrorIA,
+    mensaje: string,
+    estadoHttp = 503,
+    reintentoDespuesMs: number | null = null,
+  ) {
     super(mensaje)
     this.name = 'ErrorIA'
     this.codigo = codigo
     this.estadoHttp = estadoHttp
+    this.reintentoDespuesMs = reintentoDespuesMs
   }
 }
 
@@ -178,7 +185,7 @@ type ConfiguracionIA = {
   timeoutMs: number
 }
 
-type MetricasIA = {
+export type MetricasIA = {
   proveedor: string
   modelo: string
   duracion_ms: number
@@ -186,6 +193,7 @@ type MetricasIA = {
   intentos: number
   codigo_error: CodigoErrorIA | null
   tokens_entrada: number | null
+  tokens_cache: number | null
   tokens_salida: number | null
 }
 
@@ -240,7 +248,7 @@ export function leerConfiguracionIA(
   }
 }
 
-export function sanitizarTextoCorreo(valor: unknown, maximo = 12_000) {
+export function sanitizarTextoCorreo(valor: unknown, maximo = 3_000) {
   const lineasVistas = new Set<string>()
   return String(valor || '')
     .replace(/\0/g, '')
@@ -270,10 +278,7 @@ export function redactarDatosSensibles(valor: string) {
       /\b[A-Z0-9._%+-]+@([A-Z0-9.-]+\.[A-Z]{2,})\b/gi,
       '***@$1',
     )
-    .replace(
-      /\bhttps?:\/\/[^\s?]+\?[^\s]+/gi,
-      (url) => `${url.split('?')[0]}?[PARÁMETROS REDACTADOS]`,
-    )
+    .replace(/\bhttps?:\/\/[^\s<>"']+/gi, '[ENLACE REDACTADO]')
     .replace(/\b(?:\d[ -]?){10,22}\b/g, '[NÚMERO REDACTADO]')
     .replace(
       /\b(token|clave|password|contraseña|authorization)\s*[:=]\s*\S+/gi,
@@ -287,7 +292,7 @@ export function prepararDatosCorreo(datos: DatosCorreoIA) {
     asunto: redactarDatosSensibles(sanitizarTextoCorreo(datos.asunto, 500)),
     remitente: redactarDatosSensibles(sanitizarTextoCorreo(datos.remitente, 300)),
     fecha_correo: sanitizarTextoCorreo(datos.fecha, 100),
-    texto: redactarDatosSensibles(sanitizarTextoCorreo(datos.texto, 12_000)),
+    texto: redactarDatosSensibles(sanitizarTextoCorreo(datos.texto, 3_000)),
   }
 }
 
@@ -439,6 +444,41 @@ function codigoParaEstado(estado: number): CodigoErrorIA {
   return 'AI_RESPUESTA_INVALIDA'
 }
 
+function limiteAgotado(headers: Headers) {
+  return headers.get('x-ratelimit-remaining-requests') === '0'
+    || headers.get('x-ratelimit-remaining-tokens') === '0'
+}
+
+function duracionLimite(valor: string | null) {
+  if (!valor) return null
+  const numero = Number(valor)
+  if (Number.isFinite(numero) && numero >= 0) return numero * 1_000
+  let total = 0
+  let encontrado = false
+  for (const coincidencia of valor.matchAll(/(\d+(?:\.\d+)?)\s*(ms|s|m|h|d)/gi)) {
+    encontrado = true
+    const cantidad = Number(coincidencia[1])
+    const unidad = coincidencia[2].toLowerCase()
+    total += cantidad * ({
+      ms: 1,
+      s: 1_000,
+      m: 60_000,
+      h: 3_600_000,
+      d: 86_400_000,
+    }[unidad] || 0)
+  }
+  return encontrado ? total : null
+}
+
+function esperaLimite(headers: Headers, ahora: number) {
+  const retryAfter = esperaRetryAfter(headers.get('retry-after'), ahora)
+  const reinicios = [
+    duracionLimite(headers.get('x-ratelimit-reset-requests')),
+    duracionLimite(headers.get('x-ratelimit-reset-tokens')),
+  ].filter((valor): valor is number => valor !== null)
+  return retryAfter ?? (reinicios.length ? Math.max(...reinicios) : null)
+}
+
 export function mensajeSeguroIA(error: unknown) {
   if (!(error instanceof ErrorIA)) return 'No pudimos analizar este correo.'
   if (error.codigo === 'AI_CONFIGURACION_INCOMPLETA' || error.codigo === 'AI_AUTENTICACION_INVALIDA') {
@@ -485,8 +525,21 @@ export async function clasificarCorreo(datos: DatosCorreoIA, dependencias: Depen
       estadoHttp = respuesta.status
       if (!respuesta.ok) {
         const codigo = codigoParaEstado(respuesta.status)
-        ultimoError = new ErrorIA(codigo, mensajeSeguroIA(new ErrorIA(codigo, '')), codigo === 'AI_LIMITE_TEMPORAL' ? 429 : 503)
-        if (!ESTADOS_REINTENTABLES.has(respuesta.status) || intento === MAXIMO_INTENTOS) throw ultimoError
+        const esperaProveedor = respuesta.status === 429
+          ? esperaLimite(respuesta.headers, ahora())
+          : null
+        ultimoError = new ErrorIA(
+          codigo,
+          mensajeSeguroIA(new ErrorIA(codigo, '')),
+          codigo === 'AI_LIMITE_TEMPORAL' ? 429 : 503,
+          esperaProveedor,
+        )
+        if (
+          !ESTADOS_REINTENTABLES.has(respuesta.status)
+          || intento === MAXIMO_INTENTOS
+          || (respuesta.status === 429 && limiteAgotado(respuesta.headers))
+          || (esperaProveedor !== null && esperaProveedor > 30_000)
+        ) throw ultimoError
         await dormir(calcularEsperaReintento(intento, respuesta.headers.get('retry-after'), aleatorio, ahora()))
         continue
       }
@@ -511,6 +564,7 @@ export async function clasificarCorreo(datos: DatosCorreoIA, dependencias: Depen
         intentos: intento,
         codigo_error: null,
         tokens_entrada: numeroSeguro(contenido?.usage?.prompt_tokens),
+        tokens_cache: numeroSeguro(contenido?.usage?.prompt_tokens_details?.cached_tokens),
         tokens_salida: numeroSeguro(contenido?.usage?.completion_tokens),
       }, dependencias.registrar)
       return clasificacion
@@ -534,6 +588,7 @@ export async function clasificarCorreo(datos: DatosCorreoIA, dependencias: Depen
           intentos: intento,
           codigo_error: ultimoError.codigo,
           tokens_entrada: null,
+          tokens_cache: null,
           tokens_salida: null,
         }, dependencias.registrar)
         throw ultimoError

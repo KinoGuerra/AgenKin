@@ -16,14 +16,22 @@ AgenKin solicita los permisos adicionales únicamente desde el portal:
 - `https://www.googleapis.com/auth/calendar.app.created`, para crear un calendario secundario **Agenda** y administrar solamente sus eventos.
 
 Gmail y Calendar se autorizan con botones separados y cada solicitud incluye
-solamente el permiso del servicio elegido. Ambos deben usar la misma cuenta
-Google; para cambiar de cuenta hay que usar primero **Revocar acceso de Google**.
+solamente el permiso del servicio elegido. El usuario puede conectar varias
+cuentas Gmail diferentes hasta el límite de su plan. Calendar debe autorizarse
+con la misma identidad Google de la cuenta Gmail que el usuario seleccionó como
+Calendar principal.
+
+Cambiar el Calendar principal no mueve eventos ya creados: los eventos futuros
+y pendientes se envían a la nueva cuenta y Agenda sigue siendo la fuente
+interna.
 
 `gmail.readonly` es un permiso restringido. Una publicación abierta puede requerir verificación de Google y, si los datos restringidos pasan por un servidor, una evaluación de seguridad. Revisar los requisitos oficiales antes de salir de Testing.
 
 ## 3. Clientes OAuth
 
-Se necesitan dos flujos OAuth independientes. Pueden usar el mismo cliente web durante el MVP si se registran ambos callbacks, aunque separar los clientes por entorno simplifica la rotación futura.
+Se necesitan dos flujos OAuth independientes. Pueden usar el mismo cliente web
+durante la beta si se registran ambos callbacks, aunque separar clientes por
+entorno simplifica la rotación futura.
 
 Registrar:
 
@@ -59,3 +67,17 @@ El primer inicio de sesión usa el proveedor Google de **Supabase Auth** y solic
 
 La autorización de Gmail/Calendar es una segunda conexión gestionada por las
 Edge Functions, independiente del inicio de sesión y separada por servicio.
+
+## 6. Comprobación multicuenta
+
+1. Conectar dos Gmail distintas y verificar que consuman dos espacios del plan.
+2. Elegir una de ellas para Calendar y completar OAuth con esa misma identidad.
+3. Intentar Calendar con otra identidad y confirmar el rechazo.
+4. Cambiar el Calendar principal y comprobar que los eventos ya sincronizados
+   permanezcan en el anterior.
+5. Desactivar la cuenta usada por Calendar y confirmar que primero exija elegir
+   otra o desactivar Calendar.
+6. Probar callbacks simultáneos cuando quede un solo espacio disponible.
+
+“Desactivar” detiene el servicio dentro de AgenKin. “Revocar acceso” solicita a
+Google la revocación completa de los permisos de esa cuenta.

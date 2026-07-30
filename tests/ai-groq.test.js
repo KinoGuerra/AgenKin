@@ -26,18 +26,19 @@ const entorno = {
 }
 
 describe('minimización de datos antes de Groq', () => {
-  it('redacta correos, números largos, parámetros y credenciales', () => {
+  it('redacta correos, números largos, enlaces y credenciales', () => {
     const datos = prepararDatosCorreo({
       asunto: 'Cuenta 1234 5678 9012 3456',
       remitente: 'persona@example.test',
       fecha: 'Mon, 27 Jul 2026 10:00:00 -0300',
-      texto: 'token=secreto https://example.test/pago?clave=abc Tel 351 555 1234. Total $100000',
+      texto: 'token=secreto https://example.test/reset/secreto?clave=abc Tel 351 555 1234. Total $100000',
     })
 
     expect(datos.asunto).toContain('[NÚMERO REDACTADO]')
     expect(datos.remitente).toContain('***@example.test')
     expect(datos.texto).toContain('token=[REDACTADO]')
-    expect(datos.texto).toContain('?[PARÁMETROS REDACTADOS]')
+    expect(datos.texto).toContain('[ENLACE REDACTADO]')
+    expect(datos.texto).not.toContain('/reset/secreto')
     expect(datos.texto).toContain('$100000')
     expect(redactarDatosSensibles('Bearer abc123')).toBe('Bearer [REDACTADO]')
   })

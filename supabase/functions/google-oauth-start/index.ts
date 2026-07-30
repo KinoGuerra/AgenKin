@@ -2,6 +2,8 @@ import { hashEstado } from '../_shared/crypto.ts'
 import { envRequerida, errorSeguro, json, manejarPreflight } from '../_shared/http.ts'
 import { usuarioAutenticado } from '../_shared/supabase.ts'
 
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+
 Deno.serve(async (request) => {
   const preflight = manejarPreflight(request)
   if (preflight) return preflight
@@ -11,17 +13,45 @@ Deno.serve(async (request) => {
       ? body.servicio
       : null
     if (!servicio) return json({ error: 'Elegí Gmail o Calendar' }, 400)
-    const { GOOGLE_CLIENT_ID, GOOGLE_REDIRECT_URI } = envRequerida('GOOGLE_CLIENT_ID', 'GOOGLE_REDIRECT_URI')
+
+    const { GOOGLE_CLIENT_ID, GOOGLE_REDIRECT_URI } = envRequerida(
+      'GOOGLE_CLIENT_ID',
+      'GOOGLE_REDIRECT_URI',
+    )
     const redirect = new URL(GOOGLE_REDIRECT_URI)
-    if (redirect.protocol !== 'https:' && redirect.hostname !== 'localhost') throw new Error('GOOGLE_REDIRECT_URI no es segura')
+    if (redirect.protocol !== 'https:' && redirect.hostname !== 'localhost') {
+      throw new Error('GOOGLE_REDIRECT_URI no es segura')
+    }
     const { usuario, cliente } = await usuarioAutenticado(request)
-    const { data: habilitado } = await cliente.rpc('usuario_habilitado', { usuario: usuario.id })
-    if (!habilitado) return json({ error: 'La cuenta o suscripción no está habilitada' }, 403)
-    const { data: conexion } = await cliente
-      .from('conexiones_google')
-      .select('google_email')
-      .eq('usuario_id', usuario.id)
-      .maybeSingle()
+    const { data: habilitado } = await cliente.rpc('usuario_habilitado', {
+      usuario: usuario.id,
+    })
+    if (!habilitado) {
+      return json({ error: 'La cuenta o suscripción no está habilitada' }, 403)
+    }
+
+    const conexionId = servicio === 'calendar' && UUID.test(String(body.conexion_id || ''))
+      ? String(body.conexion_id)
+      : null
+    let conexion: { id: string; google_email: string } | null = null
+    if (servicio === 'calendar') {
+      if (!conexionId) {
+        return json({ error: 'Elegí una cuenta Gmail para Calendar' }, 400)
+      }
+      const { data, error: errorConexion } = await cliente
+        .from('conexiones_google')
+        .select('id,google_email')
+        .eq('id', conexionId)
+        .eq('usuario_id', usuario.id)
+        .eq('gmail_conectado', true)
+        .eq('estado_conexion', 'activa')
+        .maybeSingle()
+      if (errorConexion || !data) {
+        return json({ error: 'La cuenta Gmail seleccionada no está disponible' }, 400)
+      }
+      conexion = data
+    }
+
     await cliente
       .from('oauth_states')
       .delete()
@@ -33,9 +63,11 @@ Deno.serve(async (request) => {
       hash_estado: await hashEstado(estado),
       usuario_id: usuario.id,
       servicio,
+      conexion_google_id: conexionId,
       vence_en: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
     })
     if (error) throw new Error('No se pudo iniciar la autorización')
+
     const url = new URL('https://accounts.google.com/o/oauth2/v2/auth')
     url.search = new URLSearchParams({
       client_id: GOOGLE_CLIENT_ID,
@@ -53,7 +85,9 @@ Deno.serve(async (request) => {
           : 'https://www.googleapis.com/auth/calendar.app.created',
       ].join(' '),
     }).toString()
-    if (conexion?.google_email) url.searchParams.set('login_hint', conexion.google_email)
+    if (servicio === 'calendar' && conexion?.google_email) {
+      url.searchParams.set('login_hint', conexion.google_email)
+    }
     return json({ url: url.href })
   } catch (error) {
     return errorSeguro(error, 400, 'No se pudo iniciar la autorización con Google.')

@@ -1,8 +1,9 @@
 # Configuración de Groq
 
 AgenKin usa Groq como proveedor predeterminado para clasificar correos y detectar
-fechas accionables. La llamada se realiza únicamente desde la Edge Function
-`scan-gmail`; el navegador nunca se conecta directamente con Groq.
+fechas accionables. La llamada se realiza desde el worker global de Gmail
+mediante `supabase/functions/_shared/ai.ts`; `scan-gmail` solo descubre y encola.
+El navegador nunca se conecta directamente con Groq.
 
 ## 1. Crear el proyecto y la clave
 
@@ -54,17 +55,20 @@ El adaptador conserva nombres genéricos (`AI_PROVIDER`, `AI_API_URL`,
 El proveedor alternativo debe aceptar Chat Completions y el esquema estricto
 configurado en `supabase/functions/_shared/ai.ts`.
 
-## 4. Desplegar la función
+## 4. Desplegar el worker
 
 Después de aplicar las migraciones y revisar los cambios:
 
 ```bash
 supabase db push
 supabase functions deploy scan-gmail
+supabase functions deploy process-gmail-queue --no-verify-jwt
 ```
 
-`scan-gmail` conserva `verify_jwt = true`, valida la identidad, la suscripción y
-el cupo antes de procesar.
+`scan-gmail` conserva `verify_jwt = true`, valida identidad y suscripción, y
+encola mensajes de las cuentas solicitadas. `process-gmail-queue` es global,
+requiere el secreto de Cron y usa Groq solamente cuando una regla o patrón
+verificado no alcanza. No existe cupo comercial de mensajes.
 
 ## 5. Prueba local sin Gmail
 
@@ -100,7 +104,7 @@ simulan `fetch` y nunca llaman a Groq.
 - **403**: el proyecto o la clave no tiene permiso para el modelo solicitado.
   Revisar permisos del modelo y del proyecto.
 - **429**: se alcanzó temporalmente un límite. AgenKin respeta `Retry-After` y
-  realiza hasta tres intentos totales.
+  los headers de límite; difiere la tarea sin bloquear los patrones locales.
 - **5xx**: indisponibilidad transitoria del proveedor. AgenKin reintenta 500,
   502, 503 y 504 con backoff exponencial y jitter.
 - **Timeout**: revisar conectividad, estado del proveedor y `AI_TIMEOUT_MS`.
@@ -125,8 +129,8 @@ completas, tokens OAuth ni claves.
 Antes de habilitar AgenKin para terceros, revisar las condiciones vigentes de
 privacidad, tratamiento y retención de Groq, y reflejar las decisiones en la
 política de privacidad. Solo se envían asunto, remitente, fecha del correo y texto
-plano sanitizado y limitado; no se envían adjuntos, HTML completo, tokens OAuth,
-roles, suscripciones ni identificadores internos.
+plano relevante, sanitizado y limitado a 3.000 caracteres; no se envían adjuntos,
+HTML completo, tokens OAuth, roles, suscripciones ni identificadores internos.
 
 Referencias oficiales:
 

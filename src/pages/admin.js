@@ -114,7 +114,7 @@ function renderUsuarios(usuarios) {
       crearCelda(usuario.estado_acceso),
       crearCelda(usuario.estado_suscripcion || '—'),
       crearCelda(formatearFecha(usuario.fecha_vencimiento)),
-      crearCelda(`${usuario.correos_procesados || 0}/${usuario.limite_correos_mensuales || '—'}`),
+      crearCelda(`${usuario.cuentas_gmail || 0}/${usuario.limite_cuentas_gmail || '—'} cuentas`),
       crearCelda(formatearFecha(usuario.ultimo_acceso)),
     )
 
@@ -175,6 +175,13 @@ async function cargar() {
     const elemento = document.querySelector(`[data-metrica="${nombre}"]`)
     if (elemento) elemento.textContent = valor
   })
+  if (datos.metricas?.alerta_almacenamiento) {
+    const megabytes = Math.round(Number(datos.metricas.bytes_base || 0) / 1024 / 1024)
+    mostrarAviso(
+      `La base usa aproximadamente ${megabytes} MB. Revisá retención y el paso a Supabase Pro.`,
+      'advertencia',
+    )
+  }
 
   renderUsuarios(datos.usuarios || [])
   renderAuditoria(datos.auditoria || [])

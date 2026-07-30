@@ -1,7 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import {
-  claveMensaje,
   requiereMfaAdministrativa,
   rutaPermitida,
   validarAccionAdministrativa,
@@ -20,12 +19,6 @@ describe('protección de rutas', () => {
     expect(requiereMfaAdministrativa('admin', 'aal1')).toBe(true)
     expect(requiereMfaAdministrativa('admin', 'aal2')).toBe(false)
     expect(requiereMfaAdministrativa('app', 'aal1')).toBe(false)
-  })
-})
-
-describe('prevención de duplicados', () => {
-  it('crea una clave estable por usuario y mensaje', () => {
-    expect(claveMensaje(uuid, 'gmail-123')).toBe(`${uuid}:gmail-123`)
   })
 })
 

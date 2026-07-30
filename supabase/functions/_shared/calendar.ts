@@ -2,6 +2,15 @@ import { ErrorGoogle, googleJson, tokenAcceso } from './google.ts'
 
 type Cliente = {
   from: (tabla: string) => any
+  rpc: (funcion: string, argumentos?: Record<string, unknown>) => any
+}
+
+type OpcionesAgenda = {
+  titulo?: unknown
+  descripcion?: unknown
+  fecha?: unknown
+  hora?: unknown
+  recordatorio?: unknown
 }
 
 function fechaLocal(valor: string | Date, zona: string, incluirHora = false) {
@@ -38,6 +47,80 @@ function intervaloEvento(fechaEvento: string, esDiaCompleto: boolean, zona: stri
   }
 }
 
+export async function registrarEventoAgenda(
+  cliente: Cliente,
+  usuarioId: string,
+  vencimientoId: string,
+  opciones: OpcionesAgenda = {},
+) {
+  const { data: vencimiento, error: errorVencimiento } = await cliente
+    .from('vencimientos_detectados')
+    .select('id,titulo,descripcion,fecha_vencimiento,hora_vencimiento,zona_horaria,estado')
+    .eq('id', vencimientoId)
+    .eq('usuario_id', usuarioId)
+    .single()
+  if (errorVencimiento) throw new Error('Vencimiento no encontrado')
+  if (!['pendiente', 'evento_creado'].includes(vencimiento.estado)) {
+    throw new Error('El vencimiento ya no puede agregarse a Agenda')
+  }
+
+  const { data: conexiones, error: errorConexiones } = await cliente
+    .from('conexiones_google')
+    .select('calendar_conectado,es_calendar_principal,estado_conexion')
+    .eq('usuario_id', usuarioId)
+  if (errorConexiones) throw errorConexiones
+
+  const calendarConectado = (conexiones || []).some((conexion: {
+    calendar_conectado: boolean
+    es_calendar_principal: boolean
+    estado_conexion: string
+  }) =>
+    conexion.calendar_conectado
+    && conexion.es_calendar_principal
+    && conexion.estado_conexion === 'activa'
+  )
+
+  const titulo = String(opciones.titulo || vencimiento.titulo).trim().slice(0, 160)
+  const descripcion = String(
+    opciones.descripcion || vencimiento.descripcion || '',
+  ).slice(0, 1000)
+  const fecha = /^\d{4}-\d{2}-\d{2}$/.test(String(opciones.fecha || ''))
+    ? String(opciones.fecha)
+    : vencimiento.fecha_vencimiento
+  const hora = /^\d{2}:\d{2}$/.test(String(opciones.hora || ''))
+    ? String(opciones.hora)
+    : vencimiento.hora_vencimiento?.slice(0, 5) || null
+  const fechaEvento = hora
+    ? new Date(`${fecha}T${hora}:00-03:00`).toISOString()
+    : new Date(`${fecha}T12:00:00-03:00`).toISOString()
+  const recordatorio = Number(opciones.recordatorio)
+  const recordatorioMinutos = Number.isInteger(recordatorio)
+    && recordatorio >= 0
+    && recordatorio <= 40_320
+    ? recordatorio
+    : 1_440
+
+  const { data: agendaEventoId, error: errorAgenda } = await cliente.rpc(
+    'registrar_evento_agenda',
+    {
+      p_usuario_id: usuarioId,
+      p_vencimiento_id: vencimiento.id,
+      p_titulo: titulo,
+      p_descripcion: descripcion,
+      p_fecha_evento: fechaEvento,
+      p_zona_horaria: vencimiento.zona_horaria,
+      p_es_dia_completo: !hora,
+      p_recordatorio_minutos: recordatorioMinutos,
+    },
+  )
+  if (errorAgenda) throw new Error('No se pudo guardar el evento en Agenda')
+
+  return {
+    agenda_event_id: agendaEventoId as string,
+    google_estado: calendarConectado ? 'pendiente' : 'no_conectado',
+  }
+}
+
 export async function sincronizarEventoAgenda(
   cliente: Cliente,
   usuarioId: string,
@@ -45,7 +128,7 @@ export async function sincronizarEventoAgenda(
 ) {
   const { data: evento, error: errorEvento } = await cliente
     .from('eventos_calendar')
-    .select('id,titulo,descripcion,fecha_evento,zona_horaria,es_dia_completo,recordatorio_minutos,google_event_id')
+    .select('id,titulo,descripcion,fecha_evento,zona_horaria,es_dia_completo,recordatorio_minutos,google_event_id,conexion_google_id')
     .eq('id', eventoId)
     .eq('usuario_id', usuarioId)
     .single()
@@ -54,10 +137,16 @@ export async function sincronizarEventoAgenda(
 
   const { data: conexion, error: errorConexion } = await cliente
     .from('conexiones_google')
-    .select('refresh_token_cifrado,token_iv,calendar_id,estado_conexion,calendar_conectado')
+    .select('id,refresh_token_cifrado,token_iv,calendar_id,estado_conexion,calendar_conectado,es_calendar_principal')
+    .eq('id', evento.conexion_google_id || '')
     .eq('usuario_id', usuarioId)
     .single()
-  if (errorConexion || conexion.estado_conexion !== 'activa' || !conexion.calendar_conectado) {
+  if (
+    errorConexion
+    || conexion.estado_conexion !== 'activa'
+    || !conexion.calendar_conectado
+    || !conexion.es_calendar_principal
+  ) {
     await cliente.from('eventos_calendar').update({
       estado_google: 'no_conectado',
       error_google: null,
@@ -78,7 +167,7 @@ export async function sincronizarEventoAgenda(
         }),
       })
       calendarId = calendario.id
-      await cliente.from('conexiones_google').update({ calendar_id: calendarId }).eq('usuario_id', usuarioId)
+      await cliente.from('conexiones_google').update({ calendar_id: calendarId }).eq('id', conexion.id)
     }
 
     const eventoGoogleId = evento.id.replaceAll('-', '')
@@ -108,6 +197,7 @@ export async function sincronizarEventoAgenda(
     const { error: errorActualizacion } = await cliente.from('eventos_calendar').update({
       google_event_id: eventoGoogle.id,
       calendar_id: calendarId,
+      conexion_google_id: conexion.id,
       estado_google: 'sincronizado',
       error_google: null,
       google_sincronizado_en: ahora,
@@ -116,13 +206,23 @@ export async function sincronizarEventoAgenda(
     await cliente.from('conexiones_google').update({
       calendar_ultima_sincronizacion_en: ahora,
       agenda_ultima_actualizacion_en: ahora,
-    }).eq('usuario_id', usuarioId)
+    }).eq('id', conexion.id)
     return eventoGoogle.id as string
   } catch (error) {
+    const codigo = error instanceof ErrorGoogle
+      ? error.codigo
+      : 'SINCRONIZACION_GOOGLE_FALLIDA'
     await cliente.from('eventos_calendar').update({
       estado_google: 'error',
-      error_google: 'SINCRONIZACION_GOOGLE_FALLIDA',
+      error_google: codigo,
     }).eq('id', eventoId)
+    if (error instanceof ErrorGoogle && error.codigo === 'GOOGLE_TOKEN_VENCIDO') {
+      await cliente.from('conexiones_google').update({
+        estado_conexion: 'token_vencido',
+        error_ultima_sincronizacion: 'GOOGLE_TOKEN_VENCIDO',
+        proxima_sincronizacion: null,
+      }).eq('id', conexion.id)
+    }
     throw error
   }
 }

@@ -10,11 +10,6 @@ const ACCIONES_ADMIN = new Set([
   'registrar_observacion',
 ])
 
-export function claveMensaje(usuarioId, gmailMessageId) {
-  if (!usuarioId || !gmailMessageId) throw new Error('Identificadores requeridos')
-  return `${usuarioId}:${gmailMessageId}`
-}
-
 export function validarAccionAdministrativa(datos) {
   const errores = {}
   if (!ACCIONES_ADMIN.has(datos?.accion)) errores.accion = 'Acción no permitida'

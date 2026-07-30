@@ -529,6 +529,46 @@ a.dashboard-card:hover { border-color: color-mix(in srgb, var(--verde) 52%, var(
 }
 .servicios-google > article > span { justify-self: end; }
 .servicios-google > article > div:last-child { grid-column: 1 / -1; }
+.cuentas-google { display: grid; gap: .75rem; }
+.cuenta-google {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: .8rem 1.25rem;
+  padding: 1rem;
+  border: 1px solid var(--borde);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--superficie) 88%, transparent);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, white 6%, transparent);
+}
+.cuenta-google__identidad { display: flex; min-width: 0; align-items: center; gap: .75rem; }
+.cuenta-google__identidad > div { display: grid; min-width: 0; gap: .18rem; }
+.cuenta-google__identidad strong,
+.cuenta-google__identidad small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cuenta-google__identidad small { color: var(--tinta-suave); font-size: .72rem; }
+.cuenta-google__estado {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  color: var(--tinta-suave);
+  font-size: .72rem;
+  white-space: nowrap;
+}
+.cuenta-google__estado::before {
+  width: .48rem;
+  height: .48rem;
+  border-radius: 50%;
+  background: #b46a63;
+  content: "";
+}
+.cuenta-google__estado[data-estado="conectado"] { color: var(--exito); }
+.cuenta-google__estado[data-estado="conectado"]::before { background: var(--exito); }
+.cuenta-google__acciones {
+  display: flex;
+  grid-column: 1 / -1;
+  flex-wrap: wrap;
+  gap: .5rem;
+}
 .servicio-icono {
   display: grid;
   width: 2.35rem;
@@ -946,6 +986,8 @@ td select { min-width: 150px; padding: .4rem; font-size: .75rem; }
   .dashboard-titulo { align-items: flex-start; }
   .titulo-seccion, .panel-google__cabecera { align-items: flex-start; flex-direction: column; }
   .servicios-google { grid-template-columns: 1fr; }
+  .cuenta-google { grid-template-columns: 1fr; }
+  .cuenta-google__estado { justify-self: start; }
   .agenda-layout { grid-template-columns: 1fr; }
   .agenda-cabecera { align-items: stretch; }
   .agenda-navegacion { width: 100%; justify-content: space-between; }
