@@ -78,6 +78,7 @@ Deno.serve(async (request) => {
       diferidas: 0,
     }
     const conexionesActualizadas = new Set<string>()
+    let iaTemporalmenteNoDisponible = false
 
     for (let indice = 0; indice < lista.length; indice += CONCURRENCIA) {
       const restante = PRESUPUESTO_MS - (Date.now() - inicio)
@@ -101,8 +102,13 @@ Deno.serve(async (request) => {
           if (!conexion) {
             codigoError = 'CONEXION_GMAIL_INVALIDA'
           } else {
-            const resultado = await procesarCorreoGmail(cliente, tarea, conexion)
+            const resultado = await procesarCorreoGmail(cliente, tarea, conexion, {
+              iaTemporalmenteNoDisponible,
+            })
             codigoError = resultado.codigoError
+            if (resultado.codigoError === 'AI_LIMITE_TEMPORAL') {
+              iaTemporalmenteNoDisponible = true
+            }
             retrasoSegundos = resultado.retrasoSegundos
             tareaFinalizada = resultado.tareaFinalizada
             reintentar = resultado.estado === 'reintentar'

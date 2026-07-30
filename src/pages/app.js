@@ -148,7 +148,7 @@ function renderCorreos(correos) {
       selector.setAttribute('aria-label', 'Detalle compactado; la categoría histórica ya no se puede editar')
     }
     grupo.append(selector)
-    fila.append(grupo, crearCelda(item.estado_procesamiento))
+    fila.append(grupo, crearCelda(etiquetaEstadoCorreo(item)))
     cuerpo.append(fila)
   })
 }
@@ -173,6 +173,22 @@ function etiquetaCategoria(categoria) {
   return `${texto.charAt(0).toUpperCase()}${texto.slice(1)}`
 }
 
+function errorCorreoTemporal(codigo) {
+  return [
+    'PROCESAMIENTO_EN_CURSO',
+    'AI_LIMITE_TEMPORAL',
+    'AI_TIMEOUT',
+    'AI_PROVEEDOR_NO_DISPONIBLE',
+    'GOOGLE_TEMPORAL',
+  ].includes(codigo)
+}
+
+function etiquetaEstadoCorreo(correo) {
+  return correo.estado_procesamiento === 'error' && errorCorreoTemporal(correo.error_procesamiento)
+    ? 'pendiente'
+    : correo.estado_procesamiento
+}
+
 function crearDetalleCorreo(correo) {
   const celda = document.createElement('td')
   celda.className = 'detalle-ia'
@@ -184,9 +200,17 @@ function crearDetalleCorreo(correo) {
   if (correo.detalle_compactado) {
     titulo.textContent = 'Detalle compactado'
     resumen.textContent = 'Se conserva únicamente el registro antirrepetición y la métrica histórica.'
+  } else if (correo.error_procesamiento === 'AI_LIMITE_TEMPORAL') {
+    titulo.textContent = 'Análisis pendiente'
+    resumen.textContent = 'El servicio de IA alcanzó su límite temporal. AgenKin lo reintentará automáticamente.'
+  } else if (correo.error_procesamiento === 'PROCESAMIENTO_EN_CURSO') {
+    titulo.textContent = 'Procesando correo'
+    resumen.textContent = 'AgenKin está analizando este mensaje.'
   } else if (correo.estado_procesamiento === 'error') {
     titulo.textContent = 'Análisis incompleto'
-    resumen.textContent = 'Se reintentará en el próximo análisis.'
+    resumen.textContent = errorCorreoTemporal(correo.error_procesamiento)
+      ? 'AgenKin lo reintentará automáticamente.'
+      : 'No se pudo completar el análisis.'
   } else if (vencimiento) {
     titulo.textContent = vencimiento.titulo || etiquetaCategoria(correo.categoria)
     resumen.textContent = vencimiento.descripcion || 'Se detectó una fecha accionable.'

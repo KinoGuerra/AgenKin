@@ -12,7 +12,7 @@ export async function cargarPortal(pagina = 'inicio', opciones = {}) {
     consultas.correos = supabase
       .from('correos_procesados')
       .select('id,remitente,asunto,fecha_correo,categoria,grupo_resumen,grupo_asignado_por,relevante,estado_procesamiento,error_procesamiento,detalle_compactado,vencimientos_detectados!vencimientos_correo_usuario_fkey(titulo,descripcion,fecha_vencimiento,monto)', { count: 'exact' })
-      .order('fecha_correo', { ascending: false })
+      .order('fecha_correo', { ascending: false, nullsFirst: false })
       .range(desde, desde + 24)
   }
   if (pagina === 'vencimientos') {

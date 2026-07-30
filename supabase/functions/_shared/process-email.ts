@@ -48,6 +48,10 @@ export type ResultadoProcesamiento = {
   tareaFinalizada: boolean
 }
 
+type OpcionesProcesamiento = {
+  iaTemporalmenteNoDisponible?: boolean
+}
+
 type CorreoExistente = {
   id: string
   estado_procesamiento: 'procesado' | 'ignorado' | 'error'
@@ -107,10 +111,6 @@ async function reclamarCorreo(
     .update({
       error_procesamiento: CODIGO_EN_PROCESO,
       fecha_procesamiento: fechaProcesamiento,
-      gmail_thread_id: null,
-      remitente: '',
-      asunto: '',
-      fecha_correo: null,
     })
     .eq('id', existente.id)
     .eq('estado_procesamiento', 'error')
@@ -179,6 +179,7 @@ export async function procesarCorreoGmail(
   cliente: Cliente,
   tarea: TareaCorreo,
   conexion: ConexionCorreo,
+  opciones: OpcionesProcesamiento = {},
 ): Promise<ResultadoProcesamiento> {
   const correoId = await reclamarCorreo(cliente, tarea)
   if (!correoId) {
@@ -211,6 +212,17 @@ export async function procesarCorreoGmail(
     const autenticacion = encabezado(headers, 'Authentication-Results')
     const autenticado = remitenteAutenticado(autenticacion)
     const texto = extraerTextoCorreo(mensaje.payload || {})
+    const { error: errorMetadatos } = await cliente
+      .from('correos_procesados')
+      .update({
+        gmail_thread_id: threadId,
+        remitente,
+        asunto,
+        fecha_correo: fechaIsoSegura(fecha),
+      })
+      .eq('id', correoId)
+    if (errorMetadatos) throw errorMetadatos
+
     const { data: reglas, error: errorReglas } = await cliente
       .from('reglas_usuario')
       .select('campo,operador,valor,accion')
@@ -246,7 +258,16 @@ export async function procesarCorreoGmail(
     let clasificacionParaAprender: ClasificacionCorreo | null = null
     let validacionPendiente: { patronId: string; coincide: boolean } | null = null
 
-    if (!clasificacion || validarSombra) {
+    if (!clasificacion && opciones.iaTemporalmenteNoDisponible) {
+      throw new ErrorIA(
+        'AI_LIMITE_TEMPORAL',
+        'El servicio de análisis alcanzó su límite temporal.',
+        429,
+        900_000,
+      )
+    }
+
+    if ((!clasificacion || validarSombra) && !opciones.iaTemporalmenteNoDisponible) {
       const clasificacionIA = await clasificarCorreo({
         asunto,
         remitente,
@@ -379,10 +400,6 @@ export async function procesarCorreoGmail(
     const codigo = codigoError(error)
     if (!finalizacionIncierta) {
       await cliente.from('correos_procesados').update({
-        gmail_thread_id: null,
-        remitente: '',
-        asunto: '',
-        fecha_correo: null,
         categoria: 'otro',
         grupo_resumen: 'otros',
         grupo_asignado_por: 'migracion',

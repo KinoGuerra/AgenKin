@@ -45,7 +45,9 @@ describe('portal separado por subpáginas', () => {
       'correos_procesados!vencimientos_correo_usuario_fkey(asunto)',
     )
     expect(pagina).toContain('crearDetalleCorreo(item)')
-    expect(pagina).toContain('Se reintentará en el próximo análisis.')
+    expect(pagina).toContain("correo.error_procesamiento === 'AI_LIMITE_TEMPORAL'")
+    expect(pagina).toContain("return correo.estado_procesamiento === 'error' && errorCorreoTemporal")
+    expect(servicio).toContain("nullsFirst: false")
     expect(servicio).not.toContain('cuerpo')
   })
 
