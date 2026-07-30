@@ -48,6 +48,9 @@ describe('landing preparada para producción', () => {
     expect(csp).toContain('https://kpqzwbhprqlapwhadejt.supabase.co')
     expect(csp).toContain("object-src 'none'")
     expect(csp).toContain("base-uri 'self'")
+    expect(csp).toContain("frame-src 'none'")
+    expect(csp).not.toContain('frame-ancestors')
+    expect(landing).toContain('./src/components/frame-guard.js')
     expect(csp).toContain(`'sha256-${createHash('sha256').update(cargadorLocal).digest('base64')}'`)
   })
 
