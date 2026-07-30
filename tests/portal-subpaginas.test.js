@@ -44,6 +44,11 @@ describe('portal separado por subpáginas', () => {
     expect(servicio).toContain(
       'correos_procesados!vencimientos_correo_usuario_fkey(asunto)',
     )
+    expect(servicio).not.toContain(".gte('fecha_vencimiento'")
+    expect(pagina).toContain("item.estado === 'vencido'")
+    expect(pagina).toContain('const hoy = fechaActualIso()')
+    expect(pagina).toContain("item.fecha_vencimiento < hoy")
+    expect(pagina).toContain("vencido ? 'Sin acciones' : 'Finalizado'")
     expect(pagina).toContain('crearDetalleCorreo(item)')
     expect(pagina).toContain("correo.error_procesamiento === 'AI_LIMITE_TEMPORAL'")
     expect(pagina).toContain("return correo.estado_procesamiento === 'error' && errorCorreoTemporal")

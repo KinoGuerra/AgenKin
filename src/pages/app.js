@@ -6,7 +6,7 @@ import { invocarFuncion } from '../services/edge.js'
 import { cargarEventosAgenda, cargarPortal } from '../services/portal.js'
 import { supabase } from '../services/supabase.js'
 import { formatearAvisoDia, formatearMontoARS } from '../utils/clasificacion.js'
-import { formatearFecha, formatearFechaHora } from '../utils/fechas.js'
+import { fechaActualIso, formatearFecha, formatearFechaHora } from '../utils/fechas.js'
 
 let datosPortal
 let usuarioActualId
@@ -46,16 +46,35 @@ function renderVencimientos(vencimientos) {
     tbodyVencimientos.append(fila)
     return
   }
-  vencimientos.forEach((item) => {
+  const hoy = fechaActualIso()
+  const ordenados = [...vencimientos].sort((a, b) => {
+    const aVencido = a.estado === 'vencido' || a.fecha_vencimiento < hoy
+    const bVencido = b.estado === 'vencido' || b.fecha_vencimiento < hoy
+    if (aVencido !== bVencido) return aVencido ? 1 : -1
+    return aVencido
+      ? b.fecha_vencimiento.localeCompare(a.fecha_vencimiento)
+      : a.fecha_vencimiento.localeCompare(b.fecha_vencimiento)
+  })
+  ordenados.forEach((item) => {
+    const vencido = item.estado === 'vencido' ||
+      item.fecha_vencimiento < hoy
+    const estadoVisible = vencido ? 'Vencido' : item.estado
     const fila = document.createElement('tr')
+    if (vencido) fila.classList.add('fila--vencida')
     fila.append(
       crearCelda(item.correos_procesados?.asunto || item.titulo),
       crearCelda(item.tipo),
       crearCelda(formatearFecha(item.fecha_vencimiento)),
       crearCelda(`${Math.round(item.confianza * 100)}%`),
-      crearCelda(item.estado),
+      crearCelda(estadoVisible),
     )
     const acciones = document.createElement('td')
+    if (vencido || ['descartado', 'evento_creado'].includes(item.estado)) {
+      acciones.textContent = vencido ? 'Sin acciones' : 'Finalizado'
+      fila.append(acciones)
+      tbodyVencimientos.append(fila)
+      return
+    }
     const revisar = document.createElement('button')
     revisar.className = 'boton boton--mini'
     revisar.textContent = item.estado === 'confirmado' ? 'Crear evento' : 'Revisar'
@@ -64,7 +83,6 @@ function renderVencimientos(vencimientos) {
     descartar.className = 'boton boton--mini boton--texto'
     descartar.textContent = 'Descartar'
     descartar.dataset.descartar = item.id
-    descartar.disabled = ['descartado', 'evento_creado'].includes(item.estado)
     acciones.append(revisar, descartar)
     fila.append(acciones)
     tbodyVencimientos.append(fila)

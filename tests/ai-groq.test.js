@@ -357,4 +357,10 @@ describe('idempotencia y persistencia', () => {
     expect(debeCrearVencimiento(undefined)).toBe(false)
     expect(debeCrearVencimiento(validarClasificacion(clasificacion({ relevante: true, fecha: null })))).toBe(false)
   })
+
+  it('registra también hallazgos pasados para identificarlos como vencidos', () => {
+    expect(debeCrearVencimiento(
+      validarClasificacion(clasificacion({ fecha: '2026-06-30' })),
+    )).toBe(true)
+  })
 })

@@ -50,3 +50,17 @@ export function formatearFechaHora(valor, locale = 'es-AR') {
   const valorDe = (tipo) => partes.find((parte) => parte.type === tipo)?.value || ''
   return `${valorDe('day')}/${valorDe('month')}/${valorDe('year')} ${valorDe('hour')}:${valorDe('minute')}`
 }
+
+export function fechaActualIso(
+  zonaHoraria = 'America/Argentina/Cordoba',
+  ahora = new Date(),
+) {
+  const partes = new Intl.DateTimeFormat('en-US', {
+    timeZone: zonaHoraria,
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  }).formatToParts(ahora)
+  const valorDe = (tipo) => partes.find((parte) => parte.type === tipo)?.value || ''
+  return `${valorDe('year')}-${valorDe('month')}-${valorDe('day')}`
+}

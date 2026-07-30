@@ -708,6 +708,8 @@ td { padding: .85rem .75rem; border-bottom: 1px solid var(--borde); vertical-ali
 td strong, td small { display: block; }
 td small { max-width: 220px; overflow: hidden; color: var(--tinta-suave); text-overflow: ellipsis; }
 td select { min-width: 150px; padding: .4rem; font-size: .75rem; }
+.fila--vencida { color: var(--tinta-suave); }
+.fila--vencida td { background: color-mix(in srgb, var(--superficie-suave) 72%, transparent); }
 .lista-vacia article { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: .9rem 0; border-bottom: 1px solid var(--borde); text-align: left; }
 .lista-vacia article:last-child { border-bottom: 0; }
 .lista-vacia article strong, .lista-vacia article span { display: block; }

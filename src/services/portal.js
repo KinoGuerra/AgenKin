@@ -16,7 +16,7 @@ export async function cargarPortal(pagina = 'inicio', opciones = {}) {
       .range(desde, desde + 24)
   }
   if (pagina === 'vencimientos') {
-    consultas.vencimientos = supabase.from('vencimientos_detectados').select('id,tipo,titulo,descripcion,fecha_vencimiento,hora_vencimiento,zona_horaria,confianza,estado,requiere_revision,correos_procesados!vencimientos_correo_usuario_fkey(asunto)').order('creado_en', { ascending: false }).limit(50)
+    consultas.vencimientos = supabase.from('vencimientos_detectados').select('id,tipo,titulo,descripcion,fecha_vencimiento,hora_vencimiento,zona_horaria,confianza,estado,requiere_revision,correos_procesados!vencimientos_correo_usuario_fkey(asunto)').order('fecha_vencimiento', { ascending: false }).limit(50)
   }
   if (pagina === 'reglas') {
     consultas.reglas = supabase.from('reglas_usuario').select('id,nombre,campo,operador,valor,accion,activo').order('creado_en', { ascending: false })

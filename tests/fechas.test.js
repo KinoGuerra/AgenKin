@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { calcularFinPrueba, formatearFechaHora, normalizarFecha } from '../src/utils/fechas.js'
+import {
+  calcularFinPrueba,
+  fechaActualIso,
+  formatearFechaHora,
+  normalizarFecha,
+} from '../src/utils/fechas.js'
 
 describe('normalizarFecha', () => {
   it('normaliza fechas locales e ISO', () => {
@@ -23,5 +28,14 @@ describe('formatearFechaHora', () => {
   it('usa el formato argentino requerido sin depender del huso del navegador', () => {
     expect(formatearFechaHora('2026-07-28T17:05:00Z')).toBe('28/07/2026 14:05')
     expect(formatearFechaHora(null)).toBe('Sin actualizaciones')
+  })
+})
+
+describe('fechaActualIso', () => {
+  it('calcula el día de Argentina aunque UTC ya esté en el día siguiente', () => {
+    expect(fechaActualIso(
+      'America/Argentina/Cordoba',
+      new Date('2026-07-31T01:30:00Z'),
+    )).toBe('2026-07-30')
   })
 })
