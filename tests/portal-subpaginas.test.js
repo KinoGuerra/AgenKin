@@ -38,7 +38,12 @@ describe('portal separado por subpáginas', () => {
   it('muestra la interpretación de cada correo sin almacenar su cuerpo', () => {
     const servicio = leer('src/services/portal.js')
     const pagina = leer('src/pages/app.js')
-    expect(servicio).toContain('vencimientos_detectados(titulo,descripcion,fecha_vencimiento,monto)')
+    expect(servicio).toContain(
+      'vencimientos_detectados!vencimientos_correo_usuario_fkey(titulo,descripcion,fecha_vencimiento,monto)',
+    )
+    expect(servicio).toContain(
+      'correos_procesados!vencimientos_correo_usuario_fkey(asunto)',
+    )
     expect(pagina).toContain('crearDetalleCorreo(item)')
     expect(pagina).toContain('Se reintentará en el próximo análisis.')
     expect(servicio).not.toContain('cuerpo')
