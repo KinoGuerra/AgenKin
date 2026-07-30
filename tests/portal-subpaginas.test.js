@@ -58,4 +58,30 @@ describe('portal separado por subpáginas', () => {
     expect(pagina).toContain("'aria-label', abierto ? 'Cerrar menú' : 'Abrir menú'")
     expect(pagina).toContain("'aria-pressed', String(seleccionado)")
   })
+
+  it('muestra la foto de Google con iniciales como respaldo seguro', () => {
+    const pagina = leer('src/pages/app.js')
+    const estilos = leer('src/styles/portal.css')
+    ;[
+      'app.html',
+      'configuracion.html',
+      'correos.html',
+      'vencimientos.html',
+      'agenda.html',
+      'reglas.html',
+    ].forEach((archivo) => {
+      const html = leer(archivo)
+      expect(html).toContain('data-avatar-imagen')
+      expect(html).toContain('data-avatar-iniciales')
+      expect(html).toContain('referrerpolicy="no-referrer"')
+    })
+    expect(pagina).toContain('metadatos.avatar_url')
+    expect(pagina).toContain('metadatos.picture')
+    expect(pagina).toContain("identidad.provider === 'google'")
+    expect(pagina).toContain("url.protocol === 'https:'")
+    expect(pagina).toContain("imagen.addEventListener('load'")
+    expect(pagina).toContain("imagen.addEventListener('error'")
+    expect(estilos).toContain('.avatar--imagen')
+    expect(estilos).toContain('object-fit: cover')
+  })
 })

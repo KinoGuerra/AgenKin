@@ -554,13 +554,68 @@ async function refrescar() {
   if (paginaPortal === 'agenda') await cargarMesAgenda()
 }
 
+function obtenerIniciales(nombre, email) {
+  const partes = (nombre || '').trim().split(/\s+/).filter(Boolean)
+  if (partes.length) return partes.slice(0, 2).map((parte) => parte[0]).join('').toUpperCase()
+  return (email || 'A').slice(0, 2).toUpperCase()
+}
+
+function obtenerUrlAvatar(contexto) {
+  const metadatos = contexto.user?.user_metadata || {}
+  const identidadGoogle = contexto.user?.identities?.find((identidad) => identidad.provider === 'google')
+  const datosIdentidad = identidadGoogle?.identity_data || {}
+  const candidatas = [
+    metadatos.avatar_url,
+    metadatos.picture,
+    datosIdentidad.avatar_url,
+    datosIdentidad.picture,
+    contexto.perfil.avatar_url,
+  ]
+
+  for (const candidata of candidatas) {
+    if (!candidata) continue
+    try {
+      const url = new URL(candidata)
+      if (url.protocol === 'https:') return url.href
+    } catch {
+      // Se conserva la inicial si Google no entrega una URL válida.
+    }
+  }
+  return null
+}
+
+function renderAvatar(contexto) {
+  const imagen = document.querySelector('[data-avatar-imagen]')
+  const iniciales = document.querySelector('[data-avatar-iniciales]')
+  if (!imagen || !iniciales) return
+
+  const nombre = contexto.perfil.nombre_completo || contexto.user?.user_metadata?.full_name || ''
+  const email = contexto.perfil.email || contexto.user?.email || ''
+  iniciales.textContent = obtenerIniciales(nombre, email)
+
+  const avatarUrl = obtenerUrlAvatar(contexto)
+  if (!avatarUrl) return
+
+  const mostrarIniciales = () => {
+    imagen.hidden = true
+    iniciales.hidden = false
+  }
+  imagen.addEventListener('load', () => {
+    imagen.hidden = false
+    iniciales.hidden = true
+  }, { once: true })
+  imagen.addEventListener('error', mostrarIniciales, { once: true })
+  imagen.alt = `Foto de ${nombre || 'tu perfil de Google'}`
+  imagen.src = avatarUrl
+}
+
 async function iniciar() {
   try {
     const contexto = await protegerRuta('app')
     if (!contexto) return
     usuarioActualId = contexto.user.id
     definirTexto('[data-nombre]', contexto.perfil.nombre_completo?.split(' ')[0] || 'bienvenido')
-    definirTexto('[data-avatar]', (contexto.perfil.nombre_completo || contexto.perfil.email || 'A').slice(0, 1).toUpperCase())
+    renderAvatar(contexto)
     await refrescar()
     const parametros = new URLSearchParams(window.location.search)
     if (parametros.get('google') === 'conectado') {
