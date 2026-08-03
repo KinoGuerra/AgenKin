@@ -113,7 +113,9 @@ La configuración operativa está en
 - Los correos sin vencimiento se compactan a los 30 días.
 - El registro mínimo antirrepetición se conserva hasta 120 días.
 - Los eventos internos y vencimientos se eliminan 15 días después de vencer;
-  el evento ya creado en Google Calendar no se elimina.
+  esa limpieza por retención no elimina eventos ya creados en Google Calendar.
+- Un descarte explícito sí oculta el evento interno y encola la eliminación
+  idempotente del evento creado por AgenKin en Google Calendar.
 - Las tareas completadas se eliminan a las 48 horas y las fallidas a los 30 días.
 - Los patrones personales no activos y sin cambios se eliminan a los 90 días.
 - Las métricas mensuales se conservan antes de compactar.

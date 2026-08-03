@@ -212,6 +212,10 @@ los deja en una cola durable. Los workers globales procesan esa cola sin llamada
 Edge anidadas, con concurrencia y presupuesto de tiempo limitados. Cada evento se
 guarda primero en Agenda; la cola de Calendar replica los pendientes en la única
 cuenta elegida sin bloquear ni duplicar el registro interno.
+Cuando el usuario habilita la creación automática, los hallazgos futuros que
+superan su umbral y no requieren revisión se guardan sin una regla adicional de
+priorización. Un descarte registra una exclusión personal por dominio y plantilla;
+si el evento ya se había replicado, la misma cola solicita también su eliminación.
 
 ## Operación de la beta Free
 

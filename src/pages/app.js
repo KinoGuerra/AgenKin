@@ -35,6 +35,21 @@ const GRUPOS = [
   ['otros', 'Otros'],
 ]
 
+function eventoAgendaDe(item) {
+  return Array.isArray(item.eventos_calendar)
+    ? item.eventos_calendar[0] || null
+    : item.eventos_calendar || null
+}
+
+function estadoVisibleVencimiento(item) {
+  if (item.estado !== 'evento_creado') return item.estado
+  const evento = eventoAgendaDe(item)
+  if (!evento || evento.estado_google === 'no_conectado') return 'Sólo en Agenda'
+  if (evento.estado_google === 'sincronizado') return 'Sincronizado con Google'
+  if (evento.estado_google === 'error') return 'Error de Google'
+  return 'Google pendiente'
+}
+
 function renderVencimientos(vencimientos) {
   if (!tbodyVencimientos) return
   tbodyVencimientos.replaceChildren()
@@ -58,7 +73,7 @@ function renderVencimientos(vencimientos) {
   ordenados.forEach((item) => {
     const vencido = item.estado === 'vencido' ||
       item.fecha_vencimiento < hoy
-    const estadoVisible = vencido ? 'Vencido' : item.estado
+    const estadoVisible = vencido ? 'Vencido' : estadoVisibleVencimiento(item)
     const fila = document.createElement('tr')
     if (vencido) fila.classList.add('fila--vencida')
     fila.append(
@@ -69,21 +84,26 @@ function renderVencimientos(vencimientos) {
       crearCelda(estadoVisible),
     )
     const acciones = document.createElement('td')
-    if (vencido || ['descartado', 'evento_creado'].includes(item.estado)) {
+    if (vencido || item.estado === 'descartado') {
       acciones.textContent = vencido ? 'Sin acciones' : 'Finalizado'
       fila.append(acciones)
       tbodyVencimientos.append(fila)
       return
     }
-    const revisar = document.createElement('button')
-    revisar.className = 'boton boton--mini'
-    revisar.textContent = item.estado === 'confirmado' ? 'Crear evento' : 'Revisar'
-    revisar.dataset.revisar = item.id
+    if (item.estado !== 'evento_creado') {
+      const revisar = document.createElement('button')
+      revisar.className = 'boton boton--mini'
+      revisar.textContent = item.estado === 'confirmado' ? 'Crear evento' : 'Revisar'
+      revisar.dataset.revisar = item.id
+      acciones.append(revisar)
+    }
     const descartar = document.createElement('button')
     descartar.className = 'boton boton--mini boton--texto'
-    descartar.textContent = 'Descartar'
+    descartar.textContent = item.estado === 'evento_creado'
+      ? 'Descartar y eliminar'
+      : 'Descartar'
     descartar.dataset.descartar = item.id
-    acciones.append(revisar, descartar)
+    acciones.append(descartar)
     fila.append(acciones)
     tbodyVencimientos.append(fila)
   })
@@ -934,7 +954,7 @@ formularioAutomatizacion?.addEventListener('submit', async (evento) => {
   const activarEventos = eventosAutomaticos.checked
   if (activarEventos && !datosPortal.conexion?.creacion_automatica_eventos) {
     const aceptado = confirm(
-      'AgenKin creará eventos futuros automáticamente solo para remitentes priorizados, cuando la IA no requiera revisión y alcance la confianza elegida. ¿Querés activarlo?',
+      'AgenKin creará eventos futuros automáticamente para remitentes autenticados, cuando el análisis no requiera revisión, alcance la confianza elegida y no coincida con un descarte anterior. ¿Querés activarlo?',
     )
     if (!aceptado) return
   }
@@ -960,12 +980,18 @@ tbodyVencimientos?.addEventListener('click', async (evento) => {
   if (!id) return
   const item = datosPortal.vencimientos.find((vencimiento) => vencimiento.id === id)
   if (evento.target.dataset.descartar) {
-    if (!confirm('¿Descartar este vencimiento?')) return
+    const mensaje = item?.estado === 'evento_creado'
+      ? '¿Descartar este hallazgo y eliminar su evento de Agenda y Google Calendar? AgenKin recordará esta clase de correo para no volver a autoagendarla.'
+      : '¿Descartar este vencimiento? AgenKin recordará esta clase de correo para no volver a autoagendarla.'
+    if (!confirm(mensaje)) return
     const { data, error } = await supabase.rpc('descartar_vencimiento', {
       p_vencimiento_id: id,
     })
     if (error || data !== true) mostrarAviso('No se pudo descartar el vencimiento.', 'error')
-    else await refrescar()
+    else {
+      mostrarAviso('Vencimiento descartado. No volveremos a autoagendar correos similares.', 'exito')
+      await refrescar()
+    }
     return
   }
   formularioEvento.elements.vencimiento_id.value = item.id

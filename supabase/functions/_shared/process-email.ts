@@ -344,6 +344,7 @@ export async function procesarCorreoGmail(
         p_resultado: {
           gmail_thread_id: threadId,
           remitente,
+          dominio_remitente: analisis.dominioRemitente,
           asunto,
           fecha_correo: fechaIsoSegura(fecha),
           categoria: clasificacion.categoria,

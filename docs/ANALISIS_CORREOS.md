@@ -72,6 +72,11 @@ tokens_por_vencimiento = (tokens_entrada + tokens_salida) / vencimientos_detecta
 
 No se almacenan prompts, respuestas crudas ni cuerpos completos.
 
+La creación automática usa la autorización explícita de Configuración, el umbral
+elegido, una fecha futura exacta y `requiere_revision=false`. Los descartes se
+recuerdan por usuario, dominio autenticado y huella de plantilla: no afectan a
+otros usuarios ni impiden crear manualmente un evento similar.
+
 La deduplicación funcional se activa únicamente cuando el correo aporta una
 referencia explícita (por ejemplo, número de factura, comprobante, cuota,
 reserva o turno). Sin ese discriminador AgenKin prefiere conservar dos

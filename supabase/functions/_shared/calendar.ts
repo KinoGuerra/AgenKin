@@ -13,6 +13,11 @@ type OpcionesAgenda = {
   recordatorio?: unknown
 }
 
+export type ResultadoOperacionCalendar = {
+  estado: 'sincronizado' | 'omitido' | 'no_conectado'
+  googleId: string | null
+}
+
 function fechaLocal(valor: string | Date, zona: string, incluirHora = false) {
   const partes = new Intl.DateTimeFormat('en-US', {
     timeZone: zona,
@@ -128,12 +133,20 @@ export async function sincronizarEventoAgenda(
 ) {
   const { data: evento, error: errorEvento } = await cliente
     .from('eventos_calendar')
-    .select('id,titulo,descripcion,fecha_evento,zona_horaria,es_dia_completo,recordatorio_minutos,google_event_id,conexion_google_id')
+    .select('id,titulo,descripcion,fecha_evento,zona_horaria,es_dia_completo,recordatorio_minutos,google_event_id,calendar_id,conexion_google_id,estado_sincronizacion')
     .eq('id', eventoId)
     .eq('usuario_id', usuarioId)
     .single()
   if (errorEvento) throw new Error('Evento de Agenda no encontrado')
-  if (evento.google_event_id) return evento.google_event_id as string
+  if (evento.estado_sincronizacion === 'eliminado') {
+    return { estado: 'omitido', googleId: null } satisfies ResultadoOperacionCalendar
+  }
+  if (evento.google_event_id) {
+    return {
+      estado: 'sincronizado',
+      googleId: evento.google_event_id as string,
+    } satisfies ResultadoOperacionCalendar
+  }
 
   const { data: conexion, error: errorConexion } = await cliente
     .from('conexiones_google')
@@ -151,7 +164,7 @@ export async function sincronizarEventoAgenda(
       estado_google: 'no_conectado',
       error_google: null,
     }).eq('id', eventoId)
-    return null
+    return { estado: 'no_conectado', googleId: null } satisfies ResultadoOperacionCalendar
   }
 
   try {
@@ -194,20 +207,126 @@ export async function sincronizarEventoAgenda(
     }
 
     const ahora = new Date().toISOString()
-    const { error: errorActualizacion } = await cliente.from('eventos_calendar').update({
-      google_event_id: eventoGoogle.id,
-      calendar_id: calendarId,
-      conexion_google_id: conexion.id,
-      estado_google: 'sincronizado',
-      error_google: null,
-      google_sincronizado_en: ahora,
-    }).eq('id', evento.id)
+    const { data: actualizado, error: errorActualizacion } = await cliente
+      .from('eventos_calendar')
+      .update({
+        google_event_id: eventoGoogle.id,
+        calendar_id: calendarId,
+        conexion_google_id: conexion.id,
+        estado_google: 'sincronizado',
+        error_google: null,
+        google_sincronizado_en: ahora,
+      })
+      .eq('id', evento.id)
+      .neq('estado_sincronizacion', 'eliminado')
+      .select('id')
+      .maybeSingle()
     if (errorActualizacion) throw errorActualizacion
+    if (!actualizado) {
+      await eliminarEventoGoogle(acceso, calendarId, eventoGoogle.id || eventoGoogleId)
+      return { estado: 'omitido', googleId: null } satisfies ResultadoOperacionCalendar
+    }
     await cliente.from('conexiones_google').update({
       calendar_ultima_sincronizacion_en: ahora,
       agenda_ultima_actualizacion_en: ahora,
     }).eq('id', conexion.id)
-    return eventoGoogle.id as string
+    return {
+      estado: 'sincronizado',
+      googleId: eventoGoogle.id as string,
+    } satisfies ResultadoOperacionCalendar
+  } catch (error) {
+    const codigo = error instanceof ErrorGoogle
+      ? error.codigo
+      : 'SINCRONIZACION_GOOGLE_FALLIDA'
+    await cliente.from('eventos_calendar').update({
+      estado_google: 'error',
+      error_google: codigo,
+    }).eq('id', eventoId)
+    if (error instanceof ErrorGoogle && error.codigo === 'GOOGLE_TOKEN_VENCIDO') {
+      await cliente.from('conexiones_google').update({
+        estado_conexion: 'token_vencido',
+        error_ultima_sincronizacion: 'GOOGLE_TOKEN_VENCIDO',
+        proxima_sincronizacion: null,
+      }).eq('id', conexion.id)
+    }
+    throw error
+  }
+}
+
+async function eliminarEventoGoogle(
+  acceso: string,
+  calendarId: string,
+  googleEventId: string,
+) {
+  const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events/${encodeURIComponent(googleEventId)}?sendUpdates=none`
+  try {
+    await googleJson(url, acceso, { method: 'DELETE' })
+  } catch (error) {
+    if (error instanceof ErrorGoogle && error.status === 404) return
+    throw error
+  }
+}
+
+export async function eliminarEventoAgenda(
+  cliente: Cliente,
+  usuarioId: string,
+  eventoId: string,
+): Promise<ResultadoOperacionCalendar> {
+  const { data: evento, error: errorEvento } = await cliente
+    .from('eventos_calendar')
+    .select('id,google_event_id,calendar_id,conexion_google_id,estado_sincronizacion')
+    .eq('id', eventoId)
+    .eq('usuario_id', usuarioId)
+    .single()
+  if (errorEvento) throw new Error('Evento de Agenda no encontrado')
+
+  if (!evento.conexion_google_id && !evento.google_event_id && !evento.calendar_id) {
+    return { estado: 'omitido', googleId: null }
+  }
+
+  const { data: conexion, error: errorConexion } = await cliente
+    .from('conexiones_google')
+    .select('id,refresh_token_cifrado,token_iv,calendar_id,estado_conexion,calendar_conectado,es_calendar_principal')
+    .eq('id', evento.conexion_google_id || '')
+    .eq('usuario_id', usuarioId)
+    .single()
+  if (
+    errorConexion
+    || conexion.estado_conexion !== 'activa'
+    || !conexion.calendar_conectado
+    || !conexion.es_calendar_principal
+  ) {
+    await cliente.from('eventos_calendar').update({
+      estado_google: 'no_conectado',
+      error_google: null,
+    }).eq('id', eventoId)
+    return { estado: 'no_conectado', googleId: null }
+  }
+
+  const calendarId = evento.calendar_id || conexion.calendar_id
+  if (!calendarId) {
+    await cliente.from('eventos_calendar').update({
+      estado_google: 'no_conectado',
+      error_google: null,
+    }).eq('id', eventoId)
+    return { estado: 'omitido', googleId: null }
+  }
+
+  const googleEventId = evento.google_event_id || evento.id.replaceAll('-', '')
+  try {
+    const acceso = await tokenAcceso(conexion)
+    await eliminarEventoGoogle(acceso, calendarId, googleEventId)
+    const ahora = new Date().toISOString()
+    await cliente.from('eventos_calendar').update({
+      estado_google: 'no_conectado',
+      error_google: null,
+      google_sincronizado_en: ahora,
+    }).eq('id', evento.id)
+    await cliente.from('conexiones_google').update({
+      calendar_ultima_sincronizacion_en: ahora,
+      agenda_ultima_actualizacion_en: ahora,
+    }).eq('id', conexion.id)
+    return { estado: 'sincronizado', googleId: googleEventId }
   } catch (error) {
     const codigo = error instanceof ErrorGoogle
       ? error.codigo

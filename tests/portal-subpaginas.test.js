@@ -44,7 +44,9 @@ describe('portal separado por subpáginas', () => {
     expect(servicio).toContain(
       'correos_procesados!vencimientos_correo_usuario_fkey(asunto)',
     )
-    expect(servicio).not.toContain(".gte('fecha_vencimiento'")
+    expect(servicio).toContain(".gte('fecha_vencimiento', fechaActualIso())")
+    expect(servicio).toContain(".in('estado', ['pendiente', 'confirmado', 'evento_creado', 'error'])")
+    expect(servicio).toContain('eventos_calendar!eventos_vencimiento_usuario_fkey')
     expect(pagina).toContain("item.estado === 'vencido'")
     expect(pagina).toContain('const hoy = fechaActualIso()')
     expect(pagina).toContain("item.fecha_vencimiento < hoy")
@@ -60,6 +62,8 @@ describe('portal separado por subpáginas', () => {
     const pagina = leer('src/pages/app.js')
     expect(pagina).toContain("supabase.rpc('descartar_vencimiento'")
     expect(pagina).toContain('p_vencimiento_id: id')
+    expect(pagina).toContain('Descartar y eliminar')
+    expect(pagina).toContain('no volver a autoagendar')
     expect(pagina).not.toContain(".update({ estado: 'descartado' })")
   })
 
