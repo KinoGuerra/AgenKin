@@ -5,6 +5,9 @@ const leer = (ruta) => readFileSync(new URL(`../${ruta}`, import.meta.url), 'utf
 const migracion = leer(
   'supabase/migrations/20260803161501_autoagenda_aprendizaje_calendar.sql',
 )
+const limiteDiario = leer(
+  'supabase/migrations/20260803170919_no_contar_eventos_eliminados_en_limite.sql',
+).replace(/\s+/g, ' ').trim().toLowerCase()
 const sql = migracion.replace(/\s+/g, ' ').trim().toLowerCase()
 const procesador = leer('supabase/functions/_shared/process-email.ts')
 const calendar = leer('supabase/functions/_shared/calendar.ts')
@@ -33,6 +36,7 @@ describe('autoagendado confiable, aprendizaje y Calendar', () => {
     expect(automaticos).toContain('for update of v skip locked')
     expect(automaticos).toContain(') >= 20')
     expect(automaticos).not.toContain('public.reglas_usuario')
+    expect(limiteDiario).toContain("and e.estado_sincronizacion <> 'eliminado'")
   })
 
   it('aísla cada exclusión por usuario, dominio y plantilla', () => {
