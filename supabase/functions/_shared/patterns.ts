@@ -393,6 +393,10 @@ export function momentoVigente(
   return fecha >= fechaIso(hoy.anio, hoy.mes, hoy.dia)!
 }
 
+export function asuntoEsPublicidad(asunto: string) {
+  return /\(\s*publicidad\s*\)/i.test(asunto)
+}
+
 function tipoLocal(acciones: string[], asunto: string): ClasificacionCorreo['tipo'] | null {
   const texto = sinAcentos(`${asunto} ${acciones.join(' ')}`)
   const candidatos = new Set<ClasificacionCorreo['tipo']>()
@@ -443,6 +447,30 @@ export function evaluarPreviamente(
   tieneListUnsubscribe = false,
   ahora: Date = new Date(),
 ): EvaluacionPrevia {
+  if (asuntoEsPublicidad(asunto)) {
+    return {
+      requiereIa: false,
+      clasificacionLocal: {
+        relevante: false,
+        categoria: 'promocion',
+        grupo_resumen: 'otros',
+        tipo: 'otro',
+        titulo: '',
+        descripcion: '',
+        entidad: null,
+        monto: null,
+        fecha: null,
+        hora: null,
+        zona_horaria: ZONA_HORARIA,
+        confianza: 1,
+        requiere_revision: false,
+        explicacion: 'El asunto identifica explícitamente el correo como publicidad.',
+      },
+      motivo: 'publicidad_declarada',
+      confianza: 1,
+    }
+  }
+
   const tipo = tipoLocal(analisis.acciones, asunto)
   if (autenticado
     && tipo

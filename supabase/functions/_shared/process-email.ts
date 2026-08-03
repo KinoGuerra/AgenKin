@@ -11,6 +11,7 @@ import {
   analizarLocalmente,
   aplicarPatron,
   aprenderPatron,
+  asuntoEsPublicidad,
   buscarPatron,
   clasificacionesCoinciden,
   debeValidarEnSombra,
@@ -214,6 +215,7 @@ export async function procesarCorreoGmail(
     const autenticacion = encabezado(headers, 'Authentication-Results')
     const autenticado = remitenteAutenticado(autenticacion)
     const tieneListUnsubscribe = Boolean(encabezado(headers, 'List-Unsubscribe'))
+    const publicidad = asuntoEsPublicidad(asunto)
     const texto = extraerTextoCorreo(mensaje.payload || {})
     const { error: errorMetadatos } = await cliente
       .from('correos_procesados')
@@ -240,7 +242,7 @@ export async function procesarCorreoGmail(
       accion: string
     }) => coincideRegla(regla, asunto, remitente))
     const analisis = await analizarLocalmente(texto, remitente, fecha)
-    const patron = ignorar || !autenticado
+    const patron = publicidad || ignorar || !autenticado
       ? null
       : await buscarPatron(cliente, tarea.usuario_id, analisis)
     const clasificacionPatron = patron ? aplicarPatron(patron, analisis) : null
@@ -322,7 +324,7 @@ export async function procesarCorreoGmail(
     }
 
     if (!clasificacion) throw new Error('CLASIFICACION_AUSENTE')
-    if (!ignorar && !autenticado) {
+    if (!publicidad && !ignorar && !autenticado) {
       clasificacion = {
         ...clasificacion,
         requiere_revision: true,

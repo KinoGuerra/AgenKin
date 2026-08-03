@@ -59,7 +59,8 @@ describe('sincronización multicuenta para Supabase Free', () => {
 
   it('protege patrones, OAuth y la finalización atómica', () => {
     expect(procesador).toContain('ignorar || !autenticado')
-    expect(procesador).toContain('if (!ignorar && !autenticado)')
+    expect(procesador).toContain('publicidad || ignorar || !autenticado')
+    expect(procesador).toContain('if (!publicidad && !ignorar && !autenticado)')
     expect(procesador).toContain('requiere_revision: true')
     expect(procesador).toContain("'finalizar_correo_analizado'")
     const finalizacion = procesador.indexOf("'finalizar_correo_analizado'")

@@ -8,6 +8,7 @@ import {
 import {
   analizarLocalmente,
   aplicarPatron,
+  asuntoEsPublicidad,
   clasificacionesCoinciden,
   debeValidarEnSombra,
   evaluarPreviamente,
@@ -160,6 +161,31 @@ describe('extracción local y patrones de Gmail', () => {
     expect(evaluarPreviamente(promocion, 'Ofertas exclusivas de esta semana', true, true))
       .toMatchObject({ requiereIa: false, motivo: 'promocion_inequivoca' })
     expect(evaluarPreviamente(promocion, 'Recordatorio de tu cita', true, true).requiereIa).toBe(true)
+  })
+
+  it('prioriza la marca explícita (Publicidad) aunque haya fechas y acciones', async () => {
+    const promocion = await analizarLocalmente(
+      'Reservá tu turno antes del 10/08/2026 y obtené un descuento.',
+      'Novedades <news@example.test>',
+    )
+    expect(asuntoEsPublicidad('(Publicidad) Turnos disponibles')).toBe(true)
+    expect(asuntoEsPublicidad('( publicidad ) Pagá en cuotas')).toBe(true)
+    expect(asuntoEsPublicidad('Información sobre publicidad')).toBe(false)
+    expect(evaluarPreviamente(
+      promocion,
+      '(PUBLICIDAD) Turnos disponibles',
+      true,
+      false,
+    )).toMatchObject({
+      requiereIa: false,
+      motivo: 'publicidad_declarada',
+      clasificacionLocal: {
+        relevante: false,
+        categoria: 'promocion',
+        grupo_resumen: 'otros',
+        fecha: null,
+      },
+    })
   })
 
   it('distingue una hora ya pasada en el día de hoy', () => {

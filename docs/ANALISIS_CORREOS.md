@@ -8,9 +8,12 @@ Gmail History → cola durable → regla personal → patrón verificado
 → Agenda interna → Calendar principal opcional
 ```
 
-Un correo dudoso continúa hacia Groq. Sólo se resuelve como promoción sin IA
-cuando no tiene fechas, expresiones temporales, montos ni acciones, y además
-combina un asunto promocional inequívoco con `List-Unsubscribe`.
+La marca explícita `(Publicidad)` en el asunto se resuelve primero como
+promoción, aunque el contenido incluya fechas, montos o llamados a la acción.
+Fuera de esa marca, un correo dudoso continúa hacia Groq: sólo se resuelve como
+promoción sin IA cuando no tiene fechas, expresiones temporales, montos ni
+acciones, y además combina un asunto promocional inequívoco con
+`List-Unsubscribe`.
 
 La clasificación local exige remitente autenticado, una fecha accionable
 vigente, como máximo una hora y un monto, un único tipo deducible y ausencia de
