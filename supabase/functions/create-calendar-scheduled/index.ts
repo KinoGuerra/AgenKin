@@ -20,7 +20,16 @@ Deno.serve(async (request) => {
     )
     if (error) throw error
 
-    return json({ creados: ((eventos || []) as EventoCreado[]).length })
+    const { data: reencolados, error: errorReconciliacion } = await cliente.rpc(
+      'reconciliar_eventos_calendar_pendientes',
+      { p_limite: 20 },
+    )
+    if (errorReconciliacion) throw errorReconciliacion
+
+    return json({
+      creados: ((eventos || []) as EventoCreado[]).length,
+      reencolados: Number(reencolados || 0),
+    })
   } catch (error) {
     return errorSeguro(error)
   }

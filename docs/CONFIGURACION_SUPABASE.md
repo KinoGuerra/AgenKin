@@ -20,10 +20,10 @@ supabase db push
 ```
 
 Las migraciones crean tipos, tablas, índices, triggers, funciones, permisos,
-RLS, conexiones multicuenta y workers globales. La promoción del propietario
-es manual: ejecutar la instrucción correspondiente después de que esa persona
-haya iniciado sesión al menos una vez. Nunca guardar su correo en una migración
-publicada.
+RLS, conexiones multicuenta, colas de Gmail/Calendar y cinco jobs globales. La
+promoción del propietario a superadministrador es manual: ejecutar la
+instrucción correspondiente después de que esa persona haya iniciado sesión al
+menos una vez. Nunca guardar su correo en una migración publicada.
 
 ## Desplegar funciones
 
@@ -48,21 +48,38 @@ gateway, pero rechazan toda llamada que no incluya el secreto interno de Cron.
 Las funciones nuevas comparten módulos internos; una Edge Function no debe
 invocar otra por cada correo o evento.
 
-Antes de desplegar `scan-gmail`, configurar Groq según
+Antes de desplegar `process-gmail-queue`, configurar Groq según
 [Configuración de Groq](CONFIGURACION_GROQ.md). La API key debe existir
 únicamente como Supabase Secret.
 
 ## Activar la sincronización programada
 
-La última migración usa Cron y `pg_net`, y programa cuatro trabajos globales:
-descubrir cambios de Gmail cada 5 minutos, procesar la cola SQL cada minuto,
-crear eventos elegibles cada 2 minutos y reintentar la réplica de Agenda a
-Google Calendar cada minuto. No se crea un cron por usuario o cuenta.
+Cron y `pg_net` sostienen cuatro workers HTTP globales y un mantenimiento SQL:
+
+- `agenkin-descubrir-gmail`: cada 5 minutos;
+- `agenkin-procesar-gmail`: cada minuto;
+- `agenkin-crear-eventos`: cada 2 minutos;
+- `agenkin-procesar-calendar`: cada minuto;
+- `agenkin-mantenimiento-diario`: todos los días a las 03:43 UTC.
+
+No se crea un cron por usuario o cuenta. Los cuatro jobs HTTP exigen el secreto
+interno; el mantenimiento invoca directamente una función privada.
 
 Gmail mantiene un cursor History por conexión. La importación inicial revisa
 hasta 90 días y avanza por páginas; después solo consulta cambios incrementales.
 Las tareas SQL son la única fuente de verdad y se reparten circularmente entre
-cuentas.
+cuentas. Calendar utiliza mensajes versionados con `operacion: crear | eliminar`;
+el worker procesa hasta tres por ejecución y evita que un mensaje viejo confirme
+una operación reemplazada.
+
+Cada conexión conserva además un cursor de reconciliación diaria de siete días.
+Las tareas registran su origen y la lectura prioriza mensajes incrementales y
+reparados. La capacidad máxima sólo cuenta IDs realmente nuevos: duplicados y
+errores terminales no se reactivan al volver a aparecer en Gmail.
+
+El presupuesto de IA vive en `private.consumo_ia_diario` y sólo se modifica por
+RPC `SECURITY DEFINER` exclusivas de `service_role`. Los defaults son 300
+solicitudes, 80.000 tokens no cacheados y 20 solicitudes históricas por día.
 
 Antes de aplicar esa migración:
 
@@ -73,15 +90,19 @@ Antes de aplicar esa migración:
    `agenkin_project_url`.
 
 Ingresar esos valores desde el Dashboard de Supabase; no escribir el secreto en
-archivos, historial de shell, migraciones ni logs. La automatización permanece
-activa por defecto y cada usuario puede pasar todas sus conexiones a modo manual
-desde el portal.
+archivos, historial de shell, migraciones ni logs. La sincronización de Gmail se
+activa al conectar la primera cuenta y el usuario puede pasar todas sus
+conexiones a modo manual. La creación automática de eventos es un interruptor
+separado y conserva el umbral elegido.
 
 ## Límites de la beta Free
 
 - Diseñar para un máximo inicial de 25 usuarios activos y 125 cuentas Gmail.
 - El descubridor reclama hasta 40 cuentas con concurrencia 4 y 120 segundos.
 - El worker procesa hasta 20 tareas con concurrencia 4.
+- El autoagendado crea hasta 5 eventos por ejecución y mantiene una guardia de
+  20 eventos internos activos por usuario y día; los eliminados no cuentan.
+- Calendar procesa hasta 3 tareas por ejecución y reintenta errores temporales.
 - El panel alerta a partir de 350 MB.
 - Desde 425 MB se detiene la carga histórica, no Gmail History incremental.
 - El mantenimiento compacta y elimina en sentencias de hasta 1.000 filas,
@@ -108,8 +129,12 @@ Son valores públicos y reemplazables. Nunca configurar una clave `service_role`
 4. Probar IDs de Gmail iguales en conexiones distintas.
 5. Probar reconexión y callbacks simultáneos al completar el cupo.
 6. Verificar un único Calendar principal.
-7. Simular compactación a 15/30 días, tombstones a 120 y limpieza de tareas.
-8. Medir tablas e índices con `pg_total_relation_size`.
+7. Confirmar que `(Publicidad)` no cree vencimiento aunque incluya fecha o monto.
+8. Probar autoagenda, descarte repetido y carrera entre creación/eliminación.
+9. Verificar los estados `Sólo en Agenda`, `Google pendiente`, `Sincronizado` y
+   `Error de Google`.
+10. Simular compactación a 15/30 días, tombstones a 120 y limpieza de tareas.
+11. Medir tablas e índices con `pg_total_relation_size`.
 
 ## Orden seguro de publicación
 

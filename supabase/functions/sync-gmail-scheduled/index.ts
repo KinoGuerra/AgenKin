@@ -52,6 +52,7 @@ Deno.serve(async (request) => {
       errores: 0,
       diferidas: 0,
       carga_historica_detenida: !permitirHistorico,
+      reconciliaciones: 0,
     }
 
     for (let indice = 0; indice < lista.length; indice += CONCURRENCIA) {
@@ -80,6 +81,7 @@ Deno.serve(async (request) => {
           resumen.revisadas += 1
           resumen.descubiertos += resultado.descubiertos
           resumen.encolados += resultado.encolados
+          if (resultado.origen === 'reconciliacion') resumen.reconciliaciones += 1
         } catch (errorConexion) {
           if (colaSaturada(errorConexion)) {
             resumen.diferidas += 1

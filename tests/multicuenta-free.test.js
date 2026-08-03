@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest'
 const leer = (ruta) => readFileSync(new URL(`../${ruta}`, import.meta.url), 'utf8')
 const migracion = leer('supabase/migrations/20260730003317_sincronizacion_multicuenta_free.sql')
 const optimizacion = leer('supabase/migrations/20260803053830_optimizar_analisis_y_deduplicacion.sql')
+const recuperacion = leer('supabase/migrations/20260803182509_recuperar_gmail_controlar_ia_calendar.sql')
 const worker = leer('supabase/functions/process-gmail-queue/index.ts')
 const descubridor = leer('supabase/functions/sync-gmail-scheduled/index.ts')
 const sincronizador = leer('supabase/functions/_shared/gmail-sync.ts')
@@ -51,10 +52,11 @@ describe('sincronización multicuenta para Supabase Free', () => {
     expect(descubridor).toContain('CONCURRENCIA = 4')
     expect(worker).toContain('TAREAS_POR_EJECUCION = 20')
     expect(worker).toContain('MINIMO_PARA_OTRO_GRUPO_MS = 65_000')
-    expect(worker).toContain('iaTemporalmenteNoDisponible')
-    expect(migracion).toContain('partition by t.conexion_google_id')
+    expect(worker).toContain('tarea.intentos_ia + 1 < 2')
+    expect(recuperacion).toContain('partition by t.conexion_google_id')
     expect(sincronizador).toContain('RESULTADOS_POR_PAGINA = 50')
-    expect(migracion).toContain('COLA_GMAIL_SATURADA')
+    expect(recuperacion).toContain('COLA_GMAIL_SATURADA')
+    expect(recuperacion).toContain('origen_sincronizacion')
   })
 
   it('protege patrones, OAuth y la finalización atómica', () => {

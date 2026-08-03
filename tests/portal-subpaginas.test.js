@@ -53,6 +53,8 @@ describe('portal separado por subpáginas', () => {
     expect(pagina).toContain("vencido ? 'Sin acciones' : 'Finalizado'")
     expect(pagina).toContain('crearDetalleCorreo(item)')
     expect(pagina).toContain("correo.error_procesamiento === 'AI_LIMITE_TEMPORAL'")
+    expect(pagina).toContain("correo.error_procesamiento === 'AI_PRESUPUESTO_DIARIO'")
+    expect(pagina).toContain("correo.error_procesamiento === 'AI_REINTENTOS_AGOTADOS'")
     expect(pagina).toContain("return correo.estado_procesamiento === 'error' && errorCorreoTemporal")
     expect(servicio).toContain("nullsFirst: false")
     expect(servicio).not.toContain('cuerpo')

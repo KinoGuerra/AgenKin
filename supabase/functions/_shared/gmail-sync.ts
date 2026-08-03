@@ -1,6 +1,8 @@
 import { googleJson } from './google.ts'
 
 const RESULTADOS_POR_PAGINA = 50
+const RESULTADOS_RECONCILIACION = 100
+const DIAS_RECONCILIACION = 7
 
 type Cliente = {
   from: (tabla: string) => any
@@ -16,6 +18,9 @@ export type ConexionSincronizable = {
   gmail_history_objetivo: string | null
   gmail_page_token: string | null
   sincronizacion_inicial_completa: boolean
+  gmail_reconciliacion_desde: string | null
+  gmail_reconciliacion_page_token: string | null
+  gmail_ultima_reconciliacion_en: string | null
 }
 
 function idsMensajes(valor: unknown) {
@@ -33,6 +38,7 @@ async function registrarTareas(
   cliente: Cliente,
   conexion: Pick<ConexionSincronizable, 'usuario_id' | 'conexion_google_id'>,
   ids: string[],
+  origen: 'incremental' | 'reconciliacion' | 'historica',
 ) {
   if (!ids.length) return 0
   let total = 0
@@ -41,6 +47,7 @@ async function registrarTareas(
       p_usuario_id: conexion.usuario_id,
       p_conexion_google_id: conexion.conexion_google_id,
       p_gmail_message_ids: ids.slice(indice, indice + 50),
+      p_origen_sincronizacion: origen,
     })
     if (error) throw error
     total += Number(data || 0)
@@ -83,7 +90,7 @@ async function iniciarSoloIncremental(
     error_ultima_sincronizacion: null,
     proxima_sincronizacion: new Date(Date.now() + 5 * 60_000).toISOString(),
   })
-  return { descubiertos: 0, encolados: 0, completa: true }
+  return { descubiertos: 0, encolados: 0, completa: true, origen: 'incremental' as const }
 }
 
 async function sincronizacionInicial(
@@ -116,7 +123,7 @@ async function sincronizacionInicial(
     acceso,
   )
   const ids = idsMensajes(pagina.messages)
-  const encolados = await registrarTareas(cliente, conexion, ids)
+  const encolados = await registrarTareas(cliente, conexion, ids, 'historica')
   const siguiente = pagina.nextPageToken ? String(pagina.nextPageToken) : null
   const completa = !siguiente
   const ahora = new Date().toISOString()
@@ -134,7 +141,7 @@ async function sincronizacionInicial(
     ).toISOString(),
   }
   await actualizarConexion(cliente, conexion.conexion_google_id, cambios)
-  return { descubiertos: ids.length, encolados, completa }
+  return { descubiertos: ids.length, encolados, completa, origen: 'historica' as const }
 }
 
 async function sincronizacionIncremental(
@@ -157,7 +164,7 @@ async function sincronizacionIncremental(
   const ids = idsMensajes((pagina.history || []).flatMap((cambio: {
     messagesAdded?: Array<{ message?: { id?: string } }>
   }) => (cambio.messagesAdded || []).map((item) => item.message)))
-  const encolados = await registrarTareas(cliente, conexion, ids)
+  const encolados = await registrarTareas(cliente, conexion, ids, 'incremental')
   const siguiente = pagina.nextPageToken ? String(pagina.nextPageToken) : null
   const historyObjetivo = String(
     pagina.historyId
@@ -179,7 +186,55 @@ async function sincronizacionIncremental(
     ).toISOString(),
   }
   await actualizarConexion(cliente, conexion.conexion_google_id, cambios)
-  return { descubiertos: ids.length, encolados, completa }
+  return { descubiertos: ids.length, encolados, completa, origen: 'incremental' as const }
+}
+
+function fechaHaceDias(dias: number) {
+  const fecha = new Date()
+  fecha.setUTCDate(fecha.getUTCDate() - dias)
+  return fecha.toISOString().slice(0, 10)
+}
+
+function reconciliacionPendiente(conexion: ConexionSincronizable) {
+  if (conexion.gmail_reconciliacion_desde) return true
+  if (!conexion.gmail_ultima_reconciliacion_en) return true
+  const ultima = new Date(conexion.gmail_ultima_reconciliacion_en).getTime()
+  return !Number.isFinite(ultima) || Date.now() - ultima >= 86_400_000
+}
+
+async function reconciliarMensajesRecientes(
+  cliente: Cliente,
+  conexion: ConexionSincronizable,
+  acceso: string,
+) {
+  const desde = conexion.gmail_reconciliacion_desde || fechaHaceDias(DIAS_RECONCILIACION)
+  const parametros = new URLSearchParams({
+    maxResults: String(RESULTADOS_RECONCILIACION),
+    q: `after:${desde.replaceAll('-', '/')}`,
+  })
+  if (conexion.gmail_reconciliacion_page_token) {
+    parametros.set('pageToken', conexion.gmail_reconciliacion_page_token)
+  }
+  const pagina = await googleJson(
+    `https://gmail.googleapis.com/gmail/v1/users/me/messages?${parametros}`,
+    acceso,
+  )
+  const ids = idsMensajes(pagina.messages)
+  const encolados = await registrarTareas(cliente, conexion, ids, 'reconciliacion')
+  const siguiente = pagina.nextPageToken ? String(pagina.nextPageToken) : null
+  const completa = !siguiente
+  const ahora = new Date().toISOString()
+  await actualizarConexion(cliente, conexion.conexion_google_id, {
+    gmail_reconciliacion_desde: completa ? null : desde,
+    gmail_reconciliacion_page_token: siguiente,
+    gmail_ultima_reconciliacion_en: completa ? ahora : conexion.gmail_ultima_reconciliacion_en,
+    error_ultima_sincronizacion: null,
+    ultima_sincronizacion_exitosa: ahora,
+    gmail_ultima_lectura_en: ahora,
+    agenda_ultima_actualizacion_en: ahora,
+    proxima_sincronizacion: new Date(Date.now() + (completa ? 5 : 1) * 60_000).toISOString(),
+  })
+  return { descubiertos: ids.length, encolados, completa, origen: 'reconciliacion' as const }
 }
 
 export async function descubrirCambiosGmail(
@@ -188,11 +243,14 @@ export async function descubrirCambiosGmail(
   acceso: string,
   permitirCargaHistorica = true,
 ) {
-  if (conexion.sincronizacion_inicial_completa && conexion.gmail_history_id) {
-    return sincronizacionIncremental(cliente, conexion, acceso)
+  if (!conexion.sincronizacion_inicial_completa || !conexion.gmail_history_id) {
+    if (!permitirCargaHistorica) {
+      return iniciarSoloIncremental(cliente, conexion, acceso)
+    }
+    return sincronizacionInicial(cliente, conexion, acceso)
   }
-  if (!permitirCargaHistorica) {
-    return iniciarSoloIncremental(cliente, conexion, acceso)
+  if (reconciliacionPendiente(conexion)) {
+    return reconciliarMensajesRecientes(cliente, conexion, acceso)
   }
-  return sincronizacionInicial(cliente, conexion, acceso)
+  return sincronizacionIncremental(cliente, conexion, acceso)
 }

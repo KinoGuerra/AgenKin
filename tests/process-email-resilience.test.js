@@ -40,7 +40,7 @@ describe('resiliencia del análisis de correos', () => {
       "const { data, error } = await cliente\n    .from('correos_procesados')\n    .update({",
       'function coincideRegla(',
     )
-    const captura = bloque('  } catch (error) {', '    if (errorReintentable(error))')
+    const captura = bloque('  } catch (error) {', "    if (codigo !== 'AI_REINTENTOS_AGOTADOS'")
 
     for (const fragmento of ["remitente: ''", "asunto: ''", 'fecha_correo: null']) {
       expect(reclamo).not.toContain(fragmento)
@@ -59,13 +59,14 @@ describe('resiliencia del análisis de correos', () => {
     expect(recuperacion).not.toContain("tarea.ultimo_error = 'ai_limite_temporal'")
   })
 
-  it('abre el circuito de IA y sigue recuperando metadatos sin nuevas llamadas', () => {
-    expect(worker).toContain('let iaTemporalmenteNoDisponible = false')
-    expect(worker).toContain('iaTemporalmenteNoDisponible,')
-    expect(worker).toContain("resultado.codigoError === 'AI_LIMITE_TEMPORAL'")
-    expect(proceso).toContain('if (!clasificacion && opciones.iaTemporalmenteNoDisponible)')
-    expect(proceso).toContain(
-      "if ((!clasificacion || validarSombra) && !opciones.iaTemporalmenteNoDisponible)",
-    )
+  it('reserva presupuesto antes de IA y limita los errores temporales a dos días', () => {
+    const reserva = proceso.indexOf("'reservar_presupuesto_ia'")
+    const llamada = proceso.indexOf('await clasificarCorreo(')
+    expect(reserva).toBeGreaterThan(0)
+    expect(reserva).toBeLessThan(llamada)
+    expect(proceso).toContain("'confirmar_consumo_ia'")
+    expect(proceso).toContain("'bloquear_proveedor_ia'")
+    expect(worker).toContain('tarea.intentos_ia + 1 < 2')
+    expect(worker).toContain("resultado.codigoError === 'AI_PRESUPUESTO_DIARIO'")
   })
 })

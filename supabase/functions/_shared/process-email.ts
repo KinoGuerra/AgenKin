@@ -31,6 +31,8 @@ type Cliente = {
 export type TareaCorreo = {
   tarea_id: string
   intentos: number
+  intentos_ia: number
+  origen_sincronizacion: 'incremental' | 'reconciliacion' | 'historica'
   usuario_id: string
   conexion_google_id: string
   gmail_message_id: string
@@ -49,10 +51,6 @@ export type ResultadoProcesamiento = {
   codigoError: string | null
   retrasoSegundos: number
   tareaFinalizada: boolean
-}
-
-type OpcionesProcesamiento = {
-  iaTemporalmenteNoDisponible?: boolean
 }
 
 type CorreoExistente = {
@@ -156,7 +154,12 @@ function clasificacionIgnorada() {
 
 function errorReintentable(error: unknown) {
   if (error instanceof ErrorIA) {
-    return ['AI_LIMITE_TEMPORAL', 'AI_TIMEOUT', 'AI_PROVEEDOR_NO_DISPONIBLE']
+    return [
+      'AI_LIMITE_TEMPORAL',
+      'AI_TIMEOUT',
+      'AI_PROVEEDOR_NO_DISPONIBLE',
+      'AI_PRESUPUESTO_DIARIO',
+    ]
       .includes(error.codigo)
   }
   if (error instanceof ErrorGoogle) return error.codigo === 'GOOGLE_TEMPORAL'
@@ -172,6 +175,9 @@ function retrasoError(error: unknown) {
   if (error instanceof ErrorIA && error.codigo === 'AI_LIMITE_TEMPORAL') {
     return error.reintentoDespuesMs || 900_000
   }
+  if (error instanceof ErrorIA && error.codigo === 'AI_PRESUPUESTO_DIARIO') {
+    return error.reintentoDespuesMs || 900_000
+  }
   if (error instanceof ErrorGoogle && error.codigo === 'GOOGLE_TEMPORAL') {
     return error.reintentoDespuesMs || 300_000
   }
@@ -182,7 +188,6 @@ export async function procesarCorreoGmail(
   cliente: Cliente,
   tarea: TareaCorreo,
   conexion: ConexionCorreo,
-  opciones: OpcionesProcesamiento = {},
 ): Promise<ResultadoProcesamiento> {
   const correoId = await reclamarCorreo(cliente, tarea)
   if (!correoId) {
@@ -200,6 +205,7 @@ export async function procesarCorreoGmail(
   let fecha = ''
   let threadId: string | null = null
   let finalizacionIncierta = false
+  let intentoIaActual = tarea.intentos_ia
   const metricasIA: { valor: MetricasIA | null } = { valor: null }
 
   try {
@@ -249,7 +255,7 @@ export async function procesarCorreoGmail(
     const evaluacion = ignorar || clasificacionPatron
       ? null
       : evaluarPreviamente(analisis, asunto, autenticado, tieneListUnsubscribe)
-    const validarSombra = Boolean(
+    let validarSombra = Boolean(
       patron
       && clasificacionPatron
       && await debeValidarEnSombra(tarea.gmail_message_id, patron)
@@ -270,17 +276,47 @@ export async function procesarCorreoGmail(
     let clasificacionParaAprender: ClasificacionCorreo | null = null
     let validacionPendiente: { patronId: string; coincide: boolean } | null = null
 
-    if (!clasificacion && opciones.iaTemporalmenteNoDisponible) {
-      throw new ErrorIA(
-        'AI_LIMITE_TEMPORAL',
-        'El servicio de análisis alcanzó su límite temporal.',
-        429,
-        900_000,
+    if (!clasificacion || validarSombra) {
+      const enteroEntorno = (nombre: string, predeterminado: number) => {
+        const valor = Number(Deno.env.get(nombre))
+        return Number.isInteger(valor) && valor > 0 ? valor : predeterminado
+      }
+      const reservaTokens = 250
+      const { data: reserva, error: errorReserva } = await cliente.rpc(
+        'reservar_presupuesto_ia',
+        {
+          p_tarea_id: tarea.tarea_id,
+          p_max_solicitudes: enteroEntorno('AI_MAX_SOLICITUDES_DIA', 300),
+          p_max_tokens: enteroEntorno('AI_MAX_TOKENS_DIA', 80_000),
+          p_max_historicas: enteroEntorno('AI_MAX_ATRASO_DIA', 20),
+          p_tokens_estimados: reservaTokens,
+        },
       )
-    }
+      if (errorReserva) throw errorReserva
+      if (!reserva?.permitido) {
+        if (clasificacion && validarSombra) {
+          validarSombra = false
+        } else {
+        if (reserva?.motivo === 'intentos_agotados') {
+          throw new ErrorIA(
+            'AI_REINTENTOS_AGOTADOS',
+            'El correo agotó sus intentos de análisis inteligente.',
+            503,
+          )
+        }
+        const disponible = Date.parse(String(reserva?.disponible_en || ''))
+        throw new ErrorIA(
+          'AI_PRESUPUESTO_DIARIO',
+          'El análisis inteligente alcanzó el presupuesto disponible.',
+          429,
+          Number.isFinite(disponible) ? Math.max(60_000, disponible - Date.now()) : 900_000,
+        )
+        }
+      }
 
-    if ((!clasificacion || validarSombra) && !opciones.iaTemporalmenteNoDisponible) {
-      const clasificacionIA = await clasificarCorreo({
+      if (reserva?.permitido) {
+        intentoIaActual = Number(reserva.intentos_ia || (tarea.intentos_ia + 1))
+        const clasificacionIA = await clasificarCorreo({
         asunto,
         fecha,
         dominio_remitente: analisis.dominioRemitente,
@@ -308,18 +344,31 @@ export async function procesarCorreoGmail(
         },
       })
 
-      if (validarSombra && patron && clasificacionPatron) {
-        const coincide = clasificacionesCoinciden(clasificacionPatron, clasificacionIA)
-        validacionPendiente = { patronId: patron.id, coincide }
-        clasificacion = coincide ? clasificacionPatron : clasificacionIA
-        if (!coincide) {
+        const tokensEntrada = metricasIA.valor?.tokens_entrada || 0
+        const tokensCache = metricasIA.valor?.tokens_cache || 0
+        const tokensSalida = metricasIA.valor?.tokens_salida || 0
+        try {
+          await cliente.rpc('confirmar_consumo_ia', {
+            p_tokens_no_cacheados: Math.max(0, tokensEntrada - tokensCache) + tokensSalida,
+            p_tokens_reservados: reservaTokens,
+          })
+        } catch {
+          // La reserva conservadora queda vigente si no puede confirmarse el uso.
+        }
+
+        if (validarSombra && patron && clasificacionPatron) {
+          const coincide = clasificacionesCoinciden(clasificacionPatron, clasificacionIA)
+          validacionPendiente = { patronId: patron.id, coincide }
+          clasificacion = coincide ? clasificacionPatron : clasificacionIA
+          if (!coincide) {
+            origen = 'ia'
+            clasificacionParaAprender = clasificacionIA
+          }
+        } else {
+          clasificacion = clasificacionIA
           origen = 'ia'
           clasificacionParaAprender = clasificacionIA
         }
-      } else {
-        clasificacion = clasificacionIA
-        origen = 'ia'
-        clasificacionParaAprender = clasificacionIA
       }
     }
 
@@ -431,7 +480,23 @@ export async function procesarCorreoGmail(
       tareaFinalizada: true,
     }
   } catch (error) {
-    const codigo = codigoError(error)
+    const temporalIa = error instanceof ErrorIA && [
+      'AI_LIMITE_TEMPORAL',
+      'AI_TIMEOUT',
+      'AI_PROVEEDOR_NO_DISPONIBLE',
+    ].includes(error.codigo)
+    const codigo = temporalIa && intentoIaActual >= 2
+      ? 'AI_REINTENTOS_AGOTADOS'
+      : codigoError(error)
+    if (error instanceof ErrorIA && error.codigo === 'AI_LIMITE_TEMPORAL') {
+      try {
+        await cliente.rpc('bloquear_proveedor_ia', {
+          p_hasta: new Date(Date.now() + (error.reintentoDespuesMs || 900_000)).toISOString(),
+        })
+      } catch {
+        // El error original sigue gobernando el reintento del correo.
+      }
+    }
     if (!finalizacionIncierta) {
       await cliente.from('correos_procesados').update({
         categoria: 'otro',
@@ -449,7 +514,7 @@ export async function procesarCorreoGmail(
       }).eq('id', correoId)
     }
 
-    if (errorReintentable(error)) {
+    if (codigo !== 'AI_REINTENTOS_AGOTADOS' && errorReintentable(error)) {
       const esperaMs = finalizacionIncierta
         ? RECLAMO_VENCE_MS
         : retrasoError(error)

@@ -314,14 +314,14 @@ describe('contrato estricto y validación defensiva', () => {
 })
 
 describe('errores, timeout y reintentos', () => {
-  it('reintenta un 429 y devuelve un error seguro al agotar intentos', async () => {
+  it('no multiplica llamadas cuando Groq devuelve 429', async () => {
     const fetchMock = vi.fn(async () => new RespuestaHttp('{}', {
       status: 429,
       headers: { 'retry-after': '0' },
     }))
     await expect(clasificarCorreo(correosFicticios.factura, dependencias(fetchMock)))
       .rejects.toMatchObject({ codigo: 'AI_LIMITE_TEMPORAL' })
-    expect(fetchMock).toHaveBeenCalledTimes(3)
+    expect(fetchMock).toHaveBeenCalledTimes(1)
   })
 
   it('no reintenta un 401', async () => {
@@ -341,26 +341,26 @@ describe('errores, timeout y reintentos', () => {
       const rechazo = expect(promesa).rejects.toMatchObject({ codigo: 'AI_TIMEOUT' })
       await vi.runAllTimersAsync()
       await rechazo
-      expect(fetchMock).toHaveBeenCalledTimes(3)
+      expect(fetchMock).toHaveBeenCalledTimes(1)
     } finally {
       vi.useRealTimers()
     }
   })
 
-  it('se recupera después de un 503', async () => {
+  it('delega un 503 al reintento diario sin repetir dentro de la llamada', async () => {
     const fetchMock = vi.fn()
       .mockResolvedValueOnce(new RespuestaHttp('{}', { status: 503 }))
       .mockResolvedValueOnce(respuestaExitosa())
     await expect(clasificarCorreo(correosFicticios.factura, dependencias(fetchMock)))
-      .resolves.toMatchObject({ relevante: true })
-    expect(fetchMock).toHaveBeenCalledTimes(2)
+      .rejects.toMatchObject({ codigo: 'AI_PROVEEDOR_NO_DISPONIBLE' })
+    expect(fetchMock).toHaveBeenCalledTimes(1)
   })
 
-  it('detiene los reintentos después del tercer 503', async () => {
+  it('detiene un 503 después del primer intento', async () => {
     const fetchMock = vi.fn(async () => new RespuestaHttp('{}', { status: 503 }))
     await expect(clasificarCorreo(correosFicticios.factura, dependencias(fetchMock)))
       .rejects.toMatchObject({ codigo: 'AI_PROVEEDOR_NO_DISPONIBLE' })
-    expect(fetchMock).toHaveBeenCalledTimes(3)
+    expect(fetchMock).toHaveBeenCalledTimes(1)
   })
 
   it('rechaza una respuesta vacía', async () => {

@@ -6,7 +6,7 @@ import { ErrorGoogle } from '../_shared/google.ts'
 import { errorSeguro, json, manejarPreflight, verificarCron } from '../_shared/http.ts'
 import { clienteServicio } from '../_shared/supabase.ts'
 
-const MAXIMO_INTENTOS = 5
+const MAXIMO_INTENTOS = 10
 
 type TareaCalendar = {
   msg_id: number

@@ -13,6 +13,8 @@
   Google pertenezcan al mismo propietario.
 - Las transiciones sensibles se exponen mediante RPC acotadas; el frontend no
   recibe permiso para modificar libremente columnas de seguridad.
+- Las RPC internas de autoagenda y colas son exclusivas de `service_role`; el
+  descarte autenticado valida `auth.uid()`, propiedad y estado.
 
 ## Tokens y secretos
 
@@ -40,6 +42,9 @@ Secretos requeridos:
 - `AI_MODEL`
 - `AI_API_URL`
 - `AI_TIMEOUT_MS`
+- `AI_MAX_SOLICITUDES_DIA`
+- `AI_MAX_TOKENS_DIA`
+- `AI_MAX_ATRASO_DIA`
 
 `SUPABASE_URL` y `SUPABASE_SERVICE_ROLE_KEY` son inyectados por Supabase en las funciones. La clave `service_role` nunca debe salir de ese entorno.
 
@@ -70,17 +75,29 @@ Secretos requeridos:
   referencia explícita, asunto normalizado y plantilla. Sólo se calcula cuando
   existe una referencia; un bloqueo transaccional impide duplicar el mismo
   compromiso reciente entre cuentas sin fusionar cuotas o turnos parecidos.
-- El orden de resolución es regla personal, patrón verificado, clasificación
-  local segura y finalmente IA.
+- El orden de resolución es marca exacta `(Publicidad)`, regla personal de
+  ignorar, patrón verificado, clasificación local segura y finalmente IA.
+- `(Publicidad)` se clasifica localmente como promoción sin vencimiento aunque
+  el contenido incluya fechas, pagos o turnos; no consume IA.
 - Los patrones se aprenden solo de remitentes autenticados, son selectores
   declarativos y vuelven a observación ante discrepancias o correcciones.
 - La validación de patrones es determinística: 15% al inicio, 5% en estabilidad,
   2% para patrones muy estables y 100% tras una discrepancia reciente.
-- La automatización requiere un plan habilitado y una regla personal
-  `Priorizar`; la confianza del modelo no reemplaza la confianza del remitente.
-- La creación automática se limita a veinte eventos diarios por usuario.
+- La automatización requiere plan habilitado, interruptor personal activo,
+  remitente autenticado, fecha no vencida, `requiere_revision=false`, confianza
+  suficiente y ausencia de una exclusión aprendida. No exige una regla
+  `Priorizar`.
+- La creación automática se limita a cinco eventos por ejecución y veinte
+  eventos internos activos por usuario y día. Los descartados o eliminados no
+  consumen esa guardia.
 - No existe cupo comercial de correos. Un fallo transitorio de Gmail, Google o
   IA conserva la tarea para reintento sin perder el cursor.
+- El presupuesto de IA se reserva bajo bloqueo transaccional en una tabla
+  privada. Sólo `service_role` ejecuta sus RPC; el navegador no puede consultar
+  ni modificar cuotas, bloqueos o contadores.
+- Una petición a Groq no se repite dentro del mismo intento. Los errores
+  temporales admiten como máximo un segundo intento al día siguiente y las
+  respuestas inválidas permanecen terminales.
 - Los logs técnicos incluyen solamente proveedor, modelo, duración, estado HTTP,
   intentos, código interno y conteos de tokens cuando existen.
 - Verificar las condiciones de tratamiento y retención del proveedor antes de habilitarlo.
@@ -116,6 +133,9 @@ La configuración operativa está en
   esa limpieza por retención no elimina eventos ya creados en Google Calendar.
 - Un descarte explícito sí oculta el evento interno y encola la eliminación
   idempotente del evento creado por AgenKin en Google Calendar.
+- La cola de Calendar distingue `crear` y `eliminar`; cada lectura y
+  finalización verifica la operación para impedir que un mensaje antiguo gane
+  una carrera. Un `404` al eliminar se considera éxito idempotente.
 - Las tareas completadas se eliminan a las 48 horas y las fallidas a los 30 días.
 - Los patrones personales no activos y sin cambios se eliminan a los 90 días.
 - Las métricas mensuales se conservan antes de compactar.

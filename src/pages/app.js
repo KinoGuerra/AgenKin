@@ -215,6 +215,7 @@ function errorCorreoTemporal(codigo) {
   return [
     'PROCESAMIENTO_EN_CURSO',
     'AI_LIMITE_TEMPORAL',
+    'AI_PRESUPUESTO_DIARIO',
     'AI_TIMEOUT',
     'AI_PROVEEDOR_NO_DISPONIBLE',
     'GOOGLE_TEMPORAL',
@@ -240,7 +241,13 @@ function crearDetalleCorreo(correo) {
     resumen.textContent = 'Se conserva únicamente el registro antirrepetición y la métrica histórica.'
   } else if (correo.error_procesamiento === 'AI_LIMITE_TEMPORAL') {
     titulo.textContent = 'Análisis pendiente'
-    resumen.textContent = 'El servicio de IA alcanzó su límite temporal. AgenKin lo reintentará automáticamente.'
+    resumen.textContent = 'El servicio de IA alcanzó su límite temporal. AgenKin hará un último intento al día siguiente.'
+  } else if (correo.error_procesamiento === 'AI_PRESUPUESTO_DIARIO') {
+    titulo.textContent = 'Análisis diferido'
+    resumen.textContent = 'La IA alcanzó su capacidad disponible. AgenKin retomará este correo automáticamente.'
+  } else if (correo.error_procesamiento === 'AI_REINTENTOS_AGOTADOS') {
+    titulo.textContent = 'Análisis incompleto'
+    resumen.textContent = 'No se pudo completar el análisis inteligente después de dos días.'
   } else if (correo.error_procesamiento === 'PROCESAMIENTO_EN_CURSO') {
     titulo.textContent = 'Procesando correo'
     resumen.textContent = 'AgenKin está analizando este mensaje.'

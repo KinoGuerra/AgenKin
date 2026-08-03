@@ -8,6 +8,10 @@ const migracion = leer(
 const limiteDiario = leer(
   'supabase/migrations/20260803170919_no_contar_eventos_eliminados_en_limite.sql',
 ).replace(/\s+/g, ' ').trim().toLowerCase()
+const recuperacion = leer(
+  'supabase/migrations/20260803182509_recuperar_gmail_controlar_ia_calendar.sql',
+).replace(/\s+/g, ' ').trim().toLowerCase()
+const programador = leer('supabase/functions/create-calendar-scheduled/index.ts')
 const sql = migracion.replace(/\s+/g, ' ').trim().toLowerCase()
 const procesador = leer('supabase/functions/_shared/process-email.ts')
 const calendar = leer('supabase/functions/_shared/calendar.ts')
@@ -93,6 +97,14 @@ describe('autoagendado confiable, aprendizaje y Calendar', () => {
     expect(calendar).toContain("estado: 'no_conectado'")
     expect(worker).toContain("'GOOGLE_TEMPORAL'")
     expect(worker).toContain('tarea.intentos + 1 < MAXIMO_INTENTOS')
+  })
+
+  it('reconstruye tareas Calendar faltantes sin reabrir errores permanentes', () => {
+    expect(recuperacion).toContain('create or replace function public.reconciliar_eventos_calendar_pendientes')
+    expect(recuperacion).toContain("t.ultimo_error = 'google_temporal'")
+    expect(recuperacion).toContain('t.intentos < 10')
+    expect(recuperacion).not.toContain("t.ultimo_error = 'google_token_vencido'")
+    expect(programador).toContain("'reconciliar_eventos_calendar_pendientes'")
   })
 
   it('persiste el dominio y muestra sólo hallazgos futuros accionables', () => {

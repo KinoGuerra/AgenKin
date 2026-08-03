@@ -2,9 +2,13 @@
 
 **Del correo a tu agenda, automáticamente.**
 
-AgenKin es un MVP SaaS que permite iniciar sesión con Google, conectar Gmail y Google Calendar por separado, analizar correos a pedido o periódicamente, detectar fechas con IA y crear eventos de forma manual o automática bajo reglas conservadoras.
+AgenKin es una beta SaaS que permite iniciar sesión con Google, conectar una o
+varias cuentas Gmail y un Google Calendar principal, analizar correos a pedido o
+periódicamente y guardar fechas accionables en una Agenda interna. La réplica a
+Calendar es opcional; la creación puede ser manual o automática con un umbral de
+confianza configurable y aprendizaje privado a partir de los descartes.
 
-## Estado del MVP
+## Estado de la beta
 
 El frontend, la base, RLS y las Edge Functions están implementados. La landing y los portales cargan sin credenciales de Gmail, Calendar o IA; esas acciones muestran “Configuración requerida” hasta completar los secretos externos. No se incluyen datos simulados ni cobros.
 
@@ -20,8 +24,8 @@ Supabase Auth ── PostgreSQL + RLS
               ├── administración transaccional
               ├── OAuth adicional de Google
               ├── descubrimiento incremental + cola durable
-              ├── lectura Gmail + clasificación IA
-              └── creación manual o automática en Calendar
+              ├── lectura Gmail + clasificación local/patrones/IA
+              └── Agenda interna + cola de creación/eliminación en Calendar
 ```
 
 Se eligió JavaScript multipágina sin React ni router: GitHub Pages sirve cada destino directamente, Vite comparte los módulos y las guardas, y no hay una capa de estado global que mantener.
@@ -42,12 +46,25 @@ Se eligió JavaScript multipágina sin React ni router: GitHub Pages sirve cada 
 │   ├── styles/           estilos responsive
 │   └── utils/            lógica pura validada
 ├── supabase/
-│   ├── migrations/       esquema, RLS y promoción manual
+│   ├── migrations/       esquema, RLS, RPC, colas y Cron
 │   └── functions/        funciones Deno y módulos compartidos
 ├── tests/                Vitest
 ├── docs/                 configuración y seguridad
 └── .github/workflows/    validación y GitHub Pages
 ```
+
+## Documentación
+
+- [Análisis de correos](docs/ANALISIS_CORREOS.md): resolución local, patrones,
+  IA, autoagenda y estados de Calendar.
+- [Configuración de Supabase](docs/CONFIGURACION_SUPABASE.md): migraciones,
+  funciones, Vault, Cron, colas y orden de despliegue.
+- [Configuración de Google](docs/CONFIGURACION_GOOGLE.md): OAuth, Gmail y
+  Calendar multicuenta.
+- [Configuración de Groq](docs/CONFIGURACION_GROQ.md): secretos, modelo,
+  pruebas, límites y privacidad.
+- [Seguridad](docs/SEGURIDAD.md): límites de confianza, RLS, retención y
+  respuesta a incidentes.
 
 ## Requisitos
 
@@ -102,6 +119,9 @@ Las migraciones crean:
 - vencimientos, Agenda interna, réplica opcional en Calendar, reglas y auditoría;
 - cola global con reparto entre cuentas, Gmail History incremental y retención automática;
 - patrones personales y globales declarativos para evitar llamadas innecesarias a IA;
+- exclusiones privadas por usuario, dominio y plantilla para recordar descartes;
+- reconciliación Gmail de siete días y presupuesto diario de IA para que el
+  atraso histórico no bloquee los mensajes nuevos;
 - índices, restricciones, triggers, funciones auxiliares y RLS.
 
 En Supabase → Authentication → URL Configuration:
@@ -160,7 +180,10 @@ supabase secrets set \
   AI_API_URL="https://api.groq.com/openai/v1/chat/completions" \
   AI_MODEL="openai/gpt-oss-20b" \
   AI_API_KEY="REEMPLAZAR_CON_CLAVE_GROQ" \
-  AI_TIMEOUT_MS="20000"
+  AI_TIMEOUT_MS="20000" \
+  AI_MAX_SOLICITUDES_DIA="300" \
+  AI_MAX_TOKENS_DIA="80000" \
+  AI_MAX_ATRASO_DIA="20"
 ```
 
 Las credenciales de Google se configuran por separado según
@@ -180,6 +203,11 @@ Los patrones se aprenden únicamente a partir de resultados autenticados y
 consistentes. Son selectores declarativos, no código ejecutable: permiten
 resolver estructuras conocidas sin IA y conservan una validación periódica para
 detectar cambios.
+
+La marca exacta `(Publicidad)` en el asunto tiene prioridad sobre patrones,
+clasificación local e IA. Se guarda como promoción sin vencimiento aunque el
+contenido incluya fechas, montos o llamados a reservar, pagar o solicitar un
+turno.
 
 Nunca agregar `AI_API_KEY` a `.env` del frontend ni crear una variable
 `VITE_AI_API_KEY`.
@@ -210,18 +238,28 @@ supabase functions deploy process-calendar-queue --no-verify-jwt
 `scan-gmail` descubre mensajes de todas las cuentas Gmail activas del usuario y
 los deja en una cola durable. Los workers globales procesan esa cola sin llamadas
 Edge anidadas, con concurrencia y presupuesto de tiempo limitados. Cada evento se
-guarda primero en Agenda; la cola de Calendar replica los pendientes en la única
-cuenta elegida sin bloquear ni duplicar el registro interno.
+guarda primero en Agenda; la cola de Calendar ejecuta operaciones idempotentes de
+creación o eliminación en la única cuenta elegida sin bloquear ni duplicar el
+registro interno.
 Cuando el usuario habilita la creación automática, los hallazgos futuros que
 superan su umbral y no requieren revisión se guardan sin una regla adicional de
 priorización. Un descarte registra una exclusión personal por dominio y plantilla;
-si el evento ya se había replicado, la misma cola solicita también su eliminación.
+los correos similares futuros siguen visibles y pueden agendarse manualmente, pero
+no vuelven a autoagendarse. Si el evento ya se había replicado, la misma cola
+solicita también su eliminación; un `404` de Google se considera éxito
+idempotente.
 
 ## Operación de la beta Free
 
 - La sincronización automática usa jobs globales; no se crea un cron por cuenta.
+- Existen cinco jobs: descubrimiento Gmail cada 5 minutos, procesamiento Gmail
+  cada minuto, autoagenda cada 2 minutos, Calendar cada minuto y mantenimiento
+  diario.
 - Gmail se consulta incrementalmente mediante History y la cola reparte capacidad
   entre cuentas para evitar que una bandeja monopolice el worker.
+- Una reconciliación diaria recorre en páginas de 100 los últimos siete días.
+  Las tareas incrementales y reparadas se procesan antes que la carga histórica;
+  redescubrir un ID no reactiva errores terminales.
 - La importación inicial revisa hasta 90 días; una vez establecido el cursor,
   los cambios nuevos se incorporan sin cupo comercial y el exceso queda en cola.
 - Los detalles vencidos se compactan; los registros mínimos antirrepetición se
@@ -232,6 +270,14 @@ si el evento ya se había replicado, la misma cola solicita también su eliminac
   superar 25 usuarios activos, sostener una cola mayor a 30 minutos, proyectar
   más de 350.000 invocaciones mensuales o necesitar backups y disponibilidad
   garantizada.
+- El autoagendado crea como máximo cinco eventos por ejecución y mantiene una
+  guardia de veinte eventos internos activos por usuario y día. Los eventos
+  descartados o eliminados no consumen esa guardia.
+- IA realiza una sola petición por intento, con un máximo predeterminado de 300
+  solicitudes, 80.000 tokens no cacheados y 20 correos históricos por día. Un
+  429 o timeout admite un segundo y último intento al día siguiente.
+- El programador de autoagenda reconstruye tareas Calendar ausentes para eventos
+  futuros que sigan pendientes y tengan un Calendar principal activo.
 
 ## Calidad
 
@@ -242,7 +288,7 @@ npm run build
 npm run preview
 ```
 
-Las pruebas cubren normalización de fechas, confianza, prueba de 15 días,
+Las más de cien pruebas cubren normalización de fechas, confianza, prueba de 15 días,
 multicuenta y límites por plan, reparto de cola para hasta 125 cuentas,
 proyección de invocaciones, retención, RLS, extracción HTML, patrones,
 Structured Outputs, timeout, reintentos, duplicados y formularios
@@ -264,7 +310,10 @@ La publicación automática se detiene ante cualquier fallo.
 
 ## Privacidad y eliminación
 
-Consultar [Seguridad](docs/SEGURIDAD.md) y la política incluida en `privacidad.html`. Durante el MVP la eliminación se solicita al propietario. Antes de producción debe completarse un canal de soporte y, si el volumen lo justifica, automatizar el borrado autenticado.
+Consultar [Seguridad](docs/SEGURIDAD.md) y la política incluida en
+`privacidad.html`. Durante la beta, la eliminación de cuenta se solicita al
+propietario. Antes de un lanzamiento comercial debe completarse un canal de
+soporte y, si el volumen lo justifica, automatizar el borrado autenticado.
 
 ## Limitaciones actuales
 
@@ -279,8 +328,9 @@ Consultar [Seguridad](docs/SEGURIDAD.md) y la política incluida en `privacidad.
 
 ## Próximos pasos
 
-1. Configurar y verificar Google OAuth.
-2. Elegir el proveedor/modelo de IA y revisar sus condiciones.
-3. Ejecutar migraciones y pruebas RLS con dos cuentas.
-4. Completar contacto y revisión legal.
-5. Agregar conciliación de eventos y eliminación autoservicio antes de escalar.
+1. Completar la verificación pública de Google para `gmail.readonly`.
+2. Revisar periódicamente límites, privacidad y retención del proveedor de IA.
+3. Ejecutar migraciones en seco, advisors y pruebas RLS con dos usuarios antes
+   de cada cambio de contratos.
+4. Completar contacto, eliminación autoservicio y revisión legal.
+5. Agregar conciliación avanzada de eventos antes de escalar.

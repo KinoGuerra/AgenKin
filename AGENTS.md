@@ -5,8 +5,9 @@
 AgenKin detecta fechas importantes en cuentas Gmail autorizadas, las guarda
 primero en su Agenda interna y, si el usuario lo habilita, replica eventos en
 un único Google Calendar. La beta admite varias cuentas Gmail por usuario,
-sin cupo comercial de mensajes, y creación automática solamente para
-hallazgos futuros, confiables y autorizados por reglas personales.
+sin cupo comercial de mensajes. La creación automática usa la autorización
+general de Configuración, el umbral elegido, una fecha no vencida, remitente
+autenticado y `requiere_revision=false`; no exige una regla `Priorizar`.
 
 ## Stack y rutas
 
@@ -41,6 +42,8 @@ Rutas principales:
   puede ser el Calendar principal de cada usuario.
 - Agenda es la fuente principal. Un fallo o desconexión de Google no puede
   eliminar ni impedir el evento interno.
+- Un descarte se recuerda de forma privada por usuario, dominio y huella de
+  plantilla. No afecta a otros usuarios ni al agendado manual.
 - El modo automático/manual se aplica a todas las Gmail activas del usuario.
 
 ## Restricciones de la beta Free
@@ -54,6 +57,14 @@ Rutas principales:
   de 120 segundos.
 - El worker procesa como máximo 20 tareas, concurrencia 4, y no inicia otro
   grupo cuando quedan menos de 65 segundos.
+- Las tareas se priorizan `incremental`/`reconciliacion` antes que `historica`.
+  Los errores terminales no se reabren por redescubrir el mismo Gmail ID.
+- Gmail reconcilia diariamente los últimos 7 días, 100 IDs por página, sin
+  reiniciar la importación inicial ni reemplazar el cursor History.
+- El autoagendado crea como máximo 5 eventos por ejecución y 20 eventos internos
+  activos por usuario y día; los eliminados no consumen la guardia.
+- El worker de Calendar procesa hasta 3 tareas por ejecución y admite operaciones
+  idempotentes `crear` y `eliminar`.
 - No encadenar Edge Functions por correo o evento; reutilizar módulos internos.
 - La cola conserva trabajo pendiente cuando falta capacidad.
 - Alertar desde 350 MB y detener solo cargas históricas desde 425 MB.
@@ -87,6 +98,8 @@ Rutas principales:
 - No asignar automáticamente `superadministrador`.
 - Las transiciones sensibles, como descartar un vencimiento, deben usar una RPC
   con propiedad y estado validados, no un `UPDATE` abierto desde el navegador.
+- Las colas de Calendar deben versionar la operación para que una creación vieja
+  no pueda revertir un descarte o una eliminación más reciente.
 - Mantener atómicas e idempotentes las escrituras de correo, vencimiento y
   métricas. Registrar evidencias de patrones solo después de esa confirmación.
 
@@ -95,12 +108,22 @@ Rutas principales:
 - Gmail se usa únicamente con `gmail.readonly`.
 - No almacenar cuerpos completos ni adjuntos.
 - Extraer localmente fechas, importes, entidades y acciones.
-- Enviar a IA solo líneas relevantes, sanitizadas y limitadas a 3.000 caracteres.
-- Resolver en orden: regla personal, patrón verificado y finalmente IA.
+- Enviar a IA solo líneas relevantes, sanitizadas y limitadas a 1.200 caracteres;
+  cada contexto candidato se limita a 240.
+- Resolver en orden: marca exacta `(Publicidad)`, regla personal de ignorar,
+  patrón verificado, clasificación local segura y finalmente IA.
+- `(Publicidad)` siempre es promoción sin vencimiento, aunque el contenido
+  incluya fechas, montos, pagos o turnos.
 - Aprender patrones únicamente de remitentes autenticados; los patrones son
   selectores declarativos, nunca XPath, expresiones o código ejecutable.
 - Una discrepancia o corrección devuelve el patrón a observación.
 - Las limitaciones de Groq difieren solo los correos que necesitan IA.
+- Cada intento realiza una sola llamada a Groq. El presupuesto global diario es
+  300 solicitudes, 80.000 tokens no cacheados y 20 solicitudes históricas; un
+  error temporal admite un segundo y último intento al día siguiente.
+- La creación automática no depende de una regla `Priorizar`; sí exige el
+  interruptor personal, confianza suficiente, remitente autenticado, fecha no
+  vencida y ausencia de una exclusión aprendida.
 - Nunca incluir cuerpos, prompts, respuestas, tokens ni PII en logs.
 
 ## Retención
@@ -109,6 +132,8 @@ Rutas principales:
 - Sin vencimiento, ignorado o irrelevante: compactar a los 30 días.
 - Tombstone antirrepetición: conservar hasta 120 días.
 - Agenda y vencimientos: eliminar 15 días después de vencer, sin borrar Google.
+- Un descarte explícito de un evento autoagendado sí lo oculta en Agenda y
+  encola su eliminación en Google; `404` cuenta como éxito idempotente.
 - Tareas completadas: 48 horas; tareas fallidas: 30 días.
 - Patrones personales no activos y sin cambios: eliminar a los 90 días.
 - Conservar métricas mensuales antes de compactar.
@@ -136,6 +161,8 @@ También revisar:
 - callbacks simultáneos, reconexión y cupos de cuenta;
 - dos cuentas con el mismo Gmail message ID;
 - consola, enlaces, base path, móvil, claro/oscuro y teclado;
+- estados de Calendar (`Sólo en Agenda`, `Google pendiente`, `Sincronizado` y
+  `Error de Google`) y carreras entre creación y descarte;
 - ausencia de secretos y tamaño de tablas/índices.
 
 ## Git y publicación

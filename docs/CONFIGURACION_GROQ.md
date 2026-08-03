@@ -5,6 +5,10 @@ fechas accionables. La llamada se realiza desde el worker global de Gmail
 mediante `supabase/functions/_shared/ai.ts`; `scan-gmail` solo descubre y encola.
 El navegador nunca se conecta directamente con Groq.
 
+Groq es el último recurso de clasificación. La marca exacta `(Publicidad)`, una
+regla personal de ignorar, un patrón verificado o una clasificación local segura
+resuelven el correo antes de cualquier llamada al proveedor.
+
 ## 1. Crear el proyecto y la clave
 
 1. Iniciar sesión en [GroqCloud](https://console.groq.com/).
@@ -35,7 +39,10 @@ supabase secrets set \
   AI_API_URL="https://api.groq.com/openai/v1/chat/completions" \
   AI_MODEL="openai/gpt-oss-20b" \
   AI_API_KEY="REEMPLAZAR_CON_CLAVE_GROQ" \
-  AI_TIMEOUT_MS="20000"
+  AI_TIMEOUT_MS="20000" \
+  AI_MAX_SOLICITUDES_DIA="300" \
+  AI_MAX_TOKENS_DIA="80000" \
+  AI_MAX_ATRASO_DIA="20"
 ```
 
 Los secretos alojados están disponibles para las Edge Functions sin volver a
@@ -49,6 +56,8 @@ Configuración predeterminada:
 - modelo: `openai/gpt-oss-20b`;
 - timeout: 20 segundos;
 - salida máxima: 300 tokens mediante `max_completion_tokens`;
+- presupuesto diario: 300 solicitudes, 80.000 tokens no cacheados y 20
+  solicitudes históricas;
 - razonamiento bajo, sin contenido de razonamiento y temperatura cero.
 
 El adaptador conserva nombres genéricos (`AI_PROVIDER`, `AI_API_URL`,
@@ -72,6 +81,10 @@ requiere el secreto de Cron y usa Groq solamente cuando una regla, un patrón
 verificado o la clasificación local segura no alcanzan. No existe cupo
 comercial de mensajes.
 
+Si se modifica `supabase/functions/_shared/ai.ts`, `patterns.ts` o
+`process-email.ts`, desplegar al menos `process-gmail-queue`, que es el worker
+que empaqueta y ejecuta esos módulos.
+
 ## 5. Prueba local sin Gmail
 
 No hace falta crear una función pública de prueba. Usar un archivo local de
@@ -79,7 +92,7 @@ variables ignorado por Git, por ejemplo `.env.groq.local`, y ejecutar:
 
 ```bash
 npx --yes deno run \
-  --allow-env=AI_PROVIDER,AI_API_URL,AI_MODEL,AI_API_KEY,AI_TIMEOUT_MS \
+  --allow-env=AI_PROVIDER,AI_API_URL,AI_MODEL,AI_API_KEY,AI_TIMEOUT_MS,AI_MAX_SOLICITUDES_DIA,AI_MAX_TOKENS_DIA,AI_MAX_ATRASO_DIA \
   --allow-net=api.groq.com \
   --env-file=.env.groq.local \
   scripts/probar-clasificacion-ia.ts
@@ -93,6 +106,9 @@ AI_API_URL=https://api.groq.com/openai/v1/chat/completions
 AI_MODEL=openai/gpt-oss-20b
 AI_API_KEY=REEMPLAZAR_CON_CLAVE_GROQ
 AI_TIMEOUT_MS=20000
+AI_MAX_SOLICITUDES_DIA=300
+AI_MAX_TOKENS_DIA=80000
+AI_MAX_ATRASO_DIA=20
 ```
 
 El script envía solamente un correo ficticio y muestra su clasificación. No
@@ -106,13 +122,20 @@ simulan `fetch` y nunca llaman a Groq.
 - **403**: el proyecto o la clave no tiene permiso para el modelo solicitado.
   Revisar permisos del modelo y del proyecto.
 - **429**: se alcanzó temporalmente un límite. AgenKin respeta `Retry-After` y
-  los headers de límite; difiere la tarea sin bloquear los patrones locales.
-- **5xx**: indisponibilidad transitoria del proveedor. AgenKin reintenta 500,
-  502, 503 y 504 con backoff exponencial y jitter.
+  los headers de límite, abre un cortacircuito compartido y no repite llamadas
+  dentro del mismo intento.
+- **5xx**: indisponibilidad transitoria del proveedor. La llamada no se repite
+  dentro del worker; el correo puede recibir un segundo y último intento al día
+  siguiente.
 - **Timeout**: revisar conectividad, estado del proveedor y `AI_TIMEOUT_MS`.
 
 Los límites dependen del proyecto y pueden cambiar. Consultar el uso y los
 límites vigentes en la consola de Groq; no asumir que un plan es ilimitado.
+Los tres límites `AI_MAX_*` son defensas propias de AgenKin y pueden reducirse
+sin cambiar la cuota contratada. Al agotarse, las tareas se difieren sin invocar
+Groq; patrones y clasificación local continúan funcionando.
+Supervisar los conteos de tareas pendientes y `AI_LIMITE_TEMPORAL` sin copiar
+asuntos, remitentes ni cuerpos a los logs de diagnóstico.
 
 ## 7. Rotar o revocar una clave
 

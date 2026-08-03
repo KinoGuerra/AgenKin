@@ -25,9 +25,23 @@ Calendar no consume un espacio Gmail. Todas las cuentas fuente escriben primero
 en una única Agenda interna; el único Calendar principal replica esos eventos.
 Una desconexión o error de Google no elimina el compromiso interno.
 
+Gmail History es el flujo normal. Como defensa ante cursores vencidos o huecos,
+AgenKin recorre una vez por día los últimos siete días con un cursor separado y
+100 IDs por página. La reparación es idempotente y nunca reinicia la carga de 90
+días.
+
+La cola de Calendar admite `crear` y `eliminar`. Si el usuario descarta un
+evento autoagendado, AgenKin lo oculta primero en su Agenda y solicita después
+`events.delete` sobre el evento que creó en el calendario secundario. Google
+`404` se considera éxito idempotente; los errores temporales quedan para
+reintento. El alcance `calendar.app.created` no permite administrar eventos
+ajenos a la aplicación.
+
 Cambiar el Calendar principal no mueve eventos ya creados: los eventos futuros
 y pendientes se envían a la nueva cuenta y Agenda sigue siendo la fuente
 interna.
+El programador reconstruye tareas faltantes de eventos futuros sin
+`google_event_id` cuando vuelve a existir un Calendar principal activo.
 
 `gmail.readonly` es un permiso restringido. Una publicación abierta puede requerir verificación de Google y, si los datos restringidos pasan por un servidor, una evaluación de seguridad. Revisar los requisitos oficiales antes de salir de Testing.
 
@@ -82,6 +96,10 @@ Edge Functions, independiente del inicio de sesión y separada por servicio.
 5. Desactivar la cuenta usada por Calendar y confirmar que primero exija elegir
    otra o desactivar Calendar.
 6. Probar callbacks simultáneos cuando quede un solo espacio disponible.
+7. Crear un evento con Calendar activo y comprobar la secuencia `Google
+   pendiente` → `Sincronizado con Google`.
+8. Descartar ese evento y confirmar que desaparezca de Agenda y del calendario
+   secundario sin afectar eventos creados por el usuario.
 
 “Desactivar” detiene el servicio dentro de AgenKin. “Revocar acceso” solicita a
 Google la revocación completa de los permisos de esa cuenta.

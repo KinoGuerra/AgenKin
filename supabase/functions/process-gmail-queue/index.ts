@@ -78,8 +78,6 @@ Deno.serve(async (request) => {
       diferidas: 0,
     }
     const conexionesActualizadas = new Set<string>()
-    let iaTemporalmenteNoDisponible = false
-
     for (let indice = 0; indice < lista.length; indice += CONCURRENCIA) {
       const restante = PRESUPUESTO_MS - (Date.now() - inicio)
       if (indice > 0 && restante < MINIMO_PARA_OTRO_GRUPO_MS) {
@@ -102,20 +100,20 @@ Deno.serve(async (request) => {
           if (!conexion) {
             codigoError = 'CONEXION_GMAIL_INVALIDA'
           } else {
-            const resultado = await procesarCorreoGmail(cliente, tarea, conexion, {
-              iaTemporalmenteNoDisponible,
-            })
+            const resultado = await procesarCorreoGmail(cliente, tarea, conexion)
             codigoError = resultado.codigoError
-            if (resultado.codigoError === 'AI_LIMITE_TEMPORAL') {
-              iaTemporalmenteNoDisponible = true
-            }
             retrasoSegundos = resultado.retrasoSegundos
             tareaFinalizada = resultado.tareaFinalizada
-            reintentar = resultado.estado === 'reintentar'
-              && (
-                resultado.codigoError === 'AI_LIMITE_TEMPORAL'
-                || tarea.intentos + 1 < MAXIMO_INTENTOS
-              )
+            const errorIaTemporal = [
+              'AI_LIMITE_TEMPORAL',
+              'AI_TIMEOUT',
+              'AI_PROVEEDOR_NO_DISPONIBLE',
+            ].includes(resultado.codigoError || '')
+            reintentar = resultado.estado === 'reintentar' && (
+              resultado.codigoError === 'AI_PRESUPUESTO_DIARIO'
+              || (errorIaTemporal && tarea.intentos_ia + 1 < 2)
+              || (!errorIaTemporal && tarea.intentos + 1 < MAXIMO_INTENTOS)
+            )
             if (resultado.estado === 'procesado') resumen.procesadas += 1
             if (resultado.estado === 'ignorado') resumen.ignoradas += 1
             if (resultado.estado === 'omitido') resumen.omitidas += 1

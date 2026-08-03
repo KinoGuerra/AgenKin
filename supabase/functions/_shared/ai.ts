@@ -3,7 +3,7 @@ const URL_PREDETERMINADA = 'https://api.groq.com/openai/v1/chat/completions'
 const MODELO_PREDETERMINADO = 'openai/gpt-oss-20b'
 const ZONA_HORARIA = 'America/Argentina/Cordoba'
 const TIMEOUT_PREDETERMINADO_MS = 20_000
-const MAXIMO_INTENTOS = 3
+const MAXIMO_INTENTOS = 1
 export const MAXIMO_TOKENS_RESPUESTA = 300
 const ESTADOS_REINTENTABLES = new Set([429, 500, 502, 503, 504])
 
@@ -146,6 +146,8 @@ export type CodigoErrorIA =
   | 'AI_CONFIGURACION_INCOMPLETA'
   | 'AI_TIMEOUT'
   | 'AI_LIMITE_TEMPORAL'
+  | 'AI_PRESUPUESTO_DIARIO'
+  | 'AI_REINTENTOS_AGOTADOS'
   | 'AI_RESPUESTA_INVALIDA'
   | 'AI_PROVEEDOR_NO_DISPONIBLE'
   | 'AI_AUTENTICACION_INVALIDA'
@@ -591,6 +593,12 @@ export function mensajeSeguroIA(error: unknown) {
   }
   if (error.codigo === 'AI_LIMITE_TEMPORAL') {
     return 'El servicio de análisis está temporalmente ocupado. Intentá nuevamente más tarde.'
+  }
+  if (error.codigo === 'AI_PRESUPUESTO_DIARIO') {
+    return 'El análisis inteligente alcanzó la capacidad disponible. El correo se retomará automáticamente.'
+  }
+  if (error.codigo === 'AI_REINTENTOS_AGOTADOS') {
+    return 'No pudimos completar el análisis inteligente después de dos días.'
   }
   if (error.codigo === 'AI_TIMEOUT' || error.codigo === 'AI_PROVEEDOR_NO_DISPONIBLE') {
     return 'El servicio de análisis no respondió para este correo. Intentá nuevamente más tarde.'
