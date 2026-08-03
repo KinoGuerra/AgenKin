@@ -50,13 +50,14 @@ Secretos requeridos:
 - Groq se invoca desde el worker global mediante el módulo compartido de
   procesamiento; nunca desde `scan-gmail` ni desde el navegador.
 - La clave de Groq vive únicamente en Supabase Secrets y nunca usa prefijo `VITE_`.
-- Se envían únicamente asunto, remitente, fecha y texto plano sanitizado.
+- Se envían únicamente asunto, dominio del remitente, fecha, candidatos
+  estructurados y un fragmento sanitizado.
 - Antes del envío se redactan direcciones de correo, secuencias numéricas largas,
   URLs y credenciales reconocibles.
 - No se envían tokens OAuth, identificadores internos, roles, datos de
   suscripción, adjuntos, HTML completo ni historial innecesario.
-- El asunto se limita a 500 caracteres, el remitente a 300 y las líneas
-  relevantes a 3.000.
+- El asunto se limita a 500 caracteres, el fragmento a 1.200 y cada contexto de
+  candidato a 240.
 - El cuerpo plano se limita antes de normalizarse, se sanitiza y no se persiste.
 - La base conserva identificadores, remitente, asunto, categoría y resultado
   estructurado solamente durante el período de retención correspondiente.
@@ -65,10 +66,16 @@ Secretos requeridos:
 - Los correos se deduplican por
   `conexion_google_id + gmail_message_id`; el mismo ID en dos cuentas distintas
   no colisiona. Cada correo puede generar como máximo un vencimiento.
-- El orden de resolución es regla personal, patrón verificado y finalmente IA.
+- Una huella funcional adicional combina tipo, entidad, fecha, hora, monto,
+  referencia explícita, asunto normalizado y plantilla. Sólo se calcula cuando
+  existe una referencia; un bloqueo transaccional impide duplicar el mismo
+  compromiso reciente entre cuentas sin fusionar cuotas o turnos parecidos.
+- El orden de resolución es regla personal, patrón verificado, clasificación
+  local segura y finalmente IA.
 - Los patrones se aprenden solo de remitentes autenticados, son selectores
   declarativos y vuelven a observación ante discrepancias o correcciones.
-- Uno de cada veinte usos de un patrón se contrasta con IA.
+- La validación de patrones es determinística: 15% al inicio, 5% en estabilidad,
+  2% para patrones muy estables y 100% tras una discrepancia reciente.
 - La automatización requiere un plan habilitado y una regla personal
   `Priorizar`; la confianza del modelo no reemplaza la confianza del remitente.
 - La creación automática se limita a veinte eventos diarios por usuario.

@@ -21,6 +21,10 @@ cuentas Gmail diferentes hasta el límite de su plan. Calendar debe autorizarse
 con la misma identidad Google de la cuenta Gmail que el usuario seleccionó como
 Calendar principal.
 
+Calendar no consume un espacio Gmail. Todas las cuentas fuente escriben primero
+en una única Agenda interna; el único Calendar principal replica esos eventos.
+Una desconexión o error de Google no elimina el compromiso interno.
+
 Cambiar el Calendar principal no mueve eventos ya creados: los eventos futuros
 y pendientes se envían a la nueva cuenta y Agenda sigue siendo la fuente
 interna.

@@ -229,6 +229,9 @@ function crearDetalleCorreo(correo) {
     resumen.textContent = errorCorreoTemporal(correo.error_procesamiento)
       ? 'AgenKin lo reintentará automáticamente.'
       : 'No se pudo completar el análisis.'
+  } else if (correo.duplicado_funcional) {
+    titulo.textContent = 'Compromiso duplicado'
+    resumen.textContent = 'Ya estaba guardado en tu Agenda desde otra cuenta o correo.'
   } else if (vencimiento) {
     titulo.textContent = vencimiento.titulo || etiquetaCategoria(correo.categoria)
     resumen.textContent = vencimiento.descripcion || 'Se detectó una fecha accionable.'
@@ -408,18 +411,30 @@ function renderCuentasGoogle(cuentas = [], calendar = {}) {
     const email = document.createElement('strong')
     email.textContent = cuenta.email || 'Cuenta Google'
     const detalle = document.createElement('small')
-    detalle.textContent = `Última lectura: ${formatearFechaHora(cuenta.ultima_lectura_en)}`
+    const pendientes = Number(cuenta.tareas_pendientes || 0)
+    const errores = Number(cuenta.tareas_error || 0)
+    detalle.textContent = cuenta.error_ultima_sincronizacion
+      ? `Error reciente: ${cuenta.error_ultima_sincronizacion} · ${pendientes} pendientes`
+      : `Última lectura: ${formatearFechaHora(cuenta.ultima_lectura_en)} · ${pendientes} pendientes · ${errores} con error`
     textos.append(email, detalle)
     identidad.append(icono, textos)
 
     const estado = document.createElement('span')
     estado.className = 'cuenta-google__estado'
     estado.dataset.estado = cuenta.conectado ? 'conectado' : 'desconectado'
-    estado.textContent = cuenta.conectado ? 'Gmail conectado' : 'Desconectado'
+    estado.textContent = cuenta.estado === 'token_vencido'
+      ? 'Token vencido'
+      : cuenta.conectado ? 'Gmail conectado' : 'Desconectado'
 
     const acciones = document.createElement('div')
     acciones.className = 'cuenta-google__acciones'
-    if (calendar.conexion_id === cuenta.id) {
+    if (!cuenta.conectado) {
+      acciones.append(crearBotonCuenta(
+        'Reconectar Gmail',
+        'boton boton--mini boton--secundario',
+        { reconnectGmail: 'true' },
+      ))
+    } else if (calendar.conexion_id === cuenta.id) {
       acciones.append(
         crearBotonCuenta(
           'Desactivar Calendar',
@@ -436,18 +451,18 @@ function renderCuentasGoogle(cuentas = [], calendar = {}) {
         ),
       )
     }
-    acciones.append(
-      crearBotonCuenta(
+    if (cuenta.conectado) {
+      acciones.append(crearBotonCuenta(
         'Desactivar Gmail',
         'boton boton--mini boton--texto',
         { disconnectGoogle: 'gmail', conexionId: cuenta.id },
-      ),
-      crearBotonCuenta(
-        'Revocar acceso',
-        'boton boton--mini boton--peligro',
-        { revokeGoogle: cuenta.id },
-      ),
-    )
+      ))
+    }
+    acciones.append(crearBotonCuenta(
+      'Revocar acceso',
+      'boton boton--mini boton--peligro',
+      { revokeGoogle: cuenta.id },
+    ))
     tarjeta.append(identidad, estado, acciones)
     contenedor.append(tarjeta)
   })
@@ -504,8 +519,9 @@ function renderPortal(datos) {
   const calendar = conexion.calendar || { conectado: false }
   const cuentas = Array.isArray(gmail.cuentas) ? gmail.cuentas : []
   const gmailConectado = Number(gmail.usadas || 0) > 0
+  const espaciosDisponibles = Math.max(0, Number(gmail.limite || 1) - Number(gmail.usadas || 0))
   const estadoGmail = gmailConectado
-    ? `${gmail.usadas} de ${gmail.limite} conectadas`
+    ? `${gmail.usadas} de ${gmail.limite} conectadas · ${espaciosDisponibles} disponible${espaciosDisponibles === 1 ? '' : 's'}`
     : 'Desconectado'
   const estadoCalendar = calendar.conectado ? 'Conectado' : 'Desconectado'
   const indicadores = [
@@ -527,7 +543,7 @@ function renderPortal(datos) {
   definirTexto(
     '[data-servicio-calendar-detalle]',
     calendar.conectado
-      ? `${calendar.email || 'Cuenta de Google'} · última sincronización ${formatearFechaHora(calendar.ultima_sincronizacion_en)}`
+      ? `${calendar.email || 'Cuenta de Google'} · ${Number(calendar.eventos_pendientes || 0)} pendientes · ${Number(calendar.eventos_error || 0)} con error · última sincronización ${formatearFechaHora(calendar.ultima_sincronizacion_en)}`
       : 'Sin cuenta asociada',
   )
   definirTexto('[data-header-agenda]', formatearFechaHora(conexion.agenda_ultima_actualizacion_en))
@@ -535,7 +551,10 @@ function renderPortal(datos) {
   if (botonAgregar) {
     const completo = Number(gmail.usadas || 0) >= Number(gmail.limite || 1)
     botonAgregar.disabled = completo
-    botonAgregar.textContent = completo ? 'Cupo de cuentas completo' : 'Agregar cuenta Gmail'
+    botonAgregar.textContent = completo ? 'Límite de cuentas Gmail alcanzado' : 'Agregar cuenta Gmail'
+    botonAgregar.title = completo
+      ? 'Para conectar otra cuenta, desconectá una existente o cambiá de plan.'
+      : `${espaciosDisponibles} espacio${espaciosDisponibles === 1 ? '' : 's'} disponible${espaciosDisponibles === 1 ? '' : 's'}`
   }
   renderCuentasGoogle(cuentas, calendar)
   if (formularioAutomatizacion) {
@@ -575,7 +594,11 @@ function renderPortal(datos) {
   const limite = Number(suscripcion.limite_cuentas_gmail || 0)
   const uso = document.querySelector('[data-uso]')
   if (uso) uso.value = limite ? Math.min(100, (usados / limite) * 100) : 0
-  definirTexto('[data-uso-texto]', `${usados} de ${limite || '—'} cuentas Gmail conectadas`)
+  const disponibles = Math.max(0, limite - usados)
+  definirTexto(
+    '[data-uso-texto]',
+    `${usados} de ${limite || '—'} cuentas Gmail conectadas · ${disponibles} espacio${disponibles === 1 ? '' : 's'} disponible${disponibles === 1 ? '' : 's'}`,
+  )
   const botonPlan = document.querySelector('[data-request-plan]')
   if (botonPlan) {
     botonPlan.classList.toggle('oculto', Boolean(suscripcion.es_interno))
@@ -812,6 +835,8 @@ document.querySelector('[data-connect-gmail]')?.addEventListener('click', (event
   conectarServicio('gmail', evento.currentTarget)
 })
 document.querySelector('[data-gmail-cuentas]')?.addEventListener('click', async (evento) => {
+  const reconectar = evento.target.closest('[data-reconnect-gmail]')
+  if (reconectar) return conectarServicio('gmail', reconectar)
   const usarCalendar = evento.target.closest('[data-use-calendar]')
   if (usarCalendar) {
     return conectarServicio('calendar', usarCalendar, usarCalendar.dataset.useCalendar)

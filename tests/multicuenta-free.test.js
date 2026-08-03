@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 
 const leer = (ruta) => readFileSync(new URL(`../${ruta}`, import.meta.url), 'utf8')
 const migracion = leer('supabase/migrations/20260730003317_sincronizacion_multicuenta_free.sql')
+const optimizacion = leer('supabase/migrations/20260803053830_optimizar_analisis_y_deduplicacion.sql')
 const worker = leer('supabase/functions/process-gmail-queue/index.ts')
 const descubridor = leer('supabase/functions/sync-gmail-scheduled/index.ts')
 const sincronizador = leer('supabase/functions/_shared/gmail-sync.ts')
@@ -19,6 +20,24 @@ describe('sincronización multicuenta para Supabase Free', () => {
     expect(migracion).toContain('correos_conexion_mensaje_uidx')
     expect(worker).not.toContain('reservar_cupo_correo')
     expect(worker).not.toContain('/functions/v1/scan-gmail')
+    expect(optimizacion).toContain('limite_cuentas_gmail in (1, 2, 3, 5)')
+  })
+
+  it('Calendar queda fuera del cupo y el callback serializa el último espacio', () => {
+    const bloqueGmail = migracion.slice(
+      migracion.indexOf("if p_servicio = 'gmail' then"),
+      migracion.indexOf('else', migracion.indexOf("if p_servicio = 'gmail' then")),
+    )
+    expect(bloqueGmail).toContain('usadas >= limite')
+    expect(migracion).toContain('for update of s')
+    expect(migracion).toContain("p_servicio not in ('gmail', 'calendar')")
+  })
+
+  it('deduplica compromisos recientes bajo bloqueo transaccional', () => {
+    expect(optimizacion).toContain('pg_advisory_xact_lock')
+    expect(optimizacion).toContain("interval '120 days'")
+    expect(optimizacion).toContain('duplicado_funcional = v_existente is not null')
+    expect(optimizacion).toContain('return null')
   })
 
   it('mantiene una sola cuenta Calendar activa', () => {

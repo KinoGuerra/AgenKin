@@ -9,8 +9,13 @@ import {
   analizarLocalmente,
   aplicarPatron,
   clasificacionesCoinciden,
+  debeValidarEnSombra,
+  evaluarPreviamente,
   extraerFechas,
+  extraerHoras,
   extraerMontos,
+  huellaFuncional,
+  momentoVigente,
   remitenteAutenticado,
 } from '../supabase/functions/_shared/patterns.ts'
 
@@ -52,7 +57,7 @@ describe('extracción local y patrones de Gmail', () => {
 
     const analisis = await analizarLocalmente(texto, 'EPEC <facturas@epec.com.ar>')
     expect(analisis.acciones).toContain('pagar')
-    expect(analisis.textoRelevante.length).toBeLessThanOrEqual(3000)
+    expect(analisis.textoRelevante.length).toBeLessThanOrEqual(1200)
     expect(analisis.huellaPlantilla).toMatch(/^[a-f0-9]{64}$/)
   })
 
@@ -110,5 +115,83 @@ describe('extracción local y patrones de Gmail', () => {
       { ...base, monto: 100000 },
       { ...base, monto: null },
     )).toBe(false)
+  })
+
+  it('resuelve fechas relativas y sin año usando la fecha real del correo', () => {
+    const referencia = '2026-12-31T23:30:00-03:00'
+    const valores = extraerFechas(
+      'Hoy 31/12. Mañana 01/01. Pasado mañana 2 de enero. Dentro de 5 días. Próximo jueves.',
+      referencia,
+    ).map((fecha) => fecha.valor)
+    expect(valores).toContain('2026-12-31')
+    expect(valores).toContain('2027-01-01')
+    expect(valores).toContain('2027-01-02')
+    expect(valores).toContain('2027-01-05')
+    expect(valores).toContain('2027-01-07')
+  })
+
+  it('resuelve próximo lunes y este viernes de forma futura y determinística', () => {
+    expect(extraerFechas('Próximo lunes', '2026-08-03T10:00:00-03:00')[0].valor)
+      .toBe('2026-08-10')
+    expect(extraerFechas('Este viernes', '2026-08-08T10:00:00-03:00')[0].valor)
+      .toBe('2026-08-14')
+  })
+
+  it('conserva el 29 de febrero y extrae hora', () => {
+    expect(extraerFechas('Turno el 29/02', '2028-01-10T10:00:00-03:00')[0].valor)
+      .toBe('2028-02-29')
+    expect(extraerHoras('Turno a las 15:30 hs')[0].valor).toBe('15:30')
+  })
+
+  it('clasifica localmente sólo un compromiso claro de remitente autenticado', async () => {
+    const analisis = await analizarLocalmente(
+      'Tu factura vence el 10/08/2026. Total $25.780,50.',
+      'EPEC <facturas@epec.com.ar>',
+      '2026-08-03T10:00:00-03:00',
+    )
+    const evaluacion = evaluarPreviamente(analisis, 'Tu factura', true, false, new Date('2026-08-03T13:00:00Z'))
+    expect(evaluacion).toMatchObject({ requiereIa: false, motivo: 'compromiso_local_seguro' })
+    expect(evaluacion.clasificacionLocal).toMatchObject({ tipo: 'pago', fecha: '2026-08-10', monto: 25780.5 })
+    expect(evaluarPreviamente(analisis, 'Tu factura', false).requiereIa).toBe(true)
+  })
+
+  it('sólo descarta promociones inequívocas con List-Unsubscribe', async () => {
+    const promocion = await analizarLocalmente('Conocé nuestros productos.', 'Novedades <news@example.test>')
+    expect(evaluarPreviamente(promocion, 'Ofertas exclusivas de esta semana', true, true))
+      .toMatchObject({ requiereIa: false, motivo: 'promocion_inequivoca' })
+    expect(evaluarPreviamente(promocion, 'Recordatorio de tu cita', true, true).requiereIa).toBe(true)
+  })
+
+  it('distingue una hora ya pasada en el día de hoy', () => {
+    expect(momentoVigente('2026-08-03', '10:00', new Date('2026-08-03T21:00:00Z'))).toBe(false)
+    expect(momentoVigente('2026-08-03', null, new Date('2026-08-03T21:00:00Z'))).toBe(true)
+  })
+
+  it('resuelve localmente un histórico claro sin gastar IA', async () => {
+    const analisis = await analizarLocalmente(
+      'La factura venció el 01/07/2026. Total $100.',
+      'Epec <avisos@epec.com.ar>',
+      '2026-07-01T10:00:00-03:00',
+    )
+    expect(evaluarPreviamente(analisis, 'Factura vencida', true, false, new Date('2026-08-03T12:00:00Z')))
+      .toMatchObject({ requiereIa: false, motivo: 'compromiso_historico_claro' })
+  })
+
+  it('usa validación de sombra adaptativa y huellas que no fusionan referencias distintas', async () => {
+    expect(await debeValidarEnSombra('mensaje-fijo', {
+      coincidencias: 20,
+      discrepancias: 1,
+      ultima_discrepancia_en: new Date().toISOString(),
+    })).toBe(true)
+    const analisis = await analizarLocalmente('Factura A-100 vence 10/08/2026.', 'Epec <x@epec.com.ar>')
+    const base = aplicarPatron({
+      id: 'p', alcance: 'personal', selector_fecha: 0, selector_monto: null,
+      clasificacion: { categoria: 'factura', grupo_resumen: 'servicios', tipo: 'pago', entidad: 'Epec' },
+    }, analisis)
+    const analisisB = await analizarLocalmente('Factura B-200 vence 10/08/2026.', 'Epec <x@epec.com.ar>')
+    const a = await huellaFuncional(base, analisis, 'Factura mensual')
+    const b = await huellaFuncional(base, analisisB, 'Factura mensual')
+    expect(a).not.toBe(b)
+    expect(await huellaFuncional(base, analisis, 'Factura mensual')).toBe(a)
   })
 })

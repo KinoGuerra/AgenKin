@@ -10,7 +10,7 @@ import {
   prepararDatosCorreo,
   redactarDatosSensibles,
   sanitizarTextoCorreo,
-  validarClasificacion,
+  validarRespuestaCompacta,
 } from '../supabase/functions/_shared/ai.ts'
 import { correosFicticios } from './fixtures/correos.js'
 
@@ -35,11 +35,11 @@ describe('minimización de datos antes de Groq', () => {
     })
 
     expect(datos.asunto).toContain('[NÚMERO REDACTADO]')
-    expect(datos.remitente).toContain('***@example.test')
-    expect(datos.texto).toContain('token=[REDACTADO]')
-    expect(datos.texto).toContain('[ENLACE REDACTADO]')
-    expect(datos.texto).not.toContain('/reset/secreto')
-    expect(datos.texto).toContain('$100000')
+    expect(datos.dominio_remitente).toBe('example.test')
+    expect(datos.fragmento).toContain('token=[REDACTADO]')
+    expect(datos.fragmento).toContain('[ENLACE REDACTADO]')
+    expect(datos.fragmento).not.toContain('/reset/secreto')
+    expect(datos.fragmento).toContain('$100000')
     expect(redactarDatosSensibles('Bearer abc123')).toBe('Bearer [REDACTADO]')
   })
 })
@@ -64,9 +64,34 @@ function clasificacion(cambios = {}) {
   }
 }
 
+function compacta(resultado = clasificacion()) {
+  return {
+    relevante: resultado.relevante,
+    tipo: resultado.tipo,
+    fecha_indice: resultado.fecha_indice ?? null,
+    fecha_detectada: 'fecha_detectada' in resultado ? resultado.fecha_detectada : resultado.fecha,
+    monto_indice: resultado.monto_indice ?? null,
+    monto_detectado: 'monto_detectado' in resultado ? resultado.monto_detectado : resultado.monto,
+    hora: resultado.hora,
+    confianza: resultado.confianza,
+    requiere_revision: resultado.requiere_revision,
+  }
+}
+
+const datosCompactos = prepararDatosCorreo({
+  asunto: 'Factura disponible',
+  fecha: '2026-08-03T10:00:00-03:00',
+  entidad_candidata: 'Epec',
+  fragmento: 'La factura vence el 05/08/2026.',
+})
+
+function validarCompacta(cambios = {}) {
+  return validarRespuestaCompacta({ ...compacta(), ...cambios }, datosCompactos)
+}
+
 function respuestaExitosa(resultado = clasificacion()) {
   return new RespuestaHttp(JSON.stringify({
-    choices: [{ message: { content: JSON.stringify(resultado) } }],
+    choices: [{ message: { content: JSON.stringify(compacta(resultado)) } }],
     usage: { prompt_tokens: 120, completion_tokens: 80 },
   }), { status: 200, headers: { 'Content-Type': 'application/json' } })
 }
@@ -98,7 +123,7 @@ describe('clasificación de correos ficticios con Groq simulado', () => {
       relevante: true,
       categoria: 'factura',
       grupo_resumen: 'servicios',
-      entidad: 'Epec',
+      entidad: 'Proveedor',
       monto: 101000,
       fecha: '2026-08-05',
     })
@@ -133,7 +158,7 @@ describe('clasificación de correos ficticios con Groq simulado', () => {
       monto: 100000,
       fecha: '2026-07-30',
     })
-    expect(solicitud.messages[0].content).toContain('No uses el nombre de una persona remitente')
+    expect(solicitud.messages[0].content).toContain('No repitas texto del correo')
     expect(solicitud.messages[1].content).toContain('30/07/2026')
     expect(solicitud.messages[1].content).toContain('$100000')
   })
@@ -214,44 +239,72 @@ describe('contrato estricto y validación defensiva', () => {
     const solicitud = crearSolicitudIA('openai/gpt-oss-20b', correosFicticios.factura)
     expect(solicitud).toMatchObject({
       model: 'openai/gpt-oss-20b',
+      reasoning_effort: 'low',
+      include_reasoning: false,
       temperature: 0,
-      max_completion_tokens: 800,
+      max_completion_tokens: 300,
       stream: false,
       response_format: {
         type: 'json_schema',
         json_schema: { name: 'clasificacion_correo_agenkin', strict: true },
       },
     })
-    expect(ESQUEMA_CLASIFICACION_CORREO.required).toHaveLength(14)
+    expect(ESQUEMA_CLASIFICACION_CORREO.required).toHaveLength(9)
     expect(ESQUEMA_CLASIFICACION_CORREO.additionalProperties).toBe(false)
   })
 
   it('acepta una respuesta válida de Groq', () => {
-    expect(validarClasificacion(clasificacion()).confianza).toBe(0.96)
+    expect(validarCompacta().confianza).toBe(0.96)
   })
 
   it('rechaza una fecha inexistente', () => {
-    expect(() => validarClasificacion(clasificacion({ fecha: '2026-02-30' }))).toThrowError(ErrorIA)
+    expect(() => validarCompacta({ fecha_detectada: '2026-02-30' })).toThrowError(ErrorIA)
   })
 
   it('rechaza confianza fuera de rango', () => {
-    expect(() => validarClasificacion(clasificacion({ confianza: 1.2 }))).toThrowError(ErrorIA)
+    expect(() => validarCompacta({ confianza: 1.2 })).toThrowError(ErrorIA)
   })
 
-  it('rechaza un grupo de resumen fuera del contrato', () => {
-    expect(() => validarClasificacion(clasificacion({ grupo_resumen: 'impuestos' }))).toThrowError(ErrorIA)
+  it('rechaza un tipo fuera del contrato', () => {
+    expect(() => validarCompacta({ tipo: 'impuesto' })).toThrowError(ErrorIA)
   })
 
   it('rechaza montos negativos o inventados fuera de rango', () => {
-    expect(() => validarClasificacion(clasificacion({ monto: -1 }))).toThrowError(ErrorIA)
+    expect(() => validarCompacta({ monto_detectado: -1 })).toThrowError(ErrorIA)
   })
 
   it('fuerza revisión con confianza menor a 0.75', () => {
-    expect(validarClasificacion(clasificacion({ confianza: 0.7 })).requiere_revision).toBe(true)
+    expect(validarCompacta({ confianza: 0.7 }).requiere_revision).toBe(true)
   })
 
   it('rechaza horas inválidas', () => {
-    expect(() => validarClasificacion(clasificacion({ hora: '25:00' }))).toThrowError(ErrorIA)
+    expect(() => validarCompacta({ hora: '25:00' })).toThrowError(ErrorIA)
+  })
+
+  it('reconstruye una respuesta compacta por índices y rechaza índices fuera de rango', () => {
+    const datos = prepararDatosCorreo({
+      asunto: 'Factura disponible',
+      fecha: '2026-08-03T10:00:00-03:00',
+      entidad_candidata: 'Epec',
+      fechas_candidatas: [{ indice: 0, valor: '2026-08-10', contexto: 'Vence el 10/08' }],
+      montos_candidatos: [{ indice: 0, valor: 25780.5, contexto: 'Total $25.780,50' }],
+      fragmento: 'Vence el 10/08. Total $25.780,50.',
+    })
+    const respuesta = compacta(clasificacion({
+      fecha: null,
+      monto: null,
+      fecha_indice: 0,
+      fecha_detectada: null,
+      monto_indice: 0,
+      monto_detectado: null,
+    }))
+    expect(validarRespuestaCompacta(respuesta, datos)).toMatchObject({
+      fecha: '2026-08-10',
+      monto: 25780.5,
+      titulo: 'Pago de Epec',
+    })
+    expect(() => validarRespuestaCompacta({ ...respuesta, fecha_indice: 3 }, datos)).toThrowError(ErrorIA)
+    expect(() => validarRespuestaCompacta({ ...respuesta, extra: true }, datos)).toThrowError(ErrorIA)
   })
 
   it('sanitiza HTML, nulos, espacios y líneas repetidas sin perder fechas', () => {
@@ -355,12 +408,12 @@ describe('idempotencia y persistencia', () => {
 
   it('un fallo de IA no produce una clasificación apta para crear vencimiento', () => {
     expect(debeCrearVencimiento(undefined)).toBe(false)
-    expect(debeCrearVencimiento(validarClasificacion(clasificacion({ relevante: true, fecha: null })))).toBe(false)
+    expect(debeCrearVencimiento(clasificacion({ relevante: true, fecha: null }))).toBe(false)
   })
 
   it('registra también hallazgos pasados para identificarlos como vencidos', () => {
     expect(debeCrearVencimiento(
-      validarClasificacion(clasificacion({ fecha: '2026-06-30' })),
+      clasificacion({ fecha: '2026-06-30' }),
     )).toBe(true)
   })
 })

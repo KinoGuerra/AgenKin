@@ -1,4 +1,11 @@
-import type { ClasificacionCorreo } from './ai.ts'
+import {
+  derivarCategoria,
+  derivarDescripcion,
+  derivarExplicacion,
+  derivarGrupoResumen,
+  derivarTitulo,
+  type ClasificacionCorreo,
+} from './ai.ts'
 
 type Cliente = {
   from: (tabla: string) => any
@@ -17,14 +24,23 @@ export type CandidatoMonto = {
   indice: number
 }
 
+export type CandidatoHora = {
+  valor: string
+  texto: string
+  indice: number
+}
+
 export type AnalisisLocal = {
   fechas: CandidatoFecha[]
   montos: CandidatoMonto[]
+  horas: CandidatoHora[]
   entidad: string | null
+  referencia: string | null
   acciones: string[]
   dominioRemitente: string
   huellaPlantilla: string
   textoRelevante: string
+  tieneExpresionTemporal: boolean
 }
 
 export type PatronCorreo = {
@@ -38,7 +54,14 @@ export type PatronCorreo = {
     tipo: ClasificacionCorreo['tipo']
     entidad?: string | null
   }
+  coincidencias?: number
+  discrepancias?: number
+  ultima_discrepancia_en?: string | null
 }
+
+export const MAXIMO_FRAGMENTO_IA = 1_200
+export const MAXIMO_CONTEXTO_CANDIDATO = 240
+const ZONA_HORARIA = 'America/Argentina/Cordoba'
 
 const MESES: Record<string, number> = {
   enero: 1,
@@ -67,6 +90,13 @@ const PALABRAS_ACCION = [
   'turno',
   'vence',
   'vencimiento',
+  'cita',
+  'completar',
+  'documentacion',
+  'factura',
+  'reunion',
+  'renovacion',
+  'ultimo dia',
 ]
 
 function sinAcentos(valor: string) {
@@ -85,14 +115,43 @@ function fechaIso(anio: number, mes: number, dia: number) {
   return `${anio}-${String(mes).padStart(2, '0')}-${String(dia).padStart(2, '0')}`
 }
 
-export function extraerFechas(texto: string): CandidatoFecha[] {
+function fechaReferencia(valor: string | Date = new Date()) {
+  const fecha = valor instanceof Date ? valor : new Date(valor)
+  const segura = Number.isNaN(fecha.getTime()) ? new Date() : fecha
+  const partes = new Intl.DateTimeFormat('en-US', {
+    timeZone: ZONA_HORARIA,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(segura)
+  const obtener = (tipo: string) => Number(partes.find((parte) => parte.type === tipo)?.value)
+  return { anio: obtener('year'), mes: obtener('month'), dia: obtener('day') }
+}
+
+function sumarDias(base: { anio: number; mes: number; dia: number }, dias: number) {
+  const fecha = new Date(Date.UTC(base.anio, base.mes - 1, base.dia + dias))
+  return fechaIso(fecha.getUTCFullYear(), fecha.getUTCMonth() + 1, fecha.getUTCDate())
+}
+
+function contextoCercano(texto: string, posicion: number, longitud: number) {
+  const inicio = Math.max(0, texto.lastIndexOf('\n', posicion - 1) + 1)
+  const finLinea = texto.indexOf('\n', posicion + longitud)
+  return texto.slice(inicio, finLinea < 0 ? texto.length : finLinea).trim().slice(0, MAXIMO_CONTEXTO_CANDIDATO)
+}
+
+export function extraerFechas(
+  texto: string,
+  referencia: string | Date = new Date(),
+): CandidatoFecha[] {
   const resultados: Array<{ posicion: number; valor: string; texto: string }> = []
   const vistas = new Set<string>()
   const agregar = (posicion: number, valor: string | null, original: string) => {
     if (!valor || vistas.has(valor)) return
     vistas.add(valor)
-    resultados.push({ posicion, valor, texto: original })
+    resultados.push({ posicion, valor, texto: contextoCercano(texto, posicion, original.length) })
   }
+  const base = fechaReferencia(referencia)
+  const normalizado = sinAcentos(texto)
 
   for (const coincidencia of texto.matchAll(/\b(\d{1,2})[/-](\d{1,2})[/-](20\d{2})\b/g)) {
     agregar(
@@ -116,6 +175,49 @@ export function extraerFechas(texto: string): CandidatoFecha[] {
       fechaIso(Number(coincidencia[3]), MESES[coincidencia[2]], Number(coincidencia[1])),
       coincidencia[0],
     )
+  }
+  for (const coincidencia of texto.matchAll(/\b(\d{1,2})[/-](\d{1,2})(?![/-]\d)\b/g)) {
+    const dia = Number(coincidencia[1])
+    const mes = Number(coincidencia[2])
+    let anio = base.anio
+    let valor = fechaIso(anio, mes, dia)
+    if (valor && valor < fechaIso(base.anio, base.mes, base.dia)!) valor = fechaIso(++anio, mes, dia)
+    agregar(coincidencia.index || 0, valor, coincidencia[0])
+  }
+  for (const coincidencia of normalizado.matchAll(
+    /\b(\d{1,2})\s+de\s+(enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|setiembre|octubre|noviembre|diciembre)(?!\s+(?:de\s+)?20\d{2})\b/g,
+  )) {
+    const dia = Number(coincidencia[1])
+    const mes = MESES[coincidencia[2]]
+    let anio = base.anio
+    let valor = fechaIso(anio, mes, dia)
+    if (valor && valor < fechaIso(base.anio, base.mes, base.dia)!) valor = fechaIso(++anio, mes, dia)
+    agregar(coincidencia.index || 0, valor, coincidencia[0])
+  }
+
+  const relativas = [
+    { patron: /\bpasado manana\b/g, dias: 2 },
+    { patron: /(?<!pasado )\bmanana\b/g, dias: 1 },
+    { patron: /\bhoy\b/g, dias: 0 },
+  ]
+  for (const relativa of relativas) {
+    for (const coincidencia of normalizado.matchAll(relativa.patron)) {
+      agregar(coincidencia.index || 0, sumarDias(base, relativa.dias), coincidencia[0])
+    }
+  }
+  for (const coincidencia of normalizado.matchAll(/\b(?:dentro de|en)\s+(\d{1,3})\s+dias?\b/g)) {
+    agregar(coincidencia.index || 0, sumarDias(base, Number(coincidencia[1])), coincidencia[0])
+  }
+  const diasSemana: Record<string, number> = {
+    domingo: 0, lunes: 1, martes: 2, miercoles: 3, jueves: 4, viernes: 5, sabado: 6,
+  }
+  const baseUtc = new Date(Date.UTC(base.anio, base.mes - 1, base.dia))
+  for (const coincidencia of normalizado.matchAll(
+    /\b(este|proximo)\s+(lunes|martes|miercoles|jueves|viernes|sabado|domingo)\b/g,
+  )) {
+    let dias = (diasSemana[coincidencia[2]] - baseUtc.getUTCDay() + 7) % 7
+    if (coincidencia[1] === 'proximo' && dias === 0) dias = 7
+    agregar(coincidencia.index || 0, sumarDias(base, dias), coincidencia[0])
   }
 
   return resultados
@@ -149,7 +251,28 @@ export function extraerMontos(texto: string): CandidatoMonto[] {
     const valor = numeroArgentino(coincidencia[1])
     if (valor === null || vistas.has(valor)) continue
     vistas.add(valor)
-    resultados.push({ valor, texto: coincidencia[0], indice: resultados.length })
+    resultados.push({
+      valor,
+      texto: contextoCercano(texto, coincidencia.index || 0, coincidencia[0].length),
+      indice: resultados.length,
+    })
+    if (resultados.length >= 21) break
+  }
+  return resultados
+}
+
+export function extraerHoras(texto: string): CandidatoHora[] {
+  const resultados: CandidatoHora[] = []
+  const vistas = new Set<string>()
+  for (const coincidencia of texto.matchAll(/\b(?:a\s+las\s+)?([01]?\d|2[0-3])[:.]([0-5]\d)\s*(?:h(?:s)?\b)?/gi)) {
+    const valor = `${String(Number(coincidencia[1])).padStart(2, '0')}:${coincidencia[2]}`
+    if (vistas.has(valor)) continue
+    vistas.add(valor)
+    resultados.push({
+      valor,
+      texto: contextoCercano(texto, coincidencia.index || 0, coincidencia[0].length),
+      indice: resultados.length,
+    })
     if (resultados.length >= 21) break
   }
   return resultados
@@ -162,12 +285,19 @@ export function dominioRemitente(remitente: string) {
 
 function entidadRemitente(_remitente: string, dominio: string) {
   const segmento = dominio.split('.')[0] || ''
-  if (['gmail', 'googlemail', 'hotmail', 'outlook', 'yahoo'].includes(segmento)) {
+  if (['example', 'gmail', 'googlemail', 'hotmail', 'outlook', 'yahoo'].includes(segmento)) {
     return null
   }
   return segmento.length >= 2
     ? `${segmento.charAt(0).toUpperCase()}${segmento.slice(1)}`
     : null
+}
+
+function referenciaCompromiso(texto: string) {
+  const coincidencia = sinAcentos(texto).match(
+    /\b(?:factura|comprobante|cuota|reserva|turno)\s*(?:n(?:ro|umero)?\.?|[n°º#])?\s*[:.-]?\s*([a-z]*-?\d[\w-]{1,40})\b/,
+  )
+  return coincidencia?.[1]?.toUpperCase() || null
 }
 
 export function remitenteAutenticado(authenticationResults: string) {
@@ -177,13 +307,25 @@ export function remitenteAutenticado(authenticationResults: string) {
 }
 
 function lineasRelevantes(texto: string) {
-  const lineas = texto.split(/\r?\n/).map((linea) => linea.trim()).filter(Boolean)
+  const vistas = new Set<string>()
+  const lineas = texto.split(/\r?\n/)
+    .map((linea) => linea.trim())
+    .filter((linea) => {
+      if (!linea || /^(?:--\s*$|saludos(?: cordiales)?[,!:]?|atentamente[,!:]?)/i.test(linea)) return false
+      if (/confidencial|aviso legal|todos los derechos reservados|seguinos en|facebook|instagram|linkedin/i.test(linea)) return false
+      if (/^(?:de|from):\s|^el .+ escribio:$/i.test(linea)) return false
+      const clave = sinAcentos(linea)
+      if (vistas.has(clave)) return false
+      vistas.add(clave)
+      return true
+    })
   const elegidas = new Set<number>()
   lineas.forEach((linea, indice) => {
     const normalizada = sinAcentos(linea)
-    const contieneFecha = /\b\d{1,2}[/-]\d{1,2}[/-]20\d{2}\b/.test(linea)
+    const contieneFecha = /\b\d{1,2}[/-]\d{1,2}(?:[/-]20\d{2})?\b/.test(linea)
       || /\b20\d{2}-\d{2}-\d{2}\b/.test(linea)
       || Object.keys(MESES).some((mes) => normalizada.includes(mes))
+      || /\b(?:hoy|manana|pasado manana|dentro de \d+ dias?|en \d+ dias?|este|proximo)\b/.test(normalizada)
     const contieneMonto = /(?:\$|ARS)\s*\d/i.test(linea)
     const contieneAccion = PALABRAS_ACCION.some((palabra) => normalizada.includes(palabra))
     if (!contieneFecha && !contieneMonto && !contieneAccion) return
@@ -192,7 +334,7 @@ function lineasRelevantes(texto: string) {
     elegidas.add(Math.min(lineas.length - 1, indice + 1))
   })
   const relevantes = [...elegidas].sort((a, b) => a - b).map((indice) => lineas[indice])
-  return (relevantes.length ? relevantes.join('\n') : lineas.join('\n')).slice(0, 3_000)
+  return (relevantes.length ? relevantes.join('\n') : '').slice(0, MAXIMO_FRAGMENTO_IA)
 }
 
 export async function huellaPlantilla(texto: string) {
@@ -216,18 +358,160 @@ export async function huellaPlantilla(texto: string) {
 export async function analizarLocalmente(
   texto: string,
   remitente: string,
+  fechaCorreo: string | Date = new Date(),
 ): Promise<AnalisisLocal> {
   const dominio = dominioRemitente(remitente)
   const normalizado = sinAcentos(texto)
   return {
-    fechas: extraerFechas(texto),
+    fechas: extraerFechas(texto, fechaCorreo),
     montos: extraerMontos(texto),
+    horas: extraerHoras(texto),
     entidad: entidadRemitente(remitente, dominio),
+    referencia: referenciaCompromiso(texto),
     acciones: PALABRAS_ACCION.filter((accion) => normalizado.includes(accion)),
     dominioRemitente: dominio,
     huellaPlantilla: await huellaPlantilla(texto),
     textoRelevante: lineasRelevantes(texto),
+    tieneExpresionTemporal: /\b(?:hoy|manana|pasado manana|dentro de \d+ dias?|en \d+ dias?|este|proximo|72 horas?|ultimo dia|proximamente)\b/.test(normalizado),
   }
+}
+
+export type EvaluacionPrevia = {
+  requiereIa: boolean
+  clasificacionLocal: ClasificacionCorreo | null
+  motivo: string
+  confianza: number
+}
+
+export function momentoVigente(
+  fecha: string,
+  hora: string | null,
+  ahora: Date = new Date(),
+) {
+  if (hora) return new Date(`${fecha}T${hora}:00-03:00`).getTime() > ahora.getTime()
+  const hoy = fechaReferencia(ahora)
+  return fecha >= fechaIso(hoy.anio, hoy.mes, hoy.dia)!
+}
+
+function tipoLocal(acciones: string[], asunto: string): ClasificacionCorreo['tipo'] | null {
+  const texto = sinAcentos(`${asunto} ${acciones.join(' ')}`)
+  const candidatos = new Set<ClasificacionCorreo['tipo']>()
+  if (/\b(turno|cita)\b/.test(texto)) candidatos.add('turno')
+  if (/\breunion\b/.test(texto)) candidatos.add('reunion')
+  if (/\brenov/.test(texto)) candidatos.add('renovacion')
+  if (/\b(documentacion|presentar)\b/.test(texto)) candidatos.add('documentacion')
+  if (/\b(entregar|entrega)\b/.test(texto)) candidatos.add('entrega')
+  if (/\b(responder|respuesta|completar)\b/.test(texto)) candidatos.add('respuesta')
+  if (/\b(pagar|abonar|factura|vence|vencimiento)\b/.test(texto)) candidatos.add('pago')
+  return candidatos.size === 1 ? [...candidatos][0] : null
+}
+
+function clasificacionLocal(
+  analisis: AnalisisLocal,
+  asunto: string,
+  tipo: ClasificacionCorreo['tipo'],
+  vigente: boolean,
+) {
+  const fecha = analisis.fechas[0]?.valor || null
+  const hora = analisis.horas[0]?.valor || null
+  const monto = analisis.montos[0]?.valor ?? null
+  const entidad = analisis.entidad
+  return {
+    relevante: true,
+    categoria: derivarCategoria(tipo, asunto),
+    grupo_resumen: derivarGrupoResumen(tipo, asunto),
+    tipo,
+    titulo: derivarTitulo(tipo, entidad),
+    descripcion: derivarDescripcion(fecha, monto, entidad),
+    entidad,
+    monto,
+    fecha,
+    hora,
+    zona_horaria: ZONA_HORARIA,
+    confianza: 0.97,
+    requiere_revision: false,
+    explicacion: vigente
+      ? derivarExplicacion(tipo, false, 1)
+      : 'Se detectó un compromiso ya vencido; se conserva como antecedente.',
+  } satisfies ClasificacionCorreo
+}
+
+export function evaluarPreviamente(
+  analisis: AnalisisLocal,
+  asunto: string,
+  autenticado: boolean,
+  tieneListUnsubscribe = false,
+  ahora: Date = new Date(),
+): EvaluacionPrevia {
+  const tipo = tipoLocal(analisis.acciones, asunto)
+  if (autenticado
+    && tipo
+    && analisis.fechas.length === 1
+    && analisis.montos.length <= 1
+    && analisis.horas.length <= 1) {
+    const vigente = momentoVigente(analisis.fechas[0].valor, analisis.horas[0]?.valor || null, ahora)
+    return {
+      requiereIa: false,
+      clasificacionLocal: clasificacionLocal(analisis, asunto, tipo, vigente),
+      motivo: vigente ? 'compromiso_local_seguro' : 'compromiso_historico_claro',
+      confianza: 0.97,
+    }
+  }
+
+  const sinSenales = !analisis.fechas.length
+    && !analisis.montos.length
+    && !analisis.acciones.length
+    && !analisis.tieneExpresionTemporal
+  const promocional = /\b(?:newsletter|ofertas? exclusivas?|descuentos?|novedades del mes|promocion)\b/i.test(sinAcentos(asunto))
+  if (sinSenales && promocional && tieneListUnsubscribe) {
+    return {
+      requiereIa: false,
+      clasificacionLocal: {
+        relevante: false,
+        categoria: 'promocion',
+        grupo_resumen: 'otros',
+        tipo: 'otro',
+        titulo: '',
+        descripcion: '',
+        entidad: null,
+        monto: null,
+        fecha: null,
+        hora: null,
+        zona_horaria: ZONA_HORARIA,
+        confianza: 0.99,
+        requiere_revision: false,
+        explicacion: 'Promoción sin señales de compromiso.',
+      },
+      motivo: 'promocion_inequivoca',
+      confianza: 0.99,
+    }
+  }
+  return { requiereIa: true, clasificacionLocal: null, motivo: 'requiere_contexto', confianza: 0 }
+}
+
+export async function huellaFuncional(
+  clasificacion: ClasificacionCorreo,
+  analisis: AnalisisLocal,
+  asunto: string,
+) {
+  if (!clasificacion.fecha || !analisis.referencia) return null
+  const asuntoNormalizado = asunto.toLowerCase()
+    .replace(/^(?:(?:re|rv|fw|fwd):\s*)+/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 240)
+  const partes = [
+    clasificacion.tipo,
+    (clasificacion.entidad || '').toLowerCase(),
+    clasificacion.fecha,
+    clasificacion.hora || '',
+    clasificacion.monto === null ? '' : clasificacion.monto.toFixed(2),
+    analisis.referencia,
+    asuntoNormalizado,
+    analisis.huellaPlantilla,
+  ]
+  const resumen = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(partes.join('|')))
+  return [...new Uint8Array(resumen)].map((byte) => byte.toString(16).padStart(2, '0')).join('')
 }
 
 export async function buscarPatron(
@@ -236,7 +520,7 @@ export async function buscarPatron(
   analisis: AnalisisLocal,
 ) {
   if (!analisis.dominioRemitente || !analisis.fechas.length) return null
-  const campos = 'id,alcance,selector_fecha,selector_monto,clasificacion'
+  const campos = 'id,alcance,selector_fecha,selector_monto,clasificacion,coincidencias,discrepancias,ultima_discrepancia_en'
   const { data: personal } = await cliente
     .from('patrones_correo')
     .select(campos)
@@ -270,28 +554,43 @@ export function aplicarPatron(
     ? null
     : analisis.montos[patron.selector_monto]?.valor ?? null
   const entidad = patron.clasificacion.entidad || analisis.entidad
+  const tipo = patron.clasificacion.tipo
   return {
     relevante: true,
     categoria: patron.clasificacion.categoria,
     grupo_resumen: patron.clasificacion.grupo_resumen,
-    tipo: patron.clasificacion.tipo,
-    titulo: entidad ? `${patron.clasificacion.tipo} de ${entidad}` : 'Fecha detectada',
-    descripcion: 'Fecha detectada mediante un patrón verificado por AgenKin.',
+    tipo,
+    titulo: derivarTitulo(tipo, entidad),
+    descripcion: derivarDescripcion(fecha.valor, monto, entidad),
     entidad,
     monto,
     fecha: fecha.valor,
-    hora: null,
-    zona_horaria: 'America/Argentina/Cordoba',
+    hora: analisis.horas.length === 1 ? analisis.horas[0].valor : null,
+    zona_horaria: ZONA_HORARIA,
     confianza: 0.96,
     requiere_revision: false,
-    explicacion: 'Coincide con un patrón verificado y una fecha explícita.',
+    explicacion: derivarExplicacion(tipo, false, 1),
   }
 }
 
-export async function debeValidarEnSombra(gmailMessageId: string) {
+export async function debeValidarEnSombra(
+  gmailMessageId: string,
+  patron: PatronCorreo | null = null,
+  ahora = Date.now(),
+) {
   const datos = new TextEncoder().encode(gmailMessageId)
   const resumen = new Uint8Array(await crypto.subtle.digest('SHA-256', datos))
-  return resumen[0] % 20 === 0
+  const discrepanciaReciente = patron?.ultima_discrepancia_en
+    && ahora - new Date(patron.ultima_discrepancia_en).getTime() < 7 * 86_400_000
+  const tasa = discrepanciaReciente
+    ? 100
+    : (patron?.coincidencias || 0) < 10
+      ? 15
+      : (patron?.coincidencias || 0) >= 100 && (patron?.discrepancias || 0) === 0
+        ? 2
+        : 5
+  const muestra = ((resumen[0] << 8) + resumen[1]) % 100
+  return muestra < tasa
 }
 
 function indiceFecha(

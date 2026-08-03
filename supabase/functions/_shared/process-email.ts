@@ -14,6 +14,8 @@ import {
   buscarPatron,
   clasificacionesCoinciden,
   debeValidarEnSombra,
+  evaluarPreviamente,
+  huellaFuncional,
   remitenteAutenticado,
 } from './patterns.ts'
 
@@ -211,6 +213,7 @@ export async function procesarCorreoGmail(
     fecha = encabezado(headers, 'Date')
     const autenticacion = encabezado(headers, 'Authentication-Results')
     const autenticado = remitenteAutenticado(autenticacion)
+    const tieneListUnsubscribe = Boolean(encabezado(headers, 'List-Unsubscribe'))
     const texto = extraerTextoCorreo(mensaje.payload || {})
     const { error: errorMetadatos } = await cliente
       .from('correos_procesados')
@@ -236,15 +239,18 @@ export async function procesarCorreoGmail(
       valor: string
       accion: string
     }) => coincideRegla(regla, asunto, remitente))
-    const analisis = await analizarLocalmente(texto, remitente)
+    const analisis = await analizarLocalmente(texto, remitente, fecha)
     const patron = ignorar || !autenticado
       ? null
       : await buscarPatron(cliente, tarea.usuario_id, analisis)
     const clasificacionPatron = patron ? aplicarPatron(patron, analisis) : null
+    const evaluacion = ignorar || clasificacionPatron
+      ? null
+      : evaluarPreviamente(analisis, asunto, autenticado, tieneListUnsubscribe)
     const validarSombra = Boolean(
       patron
       && clasificacionPatron
-      && await debeValidarEnSombra(tarea.gmail_message_id)
+      && await debeValidarEnSombra(tarea.gmail_message_id, patron)
     )
 
     let origen = ignorar
@@ -253,8 +259,12 @@ export async function procesarCorreoGmail(
         ? 'patron_global'
         : patron
           ? 'patron_personal'
-          : 'ia'
-    let clasificacion = ignorar ? clasificacionIgnorada() : clasificacionPatron
+          : evaluacion?.clasificacionLocal
+            ? 'local'
+            : 'ia'
+    let clasificacion = ignorar
+      ? clasificacionIgnorada()
+      : clasificacionPatron || evaluacion?.clasificacionLocal || null
     let clasificacionParaAprender: ClasificacionCorreo | null = null
     let validacionPendiente: { patronId: string; coincide: boolean } | null = null
 
@@ -270,9 +280,26 @@ export async function procesarCorreoGmail(
     if ((!clasificacion || validarSombra) && !opciones.iaTemporalmenteNoDisponible) {
       const clasificacionIA = await clasificarCorreo({
         asunto,
-        remitente,
         fecha,
-        texto: analisis.textoRelevante,
+        dominio_remitente: analisis.dominioRemitente,
+        entidad_candidata: analisis.entidad,
+        acciones: analisis.acciones,
+        fechas_candidatas: analisis.fechas.map((candidato) => ({
+          indice: candidato.indice,
+          valor: candidato.valor,
+          contexto: candidato.texto,
+        })),
+        montos_candidatos: analisis.montos.map((candidato) => ({
+          indice: candidato.indice,
+          valor: candidato.valor,
+          contexto: candidato.texto,
+        })),
+        horas_candidatas: analisis.horas.map((candidato) => ({
+          indice: candidato.indice,
+          valor: candidato.valor,
+          contexto: candidato.texto,
+        })),
+        fragmento: analisis.textoRelevante,
       }, {
         registrar: (metricas) => {
           metricasIA.valor = metricas
@@ -303,6 +330,9 @@ export async function procesarCorreoGmail(
     }
 
     const detectado = debeCrearVencimiento(clasificacion)
+    const huella = detectado
+      ? await huellaFuncional(clasificacion, analisis, asunto)
+      : null
     finalizacionIncierta = true
     const { data: finalizado, error: errorFinalizacion } = await cliente.rpc(
       'finalizar_correo_analizado',
@@ -318,12 +348,13 @@ export async function procesarCorreoGmail(
           fecha_correo: fechaIsoSegura(fecha),
           categoria: clasificacion.categoria,
           grupo_resumen: clasificacion.grupo_resumen,
-          grupo_asignado_por: ignorar ? 'migracion' : 'ia',
+          grupo_asignado_por: origen === 'local' ? 'local' : ignorar ? 'migracion' : 'ia',
           relevante: clasificacion.relevante,
           estado: ignorar ? 'ignorado' : 'procesado',
           origen_analisis: origen,
           patron_id: patron?.id || null,
           huella_plantilla: analisis.huellaPlantilla,
+          huella_funcional: huella,
           tokens_entrada: metricasIA.valor?.tokens_entrada,
           tokens_cache: metricasIA.valor?.tokens_cache,
           tokens_salida: metricasIA.valor?.tokens_salida,

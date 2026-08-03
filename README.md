@@ -171,7 +171,8 @@ predeterminado documentado es Groq con `openai/gpt-oss-20b`.
 El adaptador usa JSON Schema estricto, timeout configurable, hasta tres intentos
 totales para errores transitorios y validación local antes de persistir. Antes
 de consultar la IA extrae localmente fechas, importes, acciones y entidades, y
-reduce el contenido relevante a 3.000 caracteres. Cada correo se reclama por
+reduce el contenido relevante a 1.200 caracteres. El contrato compacto y el
+flujo completo están en [Análisis de correos](docs/ANALISIS_CORREOS.md). Cada correo se reclama por
 `conexion_google_id + gmail_message_id`; un fallo técnico queda diferido en la
 cola sin bloquear otros mensajes ni consumir un cupo comercial.
 

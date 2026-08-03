@@ -48,7 +48,8 @@ Configuración predeterminada:
 - endpoint: `https://api.groq.com/openai/v1/chat/completions`;
 - modelo: `openai/gpt-oss-20b`;
 - timeout: 20 segundos;
-- salida máxima: 800 tokens mediante `max_completion_tokens`.
+- salida máxima: 300 tokens mediante `max_completion_tokens`;
+- razonamiento bajo, sin contenido de razonamiento y temperatura cero.
 
 El adaptador conserva nombres genéricos (`AI_PROVIDER`, `AI_API_URL`,
 `AI_MODEL`, `AI_API_KEY`) para permitir otro proveedor compatible en el futuro.
@@ -67,8 +68,9 @@ supabase functions deploy process-gmail-queue --no-verify-jwt
 
 `scan-gmail` conserva `verify_jwt = true`, valida identidad y suscripción, y
 encola mensajes de las cuentas solicitadas. `process-gmail-queue` es global,
-requiere el secreto de Cron y usa Groq solamente cuando una regla o patrón
-verificado no alcanza. No existe cupo comercial de mensajes.
+requiere el secreto de Cron y usa Groq solamente cuando una regla, un patrón
+verificado o la clasificación local segura no alcanzan. No existe cupo
+comercial de mensajes.
 
 ## 5. Prueba local sin Gmail
 
@@ -128,9 +130,11 @@ completas, tokens OAuth ni claves.
 
 Antes de habilitar AgenKin para terceros, revisar las condiciones vigentes de
 privacidad, tratamiento y retención de Groq, y reflejar las decisiones en la
-política de privacidad. Solo se envían asunto, remitente, fecha del correo y texto
-plano relevante, sanitizado y limitado a 3.000 caracteres; no se envían adjuntos,
-HTML completo, tokens OAuth, roles, suscripciones ni identificadores internos.
+política de privacidad. Solo se envían asunto, dominio del remitente, fecha del
+correo, entidad y candidatos estructurados, más un fragmento sanitizado de hasta
+1.200 caracteres. Cada contexto candidato se limita a 240 caracteres. No se
+envían adjuntos, HTML completo, direcciones completas, tokens OAuth, roles,
+suscripciones ni identificadores internos.
 
 Referencias oficiales:
 
