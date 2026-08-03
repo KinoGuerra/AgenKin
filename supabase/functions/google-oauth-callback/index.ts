@@ -1,4 +1,5 @@
 import { cifrarToken, hashEstado } from '../_shared/crypto.ts'
+import { asegurarCalendarioVisible } from '../_shared/calendar.ts'
 import { fetchGoogle } from '../_shared/google.ts'
 import { appUrlSegura, envRequerida } from '../_shared/http.ts'
 import { clienteServicio } from '../_shared/supabase.ts'
@@ -117,10 +118,15 @@ Deno.serve(async (request) => {
     }
 
     const permisos = new Set(String(tokens.scope || '').split(/\s+/))
-    const permisoSolicitado = registro.servicio === 'gmail'
-      ? 'https://www.googleapis.com/auth/gmail.readonly'
-      : 'https://www.googleapis.com/auth/calendar.app.created'
-    if (!permisos.has(permisoSolicitado)) return redirigir('error')
+    const permisosSolicitados = registro.servicio === 'gmail'
+      ? ['https://www.googleapis.com/auth/gmail.readonly']
+      : [
+          'https://www.googleapis.com/auth/calendar.app.created',
+          'https://www.googleapis.com/auth/calendar.calendarlist',
+        ]
+    if (permisosSolicitados.some((permiso) => !permisos.has(permiso))) {
+      return redirigir('error')
+    }
 
     const { error } = await cliente.rpc('registrar_conexion_google_oauth', {
       p_usuario_id: registro.usuario_id,
@@ -142,6 +148,18 @@ Deno.serve(async (request) => {
     }
 
     if (registro.servicio === 'calendar') {
+      const { data: conexionCalendar, error: errorConexionCalendar } = await cliente
+        .from('conexiones_google')
+        .select('calendar_id')
+        .eq('usuario_id', registro.usuario_id)
+        .eq('es_calendar_principal', true)
+        .eq('calendar_conectado', true)
+        .eq('estado_conexion', 'activa')
+        .maybeSingle()
+      if (errorConexionCalendar) return redirigir('error')
+      if (conexionCalendar?.calendar_id) {
+        await asegurarCalendarioVisible(tokens.access_token, conexionCalendar.calendar_id)
+      }
       await cliente.rpc('encolar_eventos_calendar_usuario', {
         p_usuario_id: registro.usuario_id,
       })

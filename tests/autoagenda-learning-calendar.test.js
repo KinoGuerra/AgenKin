@@ -99,6 +99,12 @@ describe('autoagendado confiable, aprendizaje y Calendar', () => {
     expect(worker).toContain('tarea.intentos + 1 < MAXIMO_INTENTOS')
   })
 
+  it('deja visible y seleccionado el calendario secundario', () => {
+    expect(calendar).toContain('/users/me/calendarList')
+    expect(calendar).toContain('hidden: false, selected: true')
+    expect(calendar).toContain('asegurarCalendarioVisible(acceso, calendarId)')
+  })
+
   it('reconstruye tareas Calendar faltantes sin reabrir errores permanentes', () => {
     expect(recuperacion).toContain('create or replace function public.reconciliar_eventos_calendar_pendientes')
     expect(recuperacion).toContain("t.ultimo_error = 'google_temporal'")

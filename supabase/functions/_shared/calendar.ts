@@ -52,6 +52,26 @@ function intervaloEvento(fechaEvento: string, esDiaCompleto: boolean, zona: stri
   }
 }
 
+export async function asegurarCalendarioVisible(
+  acceso: string,
+  calendarId: string,
+) {
+  const lista = 'https://www.googleapis.com/calendar/v3/users/me/calendarList'
+  const entrada = `${lista}/${encodeURIComponent(calendarId)}`
+  try {
+    await googleJson(entrada, acceso, {
+      method: 'PATCH',
+      body: JSON.stringify({ hidden: false, selected: true }),
+    })
+  } catch (error) {
+    if (!(error instanceof ErrorGoogle) || error.status !== 404) throw error
+    await googleJson(lista, acceso, {
+      method: 'POST',
+      body: JSON.stringify({ id: calendarId, hidden: false, selected: true }),
+    })
+  }
+}
+
 export async function registrarEventoAgenda(
   cliente: Cliente,
   usuarioId: string,
@@ -181,6 +201,7 @@ export async function sincronizarEventoAgenda(
       })
       calendarId = calendario.id
       await cliente.from('conexiones_google').update({ calendar_id: calendarId }).eq('id', conexion.id)
+      await asegurarCalendarioVisible(acceso, calendarId)
     }
 
     const eventoGoogleId = evento.id.replaceAll('-', '')

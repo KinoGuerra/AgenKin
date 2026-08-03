@@ -42,6 +42,8 @@ Rutas principales:
   puede ser el Calendar principal de cada usuario.
 - Agenda es la fuente principal. Un fallo o desconexión de Google no puede
   eliminar ni impedir el evento interno.
+- El Calendar secundario de AgenKin debe quedar visible y seleccionado en la
+  lista de Google mediante `calendar.calendarlist`.
 - Un descarte se recuerda de forma privada por usuario, dominio y huella de
   plantilla. No afecta a otros usuarios ni al agendado manual.
 - El modo automático/manual se aplica a todas las Gmail activas del usuario.

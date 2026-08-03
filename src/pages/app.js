@@ -464,6 +464,11 @@ function renderCuentasGoogle(cuentas = [], calendar = {}) {
     } else if (calendar.conexion_id === cuenta.id) {
       acciones.append(
         crearBotonCuenta(
+          'Volver a autorizar Calendar',
+          'boton boton--mini boton--secundario',
+          { useCalendar: cuenta.id },
+        ),
+        crearBotonCuenta(
           'Desactivar Calendar',
           'boton boton--mini boton--texto',
           { disconnectGoogle: 'calendar', conexionId: cuenta.id },

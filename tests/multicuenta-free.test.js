@@ -12,8 +12,15 @@ const procesador = leer('supabase/functions/_shared/process-email.ts')
 const manual = leer('supabase/functions/scan-gmail/index.ts')
 const eventosProgramados = leer('supabase/functions/create-calendar-scheduled/index.ts')
 const oauthCallback = leer('supabase/functions/google-oauth-callback/index.ts')
+const oauthStart = leer('supabase/functions/google-oauth-start/index.ts')
 
 describe('sincronización multicuenta para Supabase Free', () => {
+  it('solicita permiso para mostrar el Calendar secundario en Google', () => {
+    expect(oauthStart).toContain('https://www.googleapis.com/auth/calendar.calendarlist')
+    expect(oauthCallback).toContain('https://www.googleapis.com/auth/calendar.calendarlist')
+    expect(oauthCallback).toContain('asegurarCalendarioVisible')
+  })
+
   it('limita cuentas y no mensajes', () => {
     expect(migracion).toContain('limite_cuentas_gmail')
     expect(migracion).toContain('CUPO_CUENTAS_GMAIL')

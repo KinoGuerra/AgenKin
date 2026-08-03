@@ -80,9 +80,12 @@ Deno.serve(async (request) => {
       scope: [
         'openid',
         'email',
-        servicio === 'gmail'
-          ? 'https://www.googleapis.com/auth/gmail.readonly'
-          : 'https://www.googleapis.com/auth/calendar.app.created',
+        ...(servicio === 'gmail'
+          ? ['https://www.googleapis.com/auth/gmail.readonly']
+          : [
+              'https://www.googleapis.com/auth/calendar.app.created',
+              'https://www.googleapis.com/auth/calendar.calendarlist',
+            ]),
       ].join(' '),
     }).toString()
     if (servicio === 'calendar' && conexion?.google_email) {

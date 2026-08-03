@@ -162,8 +162,12 @@ Permisos adicionales:
 
 - `gmail.readonly`
 - `calendar.app.created`
+- `calendar.calendarlist`, para que el calendario secundario **Agenda** quede
+  visible y seleccionado en Google Calendar.
 
-El login inicial no solicita estos permisos.
+El login inicial no solicita estos permisos. Las conexiones Calendar creadas
+antes de incorporar `calendar.calendarlist` deben autorizarse nuevamente una
+vez desde Configuración.
 
 ## IA y secretos
 

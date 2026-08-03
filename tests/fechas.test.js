@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   calcularFinPrueba,
   fechaActualIso,
+  formatearFecha,
   formatearFechaHora,
   normalizarFecha,
 } from '../src/utils/fechas.js'
@@ -28,6 +29,12 @@ describe('formatearFechaHora', () => {
   it('usa el formato argentino requerido sin depender del huso del navegador', () => {
     expect(formatearFechaHora('2026-07-28T17:05:00Z')).toBe('28/07/2026 14:05')
     expect(formatearFechaHora(null)).toBe('Sin actualizaciones')
+  })
+})
+
+describe('formatearFecha', () => {
+  it('no retrocede un día al mostrar una fecha sin hora en Argentina', () => {
+    expect(formatearFecha('2026-08-10', 'en-CA')).toBe('Aug 10, 2026')
   })
 })
 

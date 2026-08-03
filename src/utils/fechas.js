@@ -29,9 +29,14 @@ export function calcularFinPrueba(inicio, dias = 15) {
 
 export function formatearFecha(valor, locale = 'es-AR') {
   if (!valor) return 'Sin fecha'
-  const fecha = new Date(valor)
+  const texto = String(valor).trim()
+  const esFechaSinHora = FECHA_ISO.test(texto)
+  const fecha = new Date(esFechaSinHora ? `${texto}T12:00:00Z` : texto)
   if (Number.isNaN(fecha.getTime())) return 'Fecha inválida'
-  return new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(fecha)
+  return new Intl.DateTimeFormat(locale, {
+    dateStyle: 'medium',
+    timeZone: esFechaSinHora ? 'UTC' : 'America/Argentina/Cordoba',
+  }).format(fecha)
 }
 
 export function formatearFechaHora(valor, locale = 'es-AR') {

@@ -14,6 +14,8 @@ AgenKin solicita los permisos adicionales únicamente desde el portal:
 - `openid` y `email`, para identificar la cuenta conectada.
 - `https://www.googleapis.com/auth/gmail.readonly`, para leer correos sin modificarlos.
 - `https://www.googleapis.com/auth/calendar.app.created`, para crear un calendario secundario **Agenda** y administrar solamente sus eventos.
+- `https://www.googleapis.com/auth/calendar.calendarlist`, para dejar **Agenda**
+  visible y seleccionada en la interfaz de Google Calendar.
 
 Gmail y Calendar se autorizan con botones separados y cada solicitud incluye
 solamente el permiso del servicio elegido. El usuario puede conectar varias
@@ -24,6 +26,9 @@ Calendar principal.
 Calendar no consume un espacio Gmail. Todas las cuentas fuente escriben primero
 en una única Agenda interna; el único Calendar principal replica esos eventos.
 Una desconexión o error de Google no elimina el compromiso interno.
+Las conexiones Calendar existentes deben usar una vez **Volver a autorizar
+Calendar** después de agregar `calendar.calendarlist`; la autorización conserva
+el calendario y sus eventos y sólo corrige su visibilidad en Google.
 
 Gmail History es el flujo normal. Como defensa ante cursores vencidos o huecos,
 AgenKin recorre una vez por día los últimos siete días con un cursor separado y
