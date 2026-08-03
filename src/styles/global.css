@@ -19,6 +19,21 @@
   line-height: 1.5;
 }
 
+.estado-ruta-protegida { display: none; }
+html.ruta-protegida-pendiente body > :not(.estado-ruta-protegida) { visibility: hidden; }
+html.ruta-protegida-pendiente .estado-ruta-protegida {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  z-index: 100;
+  place-items: center;
+  padding: 1.5rem;
+  background: var(--fondo);
+  color: var(--tinta-suave);
+  font-weight: 700;
+  text-align: center;
+}
+
 :root[data-theme="dark"] {
   --tinta: #f3f8fc;
   --tinta-suave: #a7b5c4;

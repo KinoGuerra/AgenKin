@@ -200,8 +200,10 @@ async function iniciar() {
     if (!contexto) return
     administradorId = contexto.user.id
     renderPerfil(contexto.perfil)
+    document.documentElement.classList.remove('ruta-protegida-pendiente')
     await cargar()
   } catch (error) {
+    document.documentElement.classList.remove('ruta-protegida-pendiente')
     mostrarAviso(error.message || 'No se pudo cargar el panel administrativo.', 'error')
   }
 }

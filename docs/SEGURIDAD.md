@@ -8,6 +8,8 @@
 - Las cuentas suspendidas o bloqueadas pierden acceso en RLS, no solo en la interfaz.
 - Las operaciones administrativas y de Google usan Edge Functions.
 - La administración exige un JWT con nivel de autenticación `aal2`.
+- El selector valida AAL2 antes de navegar y `admin.html` permanece cubierto por
+  una pantalla de validación hasta confirmar sesión, rol y segundo factor.
 - La función SQL administrativa verifica el rol, bloquea el auto-bloqueo, actualiza y audita dentro de una transacción.
 - Las conexiones, correos, tareas y eventos validan que el usuario y la cuenta
   Google pertenezcan al mismo propietario.
