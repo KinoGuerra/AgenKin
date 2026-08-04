@@ -133,6 +133,27 @@ function sumarDias(base: { anio: number; mes: number; dia: number }, dias: numbe
   return fechaIso(fecha.getUTCFullYear(), fecha.getUTCMonth() + 1, fecha.getUTCDate())
 }
 
+function resolverFechaSinAnio(
+  base: { anio: number; mes: number; dia: number },
+  mes: number,
+  dia: number,
+) {
+  const fechaBase = Date.UTC(base.anio, base.mes - 1, base.dia)
+  const mismoAnio = fechaIso(base.anio, mes, dia)
+  if (!mismoAnio || Date.UTC(base.anio, mes - 1, dia) >= fechaBase) return mismoAnio
+
+  const anioSiguiente = fechaIso(base.anio + 1, mes, dia)
+  if (!anioSiguiente) return mismoAnio
+  const diasHastaSiguiente = (
+    Date.UTC(base.anio + 1, mes - 1, dia) - fechaBase
+  ) / 86_400_000
+
+  // Una fecha sin año sólo cruza de año cuando queda razonablemente cerca.
+  // Así, "14/06" en un correo del 22/06 sigue siendo histórico y no se
+  // convierte silenciosamente en un compromiso para junio del año siguiente.
+  return diasHastaSiguiente <= 180 ? anioSiguiente : mismoAnio
+}
+
 function contextoCercano(texto: string, posicion: number, longitud: number) {
   const inicio = Math.max(0, texto.lastIndexOf('\n', posicion - 1) + 1)
   const finLinea = texto.indexOf('\n', posicion + longitud)
@@ -179,20 +200,22 @@ export function extraerFechas(
   for (const coincidencia of texto.matchAll(/\b(\d{1,2})[/-](\d{1,2})(?![/-]\d)\b/g)) {
     const dia = Number(coincidencia[1])
     const mes = Number(coincidencia[2])
-    let anio = base.anio
-    let valor = fechaIso(anio, mes, dia)
-    if (valor && valor < fechaIso(base.anio, base.mes, base.dia)!) valor = fechaIso(++anio, mes, dia)
-    agregar(coincidencia.index || 0, valor, coincidencia[0])
+    agregar(
+      coincidencia.index || 0,
+      resolverFechaSinAnio(base, mes, dia),
+      coincidencia[0],
+    )
   }
   for (const coincidencia of normalizado.matchAll(
     /\b(\d{1,2})\s+de\s+(enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|setiembre|octubre|noviembre|diciembre)(?!\s+(?:de\s+)?20\d{2})\b/g,
   )) {
     const dia = Number(coincidencia[1])
     const mes = MESES[coincidencia[2]]
-    let anio = base.anio
-    let valor = fechaIso(anio, mes, dia)
-    if (valor && valor < fechaIso(base.anio, base.mes, base.dia)!) valor = fechaIso(++anio, mes, dia)
-    agregar(coincidencia.index || 0, valor, coincidencia[0])
+    agregar(
+      coincidencia.index || 0,
+      resolverFechaSinAnio(base, mes, dia),
+      coincidencia[0],
+    )
   }
 
   const relativas = [

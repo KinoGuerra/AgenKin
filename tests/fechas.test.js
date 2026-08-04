@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   calcularFinPrueba,
+  esFechaActualOFutura,
   fechaActualIso,
   formatearFecha,
   formatearFechaHora,
@@ -44,5 +45,14 @@ describe('fechaActualIso', () => {
       'America/Argentina/Cordoba',
       new Date('2026-07-31T01:30:00Z'),
     )).toBe('2026-07-30')
+  })
+})
+
+describe('esFechaActualOFutura', () => {
+  it('excluye fechas vencidas y conserva hoy o fechas posteriores', () => {
+    const ahora = new Date('2026-08-03T15:00:00Z')
+    expect(esFechaActualOFutura('2026-06-14', undefined, ahora)).toBe(false)
+    expect(esFechaActualOFutura('2026-08-03', undefined, ahora)).toBe(true)
+    expect(esFechaActualOFutura('2026-08-10', undefined, ahora)).toBe(true)
   })
 })

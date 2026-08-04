@@ -26,6 +26,8 @@ Rutas principales:
 - `access.html`: selector exclusivo del superadministrador.
 - `admin.html`: administración.
 - `src/services/supabase.js`: único cliente Supabase del frontend.
+- `mobile/`: aplicación Android Flutter para usuarios finales; no contiene
+  administración ni secretos y reutiliza Auth, RLS, RPC y Edge Functions.
 - `supabase/migrations/`: esquema, funciones, permisos y RLS.
 - `supabase/functions/`: administración, OAuth y workers.
 - `supabase/functions/_shared/`: Gmail, Calendar, IA y procesamiento compartido.
@@ -149,6 +151,14 @@ Antes de entregar:
 npm run lint
 npm run test
 npm run build
+```
+
+Si cambia `mobile/`, ejecutar además:
+
+```bash
+cd mobile
+flutter analyze
+flutter test
 ```
 
 Para cada Edge Function modificada:
