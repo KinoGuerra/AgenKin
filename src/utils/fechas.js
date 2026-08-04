@@ -69,3 +69,12 @@ export function fechaActualIso(
   const valorDe = (tipo) => partes.find((parte) => parte.type === tipo)?.value || ''
   return `${valorDe('year')}-${valorDe('month')}-${valorDe('day')}`
 }
+
+export function esFechaActualOFutura(
+  valor,
+  zonaHoraria = 'America/Argentina/Cordoba',
+  ahora = new Date(),
+) {
+  const fecha = normalizarFecha(valor)
+  return Boolean(fecha && fecha >= fechaActualIso(zonaHoraria, ahora))
+}

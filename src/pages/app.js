@@ -6,7 +6,7 @@ import { invocarFuncion } from '../services/edge.js'
 import { cargarEventosAgenda, cargarPortal } from '../services/portal.js'
 import { supabase } from '../services/supabase.js'
 import { formatearAvisoDia, formatearMontoARS } from '../utils/clasificacion.js'
-import { fechaActualIso, formatearFecha, formatearFechaHora } from '../utils/fechas.js'
+import { esFechaActualOFutura, fechaActualIso, formatearFecha, formatearFechaHora } from '../utils/fechas.js'
 
 let datosPortal
 let usuarioActualId
@@ -53,7 +53,8 @@ function estadoVisibleVencimiento(item) {
 function renderVencimientos(vencimientos) {
   if (!tbodyVencimientos) return
   tbodyVencimientos.replaceChildren()
-  if (!vencimientos.length) {
+  const visibles = vencimientos.filter((item) => esFechaActualOFutura(item.fecha_vencimiento))
+  if (!visibles.length) {
     const fila = document.createElement('tr')
     const celda = crearCelda('Todavía no hay vencimientos detectados.')
     celda.colSpan = 6
@@ -62,7 +63,7 @@ function renderVencimientos(vencimientos) {
     return
   }
   const hoy = fechaActualIso()
-  const ordenados = [...vencimientos].sort((a, b) => {
+  const ordenados = [...visibles].sort((a, b) => {
     const aVencido = a.estado === 'vencido' || a.fecha_vencimiento < hoy
     const bVencido = b.estado === 'vencido' || b.fecha_vencimiento < hoy
     if (aVencido !== bVencido) return aVencido ? 1 : -1

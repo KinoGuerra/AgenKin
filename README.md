@@ -49,6 +49,7 @@ Se eligió JavaScript multipágina sin React ni router: GitHub Pages sirve cada 
 │   ├── migrations/       esquema, RLS, RPC, colas y Cron
 │   └── functions/        funciones Deno y módulos compartidos
 ├── tests/                Vitest
+├── mobile/               aplicación Android Flutter para usuarios finales
 ├── docs/                 configuración y seguridad
 └── .github/workflows/    validación y GitHub Pages
 ```
@@ -291,6 +292,12 @@ npm run test
 npm run build
 npm run preview
 ```
+
+La primera etapa de la aplicación Android vive en [`mobile/`](mobile/README.md).
+Usa Material 3, Riverpod, GoRouter y Supabase Flutter; comparte el backend y las
+políticas RLS del portal, pero no incluye funciones administrativas. Su
+configuración, deep links, ejecución y limitaciones OAuth están documentados en
+el README propio.
 
 Las más de cien pruebas cubren normalización de fechas, confianza, prueba de 15 días,
 multicuenta y límites por plan, reparto de cola para hasta 125 cuentas,

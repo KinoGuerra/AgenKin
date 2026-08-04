@@ -131,6 +131,32 @@ describe('extracción local y patrones de Gmail', () => {
     expect(valores).toContain('2027-01-07')
   })
 
+  it('no convierte una fecha histórica sin año en un compromiso del año siguiente', async () => {
+    const analisis = await analizarLocalmente(
+      'Tu pedido fue registrado el 14/06. Debés completar el seguimiento.',
+      'Pedidos <avisos@pedidos.example>',
+      '2026-06-22T15:30:00-03:00',
+    )
+
+    expect(analisis.fechas[0].valor).toBe('2026-06-14')
+    expect(evaluarPreviamente(
+      analisis,
+      'Confirmación de tu pedido',
+      true,
+      false,
+      new Date('2026-08-03T12:00:00Z'),
+    )).toMatchObject({
+      requiereIa: false,
+      motivo: 'compromiso_historico_claro',
+      clasificacionLocal: { fecha: '2026-06-14' },
+    })
+  })
+
+  it('permite cruzar de año cuando la fecha sin año está próxima', () => {
+    expect(extraerFechas('Vence el 15/01', '2026-12-20T10:00:00-03:00')[0].valor)
+      .toBe('2027-01-15')
+  })
+
   it('resuelve próximo lunes y este viernes de forma futura y determinística', () => {
     expect(extraerFechas('Próximo lunes', '2026-08-03T10:00:00-03:00')[0].valor)
       .toBe('2026-08-10')
