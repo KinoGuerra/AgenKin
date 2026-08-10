@@ -43,11 +43,17 @@
       <section class="panel panel--agenda panel--pagina">
         <div class="titulo-seccion agenda-cabecera">
           <div><h2>Tu calendario</h2><p>Navegá por mes y seleccioná un día para revisar sus eventos.</p></div>
-          <div class="agenda-navegacion">
-            <button class="boton boton--mini" data-agenda-anterior aria-label="Mes anterior">←</button>
-            <strong data-agenda-mes>—</strong>
-            <button class="boton boton--mini" data-agenda-siguiente aria-label="Mes siguiente">→</button>
-            <button class="boton boton--mini boton--texto" data-agenda-hoy>Hoy</button>
+          <div class="agenda-acciones">
+            <button class="boton boton--primario agenda-nuevo-evento" type="button" data-nuevo-evento>
+              <span class="agenda-nuevo-evento__icono" aria-hidden="true">+</span>
+              Nuevo evento
+            </button>
+            <div class="agenda-navegacion">
+              <button class="boton boton--mini" data-agenda-anterior aria-label="Mes anterior">←</button>
+              <strong data-agenda-mes>—</strong>
+              <button class="boton boton--mini" data-agenda-siguiente aria-label="Mes siguiente">→</button>
+              <button class="boton boton--mini boton--texto" data-agenda-hoy>Hoy</button>
+            </div>
           </div>
         </div>
         <div class="agenda-layout">
@@ -59,6 +65,26 @@
         </div>
       </section>
     </main>
+    <dialog data-evento-manual-dialog>
+      <form method="dialog" data-evento-manual-form>
+        <header>
+          <div><p class="eyebrow">Compromiso personal</p><h2>Nuevo evento</h2></div>
+          <button value="cancel" class="cerrar" aria-label="Cerrar">×</button>
+        </header>
+        <label>Título<input name="p_titulo" required maxlength="160" autocomplete="off"></label>
+        <label>Descripción <span class="sr-only">opcional</span><textarea name="p_descripcion" maxlength="1000" placeholder="Lugar, enlace o detalle que quieras recordar"></textarea></label>
+        <div class="campos-dobles">
+          <label>Fecha<input name="p_fecha" type="date" required></label>
+          <label>Hora <span class="sr-only">opcional; sin hora se guarda para todo el día</span><input name="p_hora" type="time"></label>
+        </div>
+        <div class="campos-dobles">
+          <label>Recordatorio<select name="p_recordatorio_minutos"><option value="10">10 minutos antes</option><option value="30">30 minutos antes</option><option value="60">1 hora antes</option><option value="1440" selected>1 día antes</option></select></label>
+          <label>Calendario<input value="Agenda" readonly></label>
+        </div>
+        <p class="ayuda-evento-manual">Si no indicás una hora, ocupará todo el día. Siempre se guarda en Agenda y se replica en Google Calendar cuando está conectado.</p>
+        <footer><button value="cancel" class="boton boton--secundario">Cancelar</button><button value="default" class="boton boton--primario">Crear evento</button></footer>
+      </form>
+    </dialog>
     <script type="module" src="./src/pages/app.js"></script>
   </body>
 </html>
