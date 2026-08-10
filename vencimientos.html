@@ -52,14 +52,14 @@
     </main>
     <dialog data-evento-dialog>
       <form method="dialog" data-evento-form>
-        <header><div><p class="eyebrow">Confirmación manual</p><h2>Crear evento</h2></div><button value="cancel" class="cerrar" aria-label="Cerrar">×</button></header>
+        <header><div><p class="eyebrow">Confirmación manual</p><h2>Crear evento</h2></div><button value="cancel" formnovalidate class="cerrar" aria-label="Cerrar">×</button></header>
         <input type="hidden" name="vencimiento_id">
         <label>Título<input name="titulo" required maxlength="160"></label>
         <label>Descripción<textarea name="descripcion" maxlength="1000"></textarea></label>
         <div class="campos-dobles"><label>Fecha<input name="fecha" type="date" required></label><label>Hora<input name="hora" type="time"></label></div>
         <div class="campos-dobles"><label>Recordatorio<select name="recordatorio"><option value="10">10 minutos antes</option><option value="30">30 minutos antes</option><option value="60">1 hora antes</option><option value="1440">1 día antes</option></select></label><label>Calendario<input name="calendario" value="Agenda" readonly></label></div>
         <p>El evento se guardará en Agenda y se replicará en Google Calendar cuando esté conectado.</p>
-        <footer><button value="cancel" class="boton boton--secundario">Cancelar</button><button value="default" class="boton boton--primario" data-confirm-event>Confirmar y crear</button></footer>
+        <footer><button value="cancel" formnovalidate class="boton boton--secundario">Cancelar</button><button value="default" class="boton boton--primario" data-confirm-event>Confirmar y crear</button></footer>
       </form>
     </dialog>
     <script type="module" src="./src/pages/app.js"></script>

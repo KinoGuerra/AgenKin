@@ -149,7 +149,7 @@
       <form method="dialog" data-admin-form>
         <header>
           <div><p class="eyebrow">Acción administrativa</p><h2 data-admin-titulo>Gestionar usuario</h2></div>
-          <button value="cancel" class="cerrar" aria-label="Cerrar">×</button>
+          <button value="cancel" formnovalidate class="cerrar" aria-label="Cerrar">×</button>
         </header>
         <input type="hidden" name="usuario_id">
         <input type="hidden" name="accion">
@@ -158,7 +158,7 @@
         <label>Observación interna<textarea name="observacion" maxlength="1000" placeholder="Motivo de la acción"></textarea></label>
         <p data-admin-confirmacion>Confirmá la acción. El cambio quedará registrado.</p>
         <footer>
-          <button value="cancel" class="boton boton--secundario">Cancelar</button>
+          <button value="cancel" formnovalidate class="boton boton--secundario">Cancelar</button>
           <button value="default" class="boton boton--peligro" data-admin-confirmar>Confirmar</button>
         </footer>
       </form>

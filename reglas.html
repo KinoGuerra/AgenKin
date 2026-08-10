@@ -47,7 +47,7 @@
     </main>
     <dialog data-regla-dialog>
       <form method="dialog" data-regla-form>
-        <header><div><p class="eyebrow">Regla personal</p><h2>Nueva regla</h2></div><button value="cancel" class="cerrar" aria-label="Cerrar">×</button></header>
+        <header><div><p class="eyebrow">Regla personal</p><h2>Nueva regla</h2></div><button value="cancel" formnovalidate class="cerrar" aria-label="Cerrar">×</button></header>
         <label>Nombre<input name="nombre" required maxlength="100" placeholder="Ej.: Priorizar facturas"></label>
         <div class="campos-dobles">
           <label>Campo<select name="campo"><option value="remitente">Remitente</option><option value="asunto">Asunto</option></select></label>
@@ -55,7 +55,7 @@
         </div>
         <label>Valor<input name="valor" required maxlength="200"></label>
         <label>Acción<select name="accion"><option value="priorizar">Priorizar y autorizar automatización</option><option value="ignorar">Ignorar</option></select></label>
-        <footer><button value="cancel" class="boton boton--secundario">Cancelar</button><button value="default" class="boton boton--primario" data-guardar-regla>Guardar regla</button></footer>
+        <footer><button value="cancel" formnovalidate class="boton boton--secundario">Cancelar</button><button value="default" class="boton boton--primario" data-guardar-regla>Guardar regla</button></footer>
       </form>
     </dialog>
     <script type="module" src="./src/pages/app.js"></script>
