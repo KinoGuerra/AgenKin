@@ -69,7 +69,7 @@
       <form method="dialog" data-evento-manual-form>
         <header>
           <div><p class="eyebrow">Compromiso personal</p><h2>Nuevo evento</h2></div>
-          <button value="cancel" class="cerrar" aria-label="Cerrar">×</button>
+          <button value="cancel" formnovalidate class="cerrar" aria-label="Cerrar">×</button>
         </header>
         <label>Título<input name="p_titulo" required maxlength="160" autocomplete="off"></label>
         <label>Descripción <span class="sr-only">opcional</span><textarea name="p_descripcion" maxlength="1000" placeholder="Lugar, enlace o detalle que quieras recordar"></textarea></label>
@@ -82,7 +82,7 @@
           <label>Calendario<input value="Agenda" readonly></label>
         </div>
         <p class="ayuda-evento-manual">Si no indicás una hora, ocupará todo el día. Siempre se guarda en Agenda y se replica en Google Calendar cuando está conectado.</p>
-        <footer><button value="cancel" class="boton boton--secundario">Cancelar</button><button value="default" class="boton boton--primario">Crear evento</button></footer>
+        <footer><button value="cancel" formnovalidate class="boton boton--secundario">Cancelar</button><button value="default" class="boton boton--primario">Crear evento</button></footer>
       </form>
     </dialog>
     <script type="module" src="./src/pages/app.js"></script>

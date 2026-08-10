@@ -77,6 +77,14 @@ describe('portal separado por subpáginas', () => {
     expect(pagina).toContain("'aria-pressed', String(seleccionado)")
   })
 
+  it('permite cancelar formularios incompletos sin ejecutar validaciones', () => {
+    ;['agenda.html', 'vencimientos.html', 'reglas.html', 'admin.html'].forEach((archivo) => {
+      const botonesCancelar = [...leer(archivo).matchAll(/<button[^>]+value="cancel"[^>]*>/g)]
+      expect(botonesCancelar.length).toBeGreaterThan(0)
+      botonesCancelar.forEach(([boton]) => expect(boton).toContain('formnovalidate'))
+    })
+  })
+
   it('permite crear compromisos manuales sin mezclarlos con hallazgos de correo', () => {
     const agenda = leer('agenda.html')
     const pagina = leer('src/pages/app.js')
