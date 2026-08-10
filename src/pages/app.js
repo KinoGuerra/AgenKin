@@ -19,6 +19,8 @@ const paginaPortal = document.body.dataset.portalPage || 'inicio'
 const tbodyVencimientos = document.querySelector('[data-vencimientos]')
 const dialogoEvento = document.querySelector('[data-evento-dialog]')
 const formularioEvento = document.querySelector('[data-evento-form]')
+const dialogoEventoManual = document.querySelector('[data-evento-manual-dialog]')
+const formularioEventoManual = document.querySelector('[data-evento-manual-form]')
 const dialogoRegla = document.querySelector('[data-regla-dialog]')
 const formularioRegla = document.querySelector('[data-regla-form]')
 const formularioAutomatizacion = document.querySelector('[data-auto-form]')
@@ -379,7 +381,7 @@ function renderAgenda() {
   }
 }
 
-async function cargarMesAgenda() {
+async function cargarMesAgenda(fechaPreferida) {
   if (!document.querySelector('[data-agenda-grid]')) return
   const inicioSemana = (mesAgenda.getDay() + 6) % 7
   const desde = new Date(mesAgenda)
@@ -389,10 +391,11 @@ async function cargarMesAgenda() {
   eventosAgenda = await cargarEventosAgenda(desde.toISOString(), hasta.toISOString())
   renderAgenda()
   const hoy = new Date()
-  const fechaInicial =
+  const fechaInicial = fechaPreferida || (
     hoy.getFullYear() === mesAgenda.getFullYear() && hoy.getMonth() === mesAgenda.getMonth()
       ? claveFecha(hoy)
       : claveFecha(mesAgenda)
+  )
   const diaInicial = document.querySelector(`[data-agenda-fecha="${fechaInicial}"]`)
   if (diaInicial) {
     diaInicial.dataset.seleccionado = 'true'
@@ -955,6 +958,41 @@ document.querySelector('[data-agenda-grid]')?.addEventListener('click', (evento)
     elemento.setAttribute('aria-pressed', String(seleccionado))
   })
   renderDetalleAgenda(dia.dataset.agendaFecha)
+})
+document.querySelector('[data-nuevo-evento]')?.addEventListener('click', () => {
+  formularioEventoManual.reset()
+  const hoy = fechaActualIso()
+  const seleccionada = document.querySelector('[data-agenda-fecha][data-seleccionado="true"]')
+    ?.dataset.agendaFecha
+  formularioEventoManual.elements.p_fecha.min = hoy
+  formularioEventoManual.elements.p_fecha.value = seleccionada >= hoy ? seleccionada : hoy
+  dialogoEventoManual.showModal()
+  formularioEventoManual.elements.p_titulo.focus()
+})
+formularioEventoManual?.addEventListener('submit', async (evento) => {
+  if (evento.submitter?.value === 'cancel') return
+  evento.preventDefault()
+  const boton = evento.submitter
+  setCargando(boton, true, 'Creando…')
+  try {
+    const payload = Object.fromEntries(new FormData(formularioEventoManual))
+    payload.p_hora ||= null
+    payload.p_recordatorio_minutos = Number(payload.p_recordatorio_minutos)
+    const { data, error } = await supabase.rpc('crear_evento_manual', payload)
+    if (error) throw error
+    dialogoEventoManual.close()
+    const fecha = new Date(`${payload.p_fecha}T12:00:00`)
+    mesAgenda = new Date(fecha.getFullYear(), fecha.getMonth(), 1)
+    const detalleGoogle = data.google_estado === 'pendiente'
+      ? ' y quedó pendiente de sincronización con Google Calendar'
+      : ''
+    mostrarAviso(`Evento guardado en Agenda${detalleGoogle}.`, 'exito')
+    await cargarMesAgenda(payload.p_fecha)
+  } catch (error) {
+    mostrarAviso(error.message || 'No se pudo crear el evento.', 'error')
+  } finally {
+    setCargando(boton, false)
+  }
 })
 eventosAutomaticos?.addEventListener('change', () => {
   if (eventosAutomaticos.checked) sincronizacionAutomatica.checked = true

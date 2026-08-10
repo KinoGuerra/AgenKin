@@ -77,6 +77,27 @@ describe('portal separado por subpáginas', () => {
     expect(pagina).toContain("'aria-pressed', String(seleccionado)")
   })
 
+  it('permite crear compromisos manuales sin mezclarlos con hallazgos de correo', () => {
+    const agenda = leer('agenda.html')
+    const pagina = leer('src/pages/app.js')
+    const servicio = leer('src/services/portal.js')
+    const migracion = leer('supabase/migrations/20260810163618_agregar_eventos_manuales_agenda.sql')
+      .replace(/\s+/g, ' ').toLowerCase()
+    expect(agenda).toContain('data-nuevo-evento')
+    expect(agenda).toContain('data-evento-manual-form')
+    expect(pagina).toContain("supabase.rpc('crear_evento_manual'")
+    expect(servicio).toContain(".not('correo_id', 'is', null)")
+    expect(migracion).toContain('alter column correo_id drop not null')
+    expect(migracion).toContain('create or replace function private.crear_evento_manual(')
+    expect(migracion).toContain('create or replace function public.crear_evento_manual(')
+    expect(migracion).toContain('security invoker')
+    expect(migracion).toContain('v_usuario_id uuid := (select auth.uid())')
+    expect(migracion).toContain('if not (select private.usuario_habilitado())')
+    expect(migracion).toContain('v_evento_id := public.registrar_evento_agenda(')
+    expect(migracion).toContain('from public, anon, authenticated')
+    expect(migracion).toContain('to authenticated')
+  })
+
   it('muestra la foto de Google con iniciales como respaldo seguro', () => {
     const pagina = leer('src/pages/app.js')
     const estilos = leer('src/styles/portal.css')

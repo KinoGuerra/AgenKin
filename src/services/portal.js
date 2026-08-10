@@ -19,7 +19,8 @@ export async function cargarPortal(pagina = 'inicio', opciones = {}) {
   if (pagina === 'vencimientos') {
     consultas.vencimientos = supabase
       .from('vencimientos_detectados')
-      .select('id,tipo,titulo,descripcion,fecha_vencimiento,hora_vencimiento,zona_horaria,confianza,estado,requiere_revision,correos_procesados!vencimientos_correo_usuario_fkey(asunto),eventos_calendar!eventos_vencimiento_usuario_fkey(estado_google,google_event_id,error_google,estado_sincronizacion)')
+      .select('id,correo_id,tipo,titulo,descripcion,fecha_vencimiento,hora_vencimiento,zona_horaria,confianza,estado,requiere_revision,correos_procesados!vencimientos_correo_usuario_fkey(asunto),eventos_calendar!eventos_vencimiento_usuario_fkey(estado_google,google_event_id,error_google,estado_sincronizacion)')
+      .not('correo_id', 'is', null)
       .gte('fecha_vencimiento', fechaActualIso())
       .in('estado', ['pendiente', 'confirmado', 'evento_creado', 'error'])
       .order('fecha_vencimiento', { ascending: true })

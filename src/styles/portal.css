@@ -583,6 +583,20 @@ a.dashboard-card:hover { border-color: color-mix(in srgb, var(--verde) 52%, var(
 }
 .panel--agenda { overflow: hidden; }
 .agenda-cabecera { align-items: flex-end; }
+.agenda-acciones { display: flex; align-items: center; justify-content: flex-end; gap: .85rem; }
+.agenda-nuevo-evento { padding-left: .65rem; box-shadow: 0 8px 24px color-mix(in srgb, var(--verde) 24%, transparent); }
+.agenda-nuevo-evento__icono {
+  display: grid;
+  width: 1.7rem;
+  height: 1.7rem;
+  place-items: center;
+  border: 1px solid rgb(255 255 255 / 38%);
+  border-radius: 7px 3px 7px 3px;
+  background: rgb(255 255 255 / 14%);
+  font-size: 1.2rem;
+  font-weight: 500;
+}
+.ayuda-evento-manual { margin: -.15rem 0 0; font-size: .8rem; }
 .agenda-navegacion { display: flex; align-items: center; gap: .45rem; }
 .agenda-navegacion strong {
   min-width: 150px;
@@ -997,6 +1011,8 @@ td select { min-width: 150px; padding: .4rem; font-size: .75rem; }
   .cuenta-google__estado { justify-self: start; }
   .agenda-layout { grid-template-columns: 1fr; }
   .agenda-cabecera { align-items: stretch; }
+  .agenda-acciones { width: 100%; align-items: stretch; flex-direction: column; }
+  .agenda-nuevo-evento { align-self: flex-start; }
   .agenda-navegacion { width: 100%; justify-content: space-between; }
   .agenda-navegacion strong { min-width: 0; }
   .dia-agenda { min-height: 82px; padding: .38rem; }
@@ -1049,6 +1065,7 @@ td select { min-width: 150px; padding: .4rem; font-size: .75rem; }
   .tabla-categorias td:last-child { min-width: 125px; }
   .tabla-categorias meter { width: 80px; }
   .panel--agenda { padding-inline: .65rem; }
+  .agenda-nuevo-evento { width: 100%; }
   .calendario-agenda__semana span { padding-inline: .1rem; font-size: .55rem; }
   .dia-agenda { min-height: 58px; padding: .25rem; }
   .dia-agenda > span { width: 1.35rem; height: 1.35rem; font-size: .68rem; }
