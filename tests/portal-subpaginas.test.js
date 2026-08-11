@@ -80,6 +80,9 @@ describe('portal separado por subpáginas', () => {
     expect(estilos).toContain('font-size: 1.45rem')
     expect(estilos).toContain('transform: scale(.72) rotate(-5deg)')
     expect(estilos).toContain('.navegacion-lateral__texto')
+    expect(estilos).toContain('.tarjeta-encabezado--agenda .boton--sincronizar-agenda')
+    expect(estilos).toContain('min-height: 38px')
+    expect(estilos).toContain('content: "↻"')
   })
 
   it('calcula correos de hoy y protege las solicitudes de mejora por usuario', () => {
