@@ -10,9 +10,10 @@ export async function cargarPortal(pagina = 'inicio', opciones = {}) {
   if (pagina === 'correos') {
     const paginaCorreos = Math.max(1, Number(opciones.paginaCorreos) || 1)
     const desde = (paginaCorreos - 1) * 25
+    consultas.conexion = supabase.rpc('obtener_estado_conexion_google')
     consultas.correos = supabase
       .from('correos_procesados')
-      .select('id,gmail_message_id,gmail_thread_id,remitente,asunto,fecha_correo,categoria,grupo_resumen,grupo_asignado_por,relevante,estado_procesamiento,error_procesamiento,detalle_compactado,duplicado_funcional,requiere_revision,motivo_revision,candidatos_revision,remitente_autenticado,conexiones_google!correos_conexion_usuario_fkey(google_email),vencimientos_detectados!vencimientos_correo_usuario_fkey(titulo,descripcion,fecha_vencimiento,monto)', { count: 'exact' })
+      .select('id,conexion_google_id,gmail_message_id,gmail_thread_id,remitente,asunto,fecha_correo,categoria,grupo_resumen,grupo_asignado_por,relevante,estado_procesamiento,error_procesamiento,detalle_compactado,duplicado_funcional,requiere_revision,motivo_revision,candidatos_revision,remitente_autenticado,vencimientos_detectados!vencimientos_correo_usuario_fkey(titulo,descripcion,fecha_vencimiento,monto)', { count: 'exact' })
       .order('fecha_correo', { ascending: false, nullsFirst: false })
       .range(desde, desde + 24)
   }
@@ -37,6 +38,12 @@ export async function cargarPortal(pagina = 'inicio', opciones = {}) {
   if (pagina === 'correos') {
     const indiceCorreos = entradas.findIndex(([clave]) => clave === 'correos')
     datos.correos_total = resultados[indiceCorreos]?.count || 0
+    const cuentas = Array.isArray(datos.conexion?.gmail?.cuentas) ? datos.conexion.gmail.cuentas : []
+    const emailsPorConexion = new Map(cuentas.map((cuenta) => [cuenta.id, cuenta.email]))
+    datos.correos = datos.correos.map((correo) => ({
+      ...correo,
+      google_email: emailsPorConexion.get(correo.conexion_google_id) || null,
+    }))
   }
   return { vencimientos: [], correos: [], reglas: [], ...datos }
 }
