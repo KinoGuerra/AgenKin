@@ -38,6 +38,11 @@ const botonMenu = document.querySelector('[data-menu]')
 const barraLateral = document.querySelector('.barra-lateral')
 const botonMenuLateral = document.querySelector('[data-menu-lateral-toggle]')
 const CLAVE_MENU_LATERAL = 'agenkin_menu_lateral_colapsado'
+const SOLAPAS_CONFIGURACION = {
+  suscripcion: 'cuenta',
+  google: 'conexiones',
+  notificaciones: 'notificaciones',
+}
 const GRUPOS = [
   ['tarjetas', 'Tarjetas'],
   ['servicios', 'Servicios'],
@@ -475,7 +480,7 @@ function renderCuentasGoogle(cuentas = [], calendar = {}) {
     estado.dataset.estado = cuenta.conectado ? 'conectado' : 'desconectado'
     estado.textContent = cuenta.estado === 'token_vencido'
       ? 'Token vencido'
-      : cuenta.conectado ? 'Gmail conectado' : 'Desconectado'
+      : cuenta.conectado ? 'Correos conectados' : 'Correos no conectados'
 
     const acciones = document.createElement('div')
     acciones.className = 'cuenta-google__acciones'
@@ -488,12 +493,12 @@ function renderCuentasGoogle(cuentas = [], calendar = {}) {
     } else if (calendar.conexion_id === cuenta.id) {
       acciones.append(
         crearBotonCuenta(
-          'Volver a autorizar Calendar',
+          'Sincronizar Calendar',
           'boton boton--mini boton--secundario',
           { useCalendar: cuenta.id },
         ),
         crearBotonCuenta(
-          'Desactivar Calendar',
+          'Desconectar Calendar',
           'boton boton--mini boton--texto',
           { disconnectGoogle: 'calendar', conexionId: cuenta.id },
         ),
@@ -501,7 +506,7 @@ function renderCuentasGoogle(cuentas = [], calendar = {}) {
     } else {
       acciones.append(
         crearBotonCuenta(
-          'Usar para Calendar',
+          'Sincronizar Calendar',
           'boton boton--mini boton--secundario',
           { useCalendar: cuenta.id },
         ),
@@ -515,7 +520,7 @@ function renderCuentasGoogle(cuentas = [], calendar = {}) {
       ))
     }
     acciones.append(crearBotonCuenta(
-      'Revocar acceso',
+      'Quitar cuenta',
       'boton boton--mini boton--peligro',
       { revokeGoogle: cuenta.id },
     ))
@@ -574,33 +579,40 @@ function renderPortal(datos) {
   const gmail = conexion.gmail || { usadas: 0, limite: 1, cuentas: [] }
   const calendar = conexion.calendar || { conectado: false }
   const cuentas = Array.isArray(gmail.cuentas) ? gmail.cuentas : []
-  const gmailConectado = Number(gmail.usadas || 0) > 0
+  const cuentasActivas = cuentas.filter((cuenta) => cuenta.conectado).length
+  const cuentasInactivas = Math.max(0, cuentas.length - cuentasActivas)
+  const gmailConectado = cuentasActivas > 0
   const espaciosDisponibles = Math.max(0, Number(gmail.limite || 1) - Number(gmail.usadas || 0))
   const estadoGmail = gmailConectado
-    ? `${gmail.usadas} de ${gmail.limite} conectadas · ${espaciosDisponibles} disponible${espaciosDisponibles === 1 ? '' : 's'}`
+    ? `${cuentasActivas} activa${cuentasActivas === 1 ? '' : 's'}`
     : 'Desconectado'
-  const estadoCalendar = calendar.conectado ? 'Conectado' : 'Desconectado'
+  const estadoCalendar = calendar.conectado ? 'Activo' : gmailConectado ? 'Disponible' : 'Desactivado'
+  const estadoCalendarVisual = calendar.conectado ? 'conectado' : gmailConectado ? 'disponible' : 'desconectado'
   const indicadores = [
     [document.querySelector('[data-header-gmail]'), estadoGmail, gmailConectado],
-    [document.querySelector('[data-header-calendar]'), estadoCalendar, calendar.conectado],
+    [document.querySelector('[data-header-calendar]'), estadoCalendar, estadoCalendarVisual],
     [document.querySelector('[data-servicio-gmail]'), estadoGmail, gmailConectado],
-    [document.querySelector('[data-servicio-calendar]'), estadoCalendar, calendar.conectado],
+    [document.querySelector('[data-servicio-calendar]'), estadoCalendar, estadoCalendarVisual],
   ].filter(([indicador]) => indicador)
-  indicadores.forEach(([indicador, texto, conectado]) => {
+  indicadores.forEach(([indicador, texto, estado]) => {
     indicador.textContent = texto
-    indicador.dataset.estado = conectado ? 'conectado' : 'desconectado'
+    indicador.dataset.estado = typeof estado === 'string'
+      ? estado
+      : estado ? 'conectado' : 'desconectado'
   })
   definirTexto(
     '[data-servicio-gmail-detalle]',
     gmailConectado
-      ? `${gmail.usadas} cuenta${gmail.usadas === 1 ? '' : 's'} · última lectura ${formatearFechaHora(conexion.gmail_ultima_lectura_en)}`
+      ? `${cuentasActivas} activa${cuentasActivas === 1 ? '' : 's'} · ${cuentasInactivas} inactiva${cuentasInactivas === 1 ? '' : 's'} · ${espaciosDisponibles} slot${espaciosDisponibles === 1 ? '' : 's'} disponible${espaciosDisponibles === 1 ? '' : 's'}`
       : 'Sin cuentas asociadas',
   )
   definirTexto(
     '[data-servicio-calendar-detalle]',
     calendar.conectado
       ? `${calendar.email || 'Cuenta de Google'} · ${Number(calendar.eventos_pendientes || 0)} pendientes · ${Number(calendar.eventos_error || 0)} con error · última sincronización ${formatearFechaHora(calendar.ultima_sincronizacion_en)}`
-      : 'Sin cuenta asociada',
+      : gmailConectado
+        ? 'Disponible para una de tus cuentas activas'
+        : 'Conectá Gmail para habilitar Calendar',
   )
   definirTexto('[data-header-agenda]', formatearFechaHora(conexion.agenda_ultima_actualizacion_en))
   const botonAgregar = document.querySelector('[data-connect-gmail]')
@@ -819,6 +831,42 @@ function renderAvatar(contexto) {
   imagen.src = avatarUrl
 }
 
+function inicializarSolapasConfiguracion() {
+  const solapas = [...document.querySelectorAll('[data-config-tab]')]
+  const paneles = [...document.querySelectorAll('[data-config-panel]')]
+  if (!solapas.length || !paneles.length) return
+
+  const activar = (nombre, actualizarUrl = false) => {
+    const solapa = solapas.find((item) => item.dataset.configTab === nombre) || solapas[0]
+    const panel = paneles.find((item) => item.dataset.configPanel === solapa.dataset.configTab)
+    solapas.forEach((item) => {
+      const activa = item === solapa
+      item.setAttribute('aria-selected', String(activa))
+      item.tabIndex = activa ? 0 : -1
+    })
+    paneles.forEach((item) => { item.hidden = item !== panel })
+    if (actualizarUrl && panel) {
+      window.history.replaceState({}, '', `${window.location.pathname}${window.location.search}#${panel.id}`)
+    }
+  }
+  const activarDesdeHash = () => activar(SOLAPAS_CONFIGURACION[window.location.hash.slice(1)] || 'cuenta')
+
+  solapas.forEach((solapa, indice) => {
+    solapa.addEventListener('click', () => activar(solapa.dataset.configTab, true))
+    solapa.addEventListener('keydown', (evento) => {
+      if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(evento.key)) return
+      evento.preventDefault()
+      const destino = evento.key === 'Home' ? 0
+        : evento.key === 'End' ? solapas.length - 1
+          : (indice + (evento.key === 'ArrowRight' ? 1 : -1) + solapas.length) % solapas.length
+      solapas[destino].focus()
+      activar(solapas[destino].dataset.configTab, true)
+    })
+  })
+  window.addEventListener('hashchange', activarDesdeHash)
+  activarDesdeHash()
+}
+
 async function iniciar() {
   try {
     const contexto = await protegerRuta('app')
@@ -827,6 +875,7 @@ async function iniciar() {
     const nombreGoogle = contexto.user?.user_metadata?.full_name || contexto.perfil.nombre_completo || ''
     definirTexto('[data-nombre]', nombreGoogle.split(' ')[0] || 'Usuario')
     renderAvatar(contexto)
+    inicializarSolapasConfiguracion()
     await refrescar()
     await abrirDestinoNotificacion()
     await inicializarCentroNotificaciones()

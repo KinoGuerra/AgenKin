@@ -12,13 +12,13 @@ describe('portal separado por subpáginas', () => {
     })
   })
 
-  it('limita los accesos directos a vencimientos, agenda y configuración', () => {
+  it('limita los accesos directos a vencimientos, agenda y configuraciones', () => {
     const portada = leer('app.html')
     const inicio = portada.indexOf('<nav class="accesos-rapidos"')
     const accesos = portada.slice(inicio, portada.indexOf('</nav>', inicio))
     expect(accesos).toContain('<strong>Vencimientos</strong>')
     expect(accesos).toContain('<strong>Agenda</strong>')
-    expect(accesos).toContain('<strong>Configuración</strong>')
+    expect(accesos).toContain('<strong>Configuraciones</strong>')
     expect(accesos).not.toContain('<strong>Correos</strong>')
     expect(accesos).not.toContain('<strong>Reglas</strong>')
   })
@@ -39,6 +39,22 @@ describe('portal separado por subpáginas', () => {
     expect(estilos).toContain('.contenido-portal--inicio .dashboard-grid')
     expect(estilos).toContain('grid-template-rows: 108px minmax(220px, 1fr)')
     expect(estilos).toContain('.contenido-portal--inicio .dashboard-card--dias')
+  })
+
+  it('organiza configuraciones en solapas accesibles sin duplicar sus acciones', () => {
+    const configuracion = leer('configuracion.html')
+    const pagina = leer('src/pages/app.js')
+    expect(configuracion).toContain('<h1>Configuraciones</h1>')
+    expect(configuracion).toContain('role="tablist"')
+    expect(configuracion).toContain('data-config-tab="cuenta"')
+    expect(configuracion).toContain('data-config-tab="conexiones"')
+    expect(configuracion).toContain('data-config-tab="notificaciones"')
+    expect(configuracion).toContain('Deseo eliminar mi cuenta')
+    expect(configuracion).toContain('data-auto-form')
+    expect(configuracion).toContain('data-notificaciones-form')
+    expect(pagina).toContain('function inicializarSolapasConfiguracion()')
+    expect(pagina).toContain("'Sincronizar Calendar'")
+    expect(pagina).toContain("'Desconectar Calendar'")
   })
 
   it('mantiene el encabezado fijo y el control lateral centrado', () => {
