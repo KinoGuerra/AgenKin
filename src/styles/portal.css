@@ -14,7 +14,7 @@
   display: grid;
   align-items: center;
   padding: .9rem 1.5rem;
-  background: linear-gradient(105deg, #071a2a 0%, #0a2e49 65%, color-mix(in srgb, #0a2e49 58%, var(--fondo)) 100%);
+  background: linear-gradient(105deg, #071a2a 0%, #08243a 30%, #0a2e49 52%, color-mix(in srgb, #0a2e49 82%, var(--fondo)) 72%, color-mix(in srgb, #0a2e49 44%, var(--fondo)) 88%, var(--fondo) 100%);
 }
 .encabezado-global__marca img { display: block; width: min(198px, 100%); height: auto; }
 .encabezado-global__tarjetas {
@@ -89,7 +89,7 @@
 .menu-lateral-toggle:hover::before, .menu-lateral-toggle:focus-visible::before { opacity: 1; transform: scale(.94); }
 .menu-lateral-toggle span { position: relative; z-index: 1; min-width: 1ch; display: inline-block; font-family: ui-monospace, "Cascadia Code", Consolas, monospace; font-size: 1.18rem; font-weight: 900; line-height: 1; text-align: center; filter: drop-shadow(0 2px 5px color-mix(in srgb, var(--verde) 28%, transparent)); transform: translateX(0) scaleX(.92); transition: transform .42s var(--menu-lateral-ease), opacity .24s ease, filter .3s ease; }
 .barra-lateral--colapsada { width: var(--ancho-lateral-colapsado); padding-inline: .75rem; }
-.barra-lateral--colapsada nav a {
+.barra-lateral.barra-lateral--colapsada nav a {
   display: grid;
   min-height: 42px;
   place-items: center;
@@ -455,7 +455,7 @@
 }
 .accesos-rapidos {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: .75rem;
   margin: 0;
 }
