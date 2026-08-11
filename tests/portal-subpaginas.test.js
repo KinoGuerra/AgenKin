@@ -32,6 +32,15 @@ describe('portal separado por subpáginas', () => {
     expect(portada).not.toContain('Una lectura rápida de lo que AgenKin organizó por vos.')
   })
 
+  it('compacta las métricas del dashboard y usa el alto disponible en escritorio', () => {
+    const portada = leer('app.html')
+    const estilos = leer('src/styles/portal.css')
+    expect(portada).toContain('contenido-portal contenido-portal--inicio')
+    expect(estilos).toContain('.contenido-portal--inicio .dashboard-grid')
+    expect(estilos).toContain('grid-template-rows: 108px minmax(220px, 1fr)')
+    expect(estilos).toContain('.contenido-portal--inicio .dashboard-card--dias')
+  })
+
   it('mantiene el encabezado fijo y el control lateral centrado', () => {
     const estilos = leer('src/styles/portal.css')
     const pagina = leer('src/pages/app.js')
