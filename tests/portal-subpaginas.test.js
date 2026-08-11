@@ -96,6 +96,8 @@ describe('portal separado por subpáginas', () => {
     expect(estilos).toContain('font-size: 1.45rem')
     expect(estilos).toContain('transform: scale(.72) rotate(-5deg)')
     expect(estilos).toContain('.navegacion-lateral__texto')
+    expect(estilos).toContain('grid-auto-rows: 42px')
+    expect(estilos).toContain('row-gap: .25rem')
     expect(estilos).toContain('.tarjeta-encabezado--agenda .boton--sincronizar-agenda')
     expect(estilos).toContain('min-height: 38px')
     expect(estilos).toContain('content: "↻"')
