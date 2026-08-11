@@ -7,7 +7,7 @@
     <meta name="referrer" content="strict-origin-when-cross-origin">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: https:; connect-src 'self' https://kpqzwbhprqlapwhadejt.supabase.co; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'">
     <script type="module" src="./src/components/frame-guard.js"></script>
-    <title>Configuración — AgenKin</title>
+    <title>Configuraciones — AgenKin</title>
     <link rel="stylesheet" href="./src/styles/global.css">
     <link rel="stylesheet" href="./src/styles/portal.css">
   </head>
@@ -29,7 +29,7 @@
         <a href="./vencimientos.html" data-icon="✉✓" data-tooltip="Vencimientos"><span class="navegacion-lateral__texto">Vencimientos</span></a>
         <a href="./agenda.html" data-icon="▣" data-tooltip="Agenda"><span class="navegacion-lateral__texto">Agenda</span></a>
         <a href="./reglas.html" data-icon="▤✎" data-tooltip="Reglas personales"><span class="navegacion-lateral__texto">Reglas personales</span></a>
-        <a class="activo" href="./configuracion.html" data-icon="⚙" data-tooltip="Configuración"><span class="navegacion-lateral__texto">Configuración</span></a>
+        <a class="activo" href="./configuracion.html" data-icon="⚙" data-tooltip="Configuraciones"><span class="navegacion-lateral__texto">Configuraciones</span></a>
       </nav>
       <div class="acciones-laterales">
         <label class="tema-switch"><span class="tema-switch__texto" data-theme-label>Modo oscuro</span><input type="checkbox" role="switch" data-theme-toggle aria-label="Modo oscuro"><span class="tema-switch__pista" aria-hidden="true"><span class="tema-switch__indicador" data-theme-icon>☀</span></span></label>
@@ -37,80 +37,59 @@
       </div>
     </aside>
     <main id="contenido" class="contenido-portal">
-      <header class="cabecera-subpagina">
+      <header class="cabecera-subpagina cabecera-configuraciones">
         <button class="menu-movil" data-menu aria-label="Abrir menú" aria-expanded="false">☰</button>
         <a class="volver-inicio" href="./app.html" aria-label="Volver al Dashboard">←</a>
-        <div><p class="eyebrow">Cuenta e integraciones</p><h1>Configuración</h1><p>Administrá tu plan, conexiones y automatización desde un solo lugar.</p></div>
+        <div><p class="eyebrow">Cuenta e integraciones</p><h1>Configuraciones</h1><p>Todo lo relacionado con tu cuenta, conexiones y alertas en un mismo lugar.</p></div>
       </header>
       <div data-alertas></div>
 
-      <section id="suscripcion" class="panel panel--pagina">
-        <div class="titulo-seccion">
-          <div><p class="eyebrow">Suscripción</p><h2>Tu plan</h2><p>Estado, vigencia y capacidad de cuentas conectadas.</p></div>
-          <button class="boton boton--secundario" data-request-plan>Solicitar mejora</button>
+      <section class="configuraciones-shell" aria-label="Panel de configuraciones">
+        <div class="configuraciones-solapas" role="tablist" aria-label="Secciones de configuración">
+          <button id="solapa-mi-cuenta" type="button" role="tab" aria-selected="true" aria-controls="suscripcion" data-config-tab="cuenta">Mi cuenta</button>
+          <button id="solapa-conexiones" type="button" role="tab" aria-selected="false" aria-controls="google" data-config-tab="conexiones" tabindex="-1">Conexiones</button>
+          <button id="solapa-notificaciones" type="button" role="tab" aria-selected="false" aria-controls="notificaciones" data-config-tab="notificaciones" tabindex="-1">Notificaciones</button>
         </div>
-        <div class="suscripcion-grid">
-          <dl><div><dt>Plan</dt><dd data-suscripcion="plan">—</dd></div><div><dt>Estado</dt><dd data-suscripcion="estado">—</dd></div><div><dt>Inicio</dt><dd data-suscripcion="inicio">—</dd></div><div><dt>Vencimiento</dt><dd data-suscripcion="vencimiento">—</dd></div></dl>
-          <div><label for="uso-plan">Cuentas Gmail conectadas</label><progress id="uso-plan" max="100" value="0" data-uso></progress><p data-uso-texto>—</p></div>
-        </div>
-      </section>
 
-      <section id="google" class="panel panel--google panel--pagina">
-        <div class="panel-google__cabecera">
-          <div><p class="eyebrow">Integraciones opcionales</p><h2>Cuentas de Google</h2><p>Conectá las cuentas Gmail incluidas en tu plan y elegí una sola para replicar la Agenda en Calendar.</p></div>
-          <button class="boton boton--primario" data-connect-gmail>Agregar cuenta Gmail</button>
-        </div>
-        <div class="servicios-google">
-          <article class="servicio-resumen"><div><span class="servicio-icono">G</span><div><strong>Gmail</strong><p>Lectura autorizada por cuenta.</p><small data-servicio-gmail-detalle>Sin cuentas asociadas</small></div></div><span data-servicio-gmail>Desconectado</span></article>
-          <article class="servicio-resumen"><div><span class="servicio-icono">C</span><div><strong>Google Calendar</strong><p>Una cuenta replica los eventos de Agenda.</p><small data-servicio-calendar-detalle>Sin cuenta asociada</small></div></div><span data-servicio-calendar>Desconectado</span></article>
-        </div>
-        <div class="cuentas-google" data-gmail-cuentas aria-live="polite"></div>
-        <form class="automatizacion-google" data-auto-form>
-          <div class="automatizacion-google__titulo">
-            <div><strong>Sincronización continua</strong><span>AgenKin revisa cambios de Gmail cada 5 minutos sin volver a leer toda la bandeja.</span></div>
-            <span class="estado-automatizacion" data-auto-estado>Desactivada</span>
+        <section id="suscripcion" class="configuracion-panel" role="tabpanel" aria-labelledby="solapa-mi-cuenta" data-config-panel="cuenta">
+          <div class="configuracion-panel__cabecera">
+            <div><p class="eyebrow">Suscripción</p><h2>Mi cuenta</h2><p>Tu plan, vigencia y capacidad de conexiones.</p></div>
+            <button class="boton boton--secundario" data-request-plan>Solicitar mejora</button>
           </div>
-          <label class="opcion-automatizacion">
-            <span><strong>Analizar correos automáticamente</strong><small>Los correos pendientes se procesan en una cola segura y reintentable.</small></span>
-            <input type="checkbox" data-auto-sync>
-          </label>
-          <label class="opcion-automatizacion">
-            <span><strong>Crear eventos de alta confianza</strong><small>Fechas futuras exactas, remitentes autenticados, sin revisión requerida y respetando tus descartes.</small></span>
-            <input type="checkbox" data-auto-events>
-          </label>
-          <div class="automatizacion-google__pie">
-            <label>Confianza mínima
-              <select data-auto-threshold>
-                <option value="0.90">90%</option>
-                <option value="0.95">95%</option>
-                <option value="0.98">98%</option>
-              </select>
-            </label>
-            <button class="boton boton--secundario" type="submit">Guardar automatización</button>
+          <div class="suscripcion-grid">
+            <dl><div><dt>Plan</dt><dd data-suscripcion="plan">—</dd></div><div><dt>Estado</dt><dd data-suscripcion="estado">—</dd></div><div><dt>Inicio</dt><dd data-suscripcion="inicio">—</dd></div><div><dt>Vencimiento</dt><dd data-suscripcion="vencimiento">—</dd></div></dl>
+            <div class="uso-plan"><label for="uso-plan">Cuentas Gmail conectadas</label><progress id="uso-plan" max="100" value="0" data-uso></progress><p data-uso-texto>—</p></div>
           </div>
-          <p class="detalle-automatizacion" data-auto-detalle>Conectá Gmail para activar esta función.</p>
-        </form>
-      </section>
+          <div class="configuracion-panel__zona-riesgo"><div><strong>Eliminar mi cuenta</strong><p>La solicitud se verifica de manera privada antes de eliminar datos y conexiones.</p></div><a class="boton boton--peligro" href="./privacidad.html#eliminacion">Deseo eliminar mi cuenta</a></div>
+        </section>
 
-      <section id="notificaciones" class="panel panel--pagina panel--notificaciones-config">
-        <div class="titulo-seccion"><div><p class="eyebrow">Alertas opcionales</p><h2>Notificaciones</h2><p>Agenda conserva el historial aunque los avisos del dispositivo fallen o estén apagados.</p></div></div>
-        <form data-notificaciones-form class="preferencias-notificaciones">
-          <label class="opcion-automatizacion"><span><strong>Recibir notificaciones</strong><small>Activa alertas internas para tus próximos eventos.</small></span><input name="recibir_notificaciones" type="checkbox"></label>
-          <label class="opcion-automatizacion"><span><strong>Día previo</strong><small>Aviso a las 09:00 de tu zona horaria.</small></span><input name="notificar_dia_previo" type="checkbox"></label>
-          <label class="opcion-automatizacion"><span><strong>Día del vencimiento</strong><small>Aviso independiente a las 09:00.</small></span><input name="notificar_dia_vencimiento" type="checkbox"></label>
-          <label>Zona horaria<input name="zona_horaria_notificaciones" required maxlength="100" autocomplete="off" value="America/Argentina/Cordoba"><small data-zona-detectada></small></label>
-          <div class="acciones-notificaciones"><button type="button" class="boton boton--secundario" data-zona-dispositivo>Usar zona horaria de este dispositivo</button><button class="boton boton--primario" type="submit">Guardar preferencias</button></div>
-        </form>
-        <div class="push-dispositivo">
-          <div><strong>Avisos de este dispositivo</strong><p data-push-estado role="status">Comprobando compatibilidad…</p></div>
-          <div class="acciones-notificaciones"><button type="button" class="boton boton--secundario" data-push-desactivar>Desactivar en este dispositivo</button><button type="button" class="boton boton--primario" data-push-activar>Activar avisos del dispositivo</button></div>
-        </div>
-      </section>
+        <section id="google" class="configuracion-panel" role="tabpanel" aria-labelledby="solapa-conexiones" data-config-panel="conexiones" hidden>
+          <div class="configuracion-panel__cabecera"><div><p class="eyebrow">Integraciones</p><h2>Conexiones</h2><p>Administrá tus correos y elegí una sola cuenta para sincronizar la Agenda.</p></div><button class="boton boton--primario" data-connect-gmail>Agregar cuenta Gmail</button></div>
+          <div class="servicios-google servicios-google--configuracion">
+            <article class="servicio-resumen"><div><span class="servicio-icono">G</span><div><strong>Correos</strong><p>Cuentas conectadas y capacidad disponible.</p><small data-servicio-gmail-detalle>Sin cuentas asociadas</small></div></div><span data-servicio-gmail>Desconectado</span></article>
+            <article class="servicio-resumen"><div><span class="servicio-icono">C</span><div><strong>Google Calendar</strong><p>Una cuenta puede sincronizar la Agenda.</p><small data-servicio-calendar-detalle>Sin cuenta asociada</small></div></div><span data-servicio-calendar>Desactivado</span></article>
+          </div>
+          <div class="configuracion-subseccion"><div><h3>Cuentas de correo</h3><p>Conectá, reconectá o quitá las cuentas autorizadas. Calendar se gestiona a la derecha de cada cuenta.</p></div><div class="cuentas-google" data-gmail-cuentas aria-live="polite"></div></div>
+          <div class="configuracion-subseccion configuracion-subseccion--sincronizacion"><div><h3>Sincronizaciones</h3><p>Elegí cómo AgenKin revisa y agenda los correos de tus conexiones activas.</p></div><form class="automatizacion-google" data-auto-form>
+            <div class="automatizacion-google__titulo"><div><strong>Sincronización continua</strong><span>AgenKin revisa cambios de Gmail cada 5 minutos sin volver a leer toda la bandeja.</span></div><span class="estado-automatizacion" data-auto-estado>Desactivada</span></div>
+            <label class="opcion-automatizacion"><span><strong>Analizar correos automáticamente</strong><small>Los correos pendientes se procesan en una cola segura y reintentable.</small></span><input type="checkbox" data-auto-sync></label>
+            <label class="opcion-automatizacion"><span><strong>Crear eventos de alta confianza</strong><small>Fechas futuras exactas, remitentes autenticados, sin revisión requerida y respetando tus descartes.</small></span><input type="checkbox" data-auto-events></label>
+            <div class="automatizacion-google__pie"><label>Confianza mínima<select data-auto-threshold><option value="0.90">90%</option><option value="0.95">95%</option><option value="0.98">98%</option></select></label><button class="boton boton--secundario" type="submit">Guardar sincronización</button></div>
+            <p class="detalle-automatizacion" data-auto-detalle>Conectá Gmail para activar esta función.</p>
+          </form></div>
+        </section>
 
-      <section class="panel panel--pagina">
-        <p class="eyebrow">Privacidad</p><h2>Cuenta y datos</h2>
-        <p>La eliminación de cuenta y datos se solicita al propietario durante el MVP. Consultá el procedimiento en la política de privacidad.</p>
-        <a class="boton boton--secundario" href="./privacidad.html#eliminacion">Cómo eliminar mi cuenta</a>
+        <section id="notificaciones" class="configuracion-panel" role="tabpanel" aria-labelledby="solapa-notificaciones" data-config-panel="notificaciones" hidden>
+          <div class="configuracion-panel__cabecera"><div><p class="eyebrow">Alertas opcionales</p><h2>Notificaciones</h2><p>Agenda conserva el historial aunque los avisos del dispositivo fallen o estén apagados.</p></div></div>
+          <form data-notificaciones-form class="preferencias-notificaciones">
+            <label class="opcion-automatizacion"><span><strong>Recibir notificaciones</strong><small>Activa alertas internas para tus próximos eventos.</small></span><input name="recibir_notificaciones" type="checkbox"></label>
+            <label class="opcion-automatizacion"><span><strong>Día previo</strong><small>Aviso a las 09:00 de tu zona horaria.</small></span><input name="notificar_dia_previo" type="checkbox"></label>
+            <label class="opcion-automatizacion"><span><strong>Día del vencimiento</strong><small>Aviso independiente a las 09:00.</small></span><input name="notificar_dia_vencimiento" type="checkbox"></label>
+            <label>Zona horaria<input name="zona_horaria_notificaciones" required maxlength="100" autocomplete="off" value="America/Argentina/Cordoba"><small data-zona-detectada></small></label>
+            <div class="acciones-notificaciones"><button type="button" class="boton boton--secundario" data-zona-dispositivo>Usar zona horaria de este dispositivo</button><button class="boton boton--primario" type="submit">Guardar preferencias</button></div>
+          </form>
+          <div class="push-dispositivo"><div><strong>Avisos de este dispositivo</strong><p data-push-estado role="status">Comprobando compatibilidad…</p></div><div class="acciones-notificaciones"><button type="button" class="boton boton--secundario" data-push-desactivar>Desactivar en este dispositivo</button><button type="button" class="boton boton--primario" data-push-activar>Activar avisos del dispositivo</button></div></div>
+        </section>
       </section>
     </main>
     <script type="module" src="./src/pages/app.js"></script>
