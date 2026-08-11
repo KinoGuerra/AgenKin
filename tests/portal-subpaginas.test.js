@@ -12,6 +12,17 @@ describe('portal separado por subpáginas', () => {
     })
   })
 
+  it('limita los accesos directos a vencimientos, agenda y configuración', () => {
+    const portada = leer('app.html')
+    const inicio = portada.indexOf('<nav class="accesos-rapidos"')
+    const accesos = portada.slice(inicio, portada.indexOf('</nav>', inicio))
+    expect(accesos).toContain('<strong>Vencimientos</strong>')
+    expect(accesos).toContain('<strong>Agenda</strong>')
+    expect(accesos).toContain('<strong>Configuración</strong>')
+    expect(accesos).not.toContain('<strong>Correos</strong>')
+    expect(accesos).not.toContain('<strong>Reglas</strong>')
+  })
+
   it('mantiene el encabezado fijo y el control lateral centrado', () => {
     const estilos = leer('src/styles/portal.css')
     const pagina = leer('src/pages/app.js')
@@ -44,6 +55,8 @@ describe('portal separado por subpáginas', () => {
     expect(estilos).toContain('backdrop-filter: blur(18px) saturate(135%)')
     expect(estilos).toContain('content: attr(data-icon)')
     expect(estilos).toContain('content: attr(data-tooltip)')
+    expect(estilos).toContain('.barra-lateral.barra-lateral--colapsada nav a')
+    expect(estilos).toContain('grid-template-columns: repeat(3, minmax(0, 1fr))')
   })
 
   it('calcula correos de hoy y protege las solicitudes de mejora por usuario', () => {
