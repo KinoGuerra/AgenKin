@@ -5,6 +5,11 @@ fechas accionables. La llamada se realiza desde el worker global de Gmail
 mediante `supabase/functions/_shared/ai.ts`; `scan-gmail` solo descubre y encola.
 El navegador nunca se conecta directamente con Groq.
 
+Groq es opcional. `AI_PROVIDER=none` desactiva las llamadas externas: los casos
+ambiguos pasan inmediatamente a revisión, sin reservar presupuesto. Si
+`AI_PROVIDER` no está definido, AgenKin usa `groq` cuando encuentra
+`AI_API_KEY` o `GROQ_API_KEY`; sin clave adopta `none`.
+
 Groq es el último recurso de clasificación. La marca exacta `(Publicidad)`, una
 regla personal de ignorar, un patrón verificado o una clasificación local segura
 resuelven el correo antes de cualquier llamada al proveedor.
@@ -61,9 +66,8 @@ Configuración predeterminada:
 - razonamiento bajo, sin contenido de razonamiento y temperatura cero.
 
 El adaptador conserva nombres genéricos (`AI_PROVIDER`, `AI_API_URL`,
-`AI_MODEL`, `AI_API_KEY`) para permitir otro proveedor compatible en el futuro.
-El proveedor alternativo debe aceptar Chat Completions y el esquema estricto
-configurado en `supabase/functions/_shared/ai.ts`.
+`AI_MODEL`, `AI_API_KEY`), pero esta versión admite únicamente `groq` y `none`.
+Otro valor se rechaza como configuración inválida.
 
 ## 4. Desplegar el worker
 
@@ -77,8 +81,8 @@ supabase functions deploy process-gmail-queue --no-verify-jwt
 
 `scan-gmail` conserva `verify_jwt = true`, valida identidad y suscripción, y
 encola mensajes de las cuentas solicitadas. `process-gmail-queue` es global,
-requiere el secreto de Cron y usa Groq solamente cuando una regla, un patrón
-verificado o la clasificación local segura no alcanzan. No existe cupo
+requiere el secreto de Cron y usa Groq solamente cuando la marca de publicidad,
+una regla, un patrón verificado o la clasificación local segura no resuelven el caso. No existe cupo
 comercial de mensajes.
 
 Si se modifica `supabase/functions/_shared/ai.ts`, `patterns.ts` o
@@ -132,8 +136,8 @@ simulan `fetch` y nunca llaman a Groq.
 Los límites dependen del proyecto y pueden cambiar. Consultar el uso y los
 límites vigentes en la consola de Groq; no asumir que un plan es ilimitado.
 Los tres límites `AI_MAX_*` son defensas propias de AgenKin y pueden reducirse
-sin cambiar la cuota contratada. Al agotarse, las tareas se difieren sin invocar
-Groq; patrones y clasificación local continúan funcionando.
+sin cambiar la cuota contratada. Al agotarse, el correo pasa a revisión sin
+invocar Groq; patrones y clasificación local continúan funcionando.
 Supervisar los conteos de tareas pendientes y `AI_LIMITE_TEMPORAL` sin copiar
 asuntos, remitentes ni cuerpos a los logs de diagnóstico.
 

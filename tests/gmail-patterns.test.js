@@ -62,6 +62,14 @@ describe('extracción local y patrones de Gmail', () => {
     expect(analisis.huellaPlantilla).toMatch(/^[a-f0-9]{64}$/)
   })
 
+  it('conserva la moneda y no mezcla importes iguales de monedas distintas', () => {
+    expect(extraerMontos('Total $ 100, USD 100 y € 75,50.')).toEqual([
+      expect.objectContaining({ valor: 100, moneda: 'ARS' }),
+      expect.objectContaining({ valor: 100, moneda: 'USD' }),
+      expect.objectContaining({ valor: 75.5, moneda: 'EUR' }),
+    ])
+  })
+
   it('aplica únicamente selectores declarativos verificados', async () => {
     const analisis = await analizarLocalmente(
       'El servicio vence el 30/07/2026. Total $100000.',

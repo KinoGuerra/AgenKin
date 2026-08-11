@@ -19,8 +19,12 @@ supabase link --project-ref kpqzwbhprqlapwhadejt
 supabase db push
 ```
 
+Para la entrega inicial de notificaciones no aplicar todas las migraciones en
+un único paso: seguir el orden de [Notificaciones](NOTIFICACIONES.md) y dejar la
+migración de activación del Cron para después del despliegue de la función.
+
 Las migraciones crean tipos, tablas, índices, triggers, funciones, permisos,
-RLS, conexiones multicuenta, colas de Gmail/Calendar y cinco jobs globales. La
+RLS, conexiones multicuenta, colas de Gmail/Calendar/Push y seis jobs globales. La
 promoción del propietario a superadministrador es manual: ejecutar la
 instrucción correspondiente después de que esa persona haya iniciado sesión al
 menos una vez. Nunca guardar su correo en una migración publicada.
@@ -38,31 +42,34 @@ supabase functions deploy sync-gmail-scheduled --no-verify-jwt
 supabase functions deploy process-gmail-queue --no-verify-jwt
 supabase functions deploy create-calendar-scheduled --no-verify-jwt
 supabase functions deploy process-calendar-queue --no-verify-jwt
+supabase functions deploy manage-web-push
+supabase functions deploy process-notifications-scheduled --no-verify-jwt
 ```
 
 El callback OAuth es público porque Google no envía un JWT de Supabase. Su
 seguridad depende de un `state` aleatorio, almacenado como hash, de uso único
-y con vencimiento. Las cuatro funciones programadas tampoco validan JWT en el
+y con vencimiento. Las cinco funciones programadas tampoco validan JWT en el
 gateway, pero rechazan toda llamada que no incluya el secreto interno de Cron.
 
 Las funciones nuevas comparten módulos internos; una Edge Function no debe
 invocar otra por cada correo o evento.
 
 Antes de desplegar `process-gmail-queue`, configurar Groq según
-[Configuración de Groq](CONFIGURACION_GROQ.md). La API key debe existir
-únicamente como Supabase Secret.
+[Configuración de Groq](CONFIGURACION_GROQ.md) o establecer
+`AI_PROVIDER=none`. Toda API key debe existir únicamente como Supabase Secret.
 
 ## Activar la sincronización programada
 
-Cron y `pg_net` sostienen cuatro workers HTTP globales y un mantenimiento SQL:
+Cron y `pg_net` sostienen cinco workers HTTP globales y un mantenimiento SQL:
 
 - `agenkin-descubrir-gmail`: cada 5 minutos;
 - `agenkin-procesar-gmail`: cada minuto;
 - `agenkin-crear-eventos`: cada 2 minutos;
 - `agenkin-procesar-calendar`: cada minuto;
+- `agenkin-procesar-notificaciones`: cada minuto;
 - `agenkin-mantenimiento-diario`: todos los días a las 03:43 UTC.
 
-No se crea un cron por usuario o cuenta. Los cuatro jobs HTTP exigen el secreto
+No se crea un cron por usuario o cuenta. Los cinco jobs HTTP exigen el secreto
 interno; el mantenimiento invoca directamente una función privada.
 
 Gmail mantiene un cursor History por conexión. La importación inicial revisa

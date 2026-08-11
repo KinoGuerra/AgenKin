@@ -171,9 +171,9 @@ export class ErrorIA extends Error {
   }
 }
 
-type ConfiguracionIA = {
-  proveedor: string
-  apiKey: string
+export type ConfiguracionIA = {
+  proveedor: 'groq' | 'none'
+  apiKey: string | null
   apiUrl: string
   modelo: string
   timeoutMs: number
@@ -215,6 +215,25 @@ export function leerConfiguracionIA(
   obtenerEnv: (nombre: string) => string | undefined = (nombre) => Deno.env.get(nombre),
 ): ConfiguracionIA {
   const apiKey = obtenerEnv('AI_API_KEY')?.trim()
+    || obtenerEnv('GROQ_API_KEY')?.trim()
+    || null
+  const proveedorConfigurado = obtenerEnv('AI_PROVIDER')?.trim().toLowerCase()
+  const proveedor = proveedorConfigurado || (apiKey ? PROVEEDOR_PREDETERMINADO : 'none')
+  if (proveedor !== 'groq' && proveedor !== 'none') {
+    throw new ErrorIA(
+      'AI_CONFIGURACION_INCOMPLETA',
+      'El proveedor de análisis inteligente no es válido.',
+    )
+  }
+  if (proveedor === 'none') {
+    return {
+      proveedor,
+      apiKey: null,
+      apiUrl: URL_PREDETERMINADA,
+      modelo: obtenerEnv('AI_MODEL')?.trim() || MODELO_PREDETERMINADO,
+      timeoutMs: timeoutSeguro(obtenerEnv('AI_TIMEOUT_MS')),
+    }
+  }
   if (!apiKey) {
     throw new ErrorIA(
       'AI_CONFIGURACION_INCOMPLETA',
@@ -234,7 +253,7 @@ export function leerConfiguracionIA(
   }
 
   return {
-    proveedor: obtenerEnv('AI_PROVIDER')?.trim() || PROVEEDOR_PREDETERMINADO,
+    proveedor,
     apiKey,
     apiUrl: url.toString(),
     modelo: obtenerEnv('AI_MODEL')?.trim() || MODELO_PREDETERMINADO,
@@ -614,6 +633,12 @@ function registrar(metricas: MetricasIA, dependencia?: (metricas: MetricasIA) =>
 
 export async function clasificarCorreo(datos: DatosCorreoIA, dependencias: DependenciasIA = {}) {
   const configuracion = leerConfiguracionIA(dependencias.obtenerEnv)
+  if (configuracion.proveedor === 'none' || !configuracion.apiKey) {
+    throw new ErrorIA(
+      'AI_CONFIGURACION_INCOMPLETA',
+      'El análisis inteligente está deshabilitado.',
+    )
+  }
   const fetchFn = dependencias.fetch || fetch
   const dormir = dependencias.dormir || ((milisegundos) => new Promise((resolver) => setTimeout(resolver, milisegundos)))
   const aleatorio = dependencias.aleatorio || Math.random

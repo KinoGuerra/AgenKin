@@ -89,6 +89,21 @@
         </form>
       </section>
 
+      <section id="notificaciones" class="panel panel--pagina panel--notificaciones-config">
+        <div class="titulo-seccion"><div><p class="eyebrow">Alertas opcionales</p><h2>Notificaciones</h2><p>Agenda conserva el historial aunque los avisos del dispositivo fallen o estén apagados.</p></div></div>
+        <form data-notificaciones-form class="preferencias-notificaciones">
+          <label class="opcion-automatizacion"><span><strong>Recibir notificaciones</strong><small>Activa alertas internas para tus próximos eventos.</small></span><input name="recibir_notificaciones" type="checkbox"></label>
+          <label class="opcion-automatizacion"><span><strong>Día previo</strong><small>Aviso a las 09:00 de tu zona horaria.</small></span><input name="notificar_dia_previo" type="checkbox"></label>
+          <label class="opcion-automatizacion"><span><strong>Día del vencimiento</strong><small>Aviso independiente a las 09:00.</small></span><input name="notificar_dia_vencimiento" type="checkbox"></label>
+          <label>Zona horaria<input name="zona_horaria_notificaciones" required maxlength="100" autocomplete="off" value="America/Argentina/Cordoba"><small data-zona-detectada></small></label>
+          <div class="acciones-notificaciones"><button type="button" class="boton boton--secundario" data-zona-dispositivo>Usar zona horaria de este dispositivo</button><button class="boton boton--primario" type="submit">Guardar preferencias</button></div>
+        </form>
+        <div class="push-dispositivo">
+          <div><strong>Avisos de este dispositivo</strong><p data-push-estado role="status">Comprobando compatibilidad…</p></div>
+          <div class="acciones-notificaciones"><button type="button" class="boton boton--secundario" data-push-desactivar>Desactivar en este dispositivo</button><button type="button" class="boton boton--primario" data-push-activar>Activar avisos del dispositivo</button></div>
+        </div>
+      </section>
+
       <section class="panel panel--pagina">
         <p class="eyebrow">Privacidad</p><h2>Cuenta y datos</h2>
         <p>La eliminación de cuenta y datos se solicita al propietario durante el MVP. Consultá el procedimiento en la política de privacidad.</p>

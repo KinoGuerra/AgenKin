@@ -41,12 +41,17 @@ Secretos requeridos:
 - `APP_PUBLIC_URL`
 - `AI_PROVIDER`
 - `AI_API_KEY`
+- `GROQ_API_KEY` (alias opcional de `AI_API_KEY`)
 - `AI_MODEL`
 - `AI_API_URL`
 - `AI_TIMEOUT_MS`
 - `AI_MAX_SOLICITUDES_DIA`
 - `AI_MAX_TOKENS_DIA`
 - `AI_MAX_ATRASO_DIA`
+- `VAPID_PUBLIC_KEY`
+- `VAPID_PRIVATE_KEY`
+- `VAPID_SUBJECT`
+- `CRON_SECRET`
 
 `SUPABASE_URL` y `SUPABASE_SERVICE_ROLE_KEY` son inyectados por Supabase en las funciones. La clave `service_role` nunca debe salir de ese entorno.
 
@@ -54,8 +59,8 @@ Secretos requeridos:
 
 - Gmail se abre en modo de solo lectura.
 - No se registran tokens ni cuerpos en logs.
-- Groq se invoca desde el worker global mediante el módulo compartido de
-  procesamiento; nunca desde `scan-gmail` ni desde el navegador.
+- Groq se invoca, si `AI_PROVIDER=groq`, desde el worker global mediante el
+  módulo compartido de procesamiento; nunca desde `scan-gmail` ni desde el navegador.
 - La clave de Groq vive únicamente en Supabase Secrets y nunca usa prefijo `VITE_`.
 - Se envían únicamente asunto, dominio del remitente, fecha, candidatos
   estructurados y un fragmento sanitizado.
@@ -78,7 +83,8 @@ Secretos requeridos:
   existe una referencia; un bloqueo transaccional impide duplicar el mismo
   compromiso reciente entre cuentas sin fusionar cuotas o turnos parecidos.
 - El orden de resolución es marca exacta `(Publicidad)`, regla personal de
-  ignorar, patrón verificado, clasificación local segura y finalmente IA.
+  ignorar, exclusión privada aprendida, patrón personal/global verificado,
+  clasificación local segura, IA opcional y revisión manual.
 - `(Publicidad)` se clasifica localmente como promoción sin vencimiento aunque
   el contenido incluya fechas, pagos o turnos; no consume IA.
 - Los patrones se aprenden solo de remitentes autenticados, son selectores
@@ -98,8 +104,8 @@ Secretos requeridos:
   privada. Sólo `service_role` ejecuta sus RPC; el navegador no puede consultar
   ni modificar cuotas, bloqueos o contadores.
 - Una petición a Groq no se repite dentro del mismo intento. Los errores
-  temporales admiten como máximo un segundo intento al día siguiente y las
-  respuestas inválidas permanecen terminales.
+  temporales admiten como máximo un segundo intento al día siguiente; una
+  respuesta inválida o el agotamiento de intentos deriva el correo a revisión.
 - Los logs técnicos incluyen solamente proveedor, modelo, duración, estado HTTP,
   intentos, código interno y conteos de tokens cuando existen.
 - Verificar las condiciones de tratamiento y retención del proveedor antes de habilitarlo.

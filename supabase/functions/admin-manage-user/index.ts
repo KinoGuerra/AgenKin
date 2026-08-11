@@ -55,13 +55,21 @@ Deno.serve(async (request) => {
         }
       })
 
-      const { data: metricas, error: errorMetricas } = await cliente.rpc('metricas_administrativas')
-      if (errorMetricas) throw new Error('No se pudieron cargar las métricas')
+      const [metricasResultado, notificacionesResultado] = await Promise.all([
+        cliente.rpc('metricas_administrativas'),
+        cliente.rpc('metricas_notificaciones_push'),
+      ])
+      if (metricasResultado.error || notificacionesResultado.error) {
+        throw new Error('No se pudieron cargar las métricas')
+      }
       return json({
         usuarios,
         planes: planesResultado.data,
         auditoria: auditoriaResultado.data,
-        metricas,
+        metricas: {
+          ...(metricasResultado.data || {}),
+          ...(notificacionesResultado.data || {}),
+        },
         paginas: Math.max(1, Math.ceil((usuariosResultado.count || 0) / TAMANO_PAGINA)),
       })
     }

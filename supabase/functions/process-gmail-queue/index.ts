@@ -167,7 +167,18 @@ Deno.serve(async (request) => {
           if (errorFinalizacion) throw errorFinalizacion
         }
 
-        if (codigoError && reintentar) resumen.reintentos += 1
+        if (codigoError && reintentar) {
+          resumen.reintentos += 1
+          if (codigoError.startsWith('AI_')) {
+            try {
+              await cliente.rpc('registrar_reintento_ia', {
+                p_usuario_id: tarea.usuario_id,
+              })
+            } catch {
+              // La métrica no puede cambiar el resultado durable de la tarea.
+            }
+          }
+        }
         else if (codigoError) resumen.errores += 1
       }))
     }

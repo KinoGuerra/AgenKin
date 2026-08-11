@@ -2,6 +2,7 @@ import {
   clasificarCorreo,
   debeCrearVencimiento,
   ErrorIA,
+  leerConfiguracionIA,
   type ClasificacionCorreo,
   type MetricasIA,
 } from './ai.ts'
@@ -18,6 +19,7 @@ import {
   evaluarPreviamente,
   huellaFuncional,
   remitenteAutenticado,
+  type AnalisisLocal,
 } from './patterns.ts'
 
 const CODIGO_EN_PROCESO = 'PROCESAMIENTO_EN_CURSO'
@@ -152,6 +154,42 @@ function clasificacionIgnorada() {
   }
 }
 
+function clasificacionRevision(
+  analisis: AnalisisLocal,
+  asunto: string,
+): ClasificacionCorreo {
+  const fecha = analisis.fechas[0]?.valor || null
+  const hora = analisis.horas.length === 1 ? analisis.horas[0].valor : null
+  const monto = analisis.montos.length === 1 ? analisis.montos[0].valor : null
+  return {
+    relevante: Boolean(fecha || analisis.acciones.length || analisis.tieneExpresionTemporal),
+    categoria: 'otro',
+    grupo_resumen: 'otros',
+    tipo: 'otro',
+    titulo: asunto || 'Correo pendiente de revisión',
+    descripcion: '',
+    entidad: analisis.entidad,
+    monto,
+    fecha,
+    hora,
+    zona_horaria: 'America/Argentina/Cordoba',
+    confianza: 0,
+    requiere_revision: true,
+    explicacion: 'El correo necesita una confirmación antes de crear un evento.',
+  }
+}
+
+function candidatosRevision(analisis: AnalisisLocal) {
+  return {
+    fechas: analisis.fechas.map(({ indice, valor }) => ({ indice, valor })).slice(0, 21),
+    horas: analisis.horas.map(({ indice, valor }) => ({ indice, valor })).slice(0, 21),
+    montos: analisis.montos.map(({ indice, valor, moneda }) => ({ indice, valor, moneda })).slice(0, 21),
+    acciones: analisis.acciones.slice(0, 12),
+    entidad: analisis.entidad,
+    referencia: analisis.referencia,
+  }
+}
+
 function errorReintentable(error: unknown) {
   if (error instanceof ErrorIA) {
     return [
@@ -172,8 +210,12 @@ function codigoError(error: unknown) {
 }
 
 function retrasoError(error: unknown) {
-  if (error instanceof ErrorIA && error.codigo === 'AI_LIMITE_TEMPORAL') {
-    return error.reintentoDespuesMs || 900_000
+  if (error instanceof ErrorIA && [
+    'AI_LIMITE_TEMPORAL',
+    'AI_TIMEOUT',
+    'AI_PROVEEDOR_NO_DISPONIBLE',
+  ].includes(error.codigo)) {
+    return 86_400_000
   }
   if (error instanceof ErrorIA && error.codigo === 'AI_PRESUPUESTO_DIARIO') {
     return error.reintentoDespuesMs || 900_000
@@ -189,6 +231,7 @@ export async function procesarCorreoGmail(
   tarea: TareaCorreo,
   conexion: ConexionCorreo,
 ): Promise<ResultadoProcesamiento> {
+  const inicioProcesamiento = Date.now()
   const correoId = await reclamarCorreo(cliente, tarea)
   if (!correoId) {
     return {
@@ -241,18 +284,28 @@ export async function procesarCorreoGmail(
       .eq('activo', true)
     if (errorReglas) throw errorReglas
 
-    const ignorar = (reglas || []).some((regla: {
+    const ignorar = !publicidad && (reglas || []).some((regla: {
       campo: string
       operador: string
       valor: string
       accion: string
     }) => coincideRegla(regla, asunto, remitente))
     const analisis = await analizarLocalmente(texto, remitente, fecha)
-    const patron = publicidad || ignorar || !autenticado
+    const { data: tieneExclusion, error: errorExclusion } = autenticado
+      ? await cliente.rpc('correo_tiene_exclusion_agenda', {
+          p_usuario_id: tarea.usuario_id,
+          p_dominio: analisis.dominioRemitente,
+          p_huella: analisis.huellaPlantilla,
+        })
+      : { data: false, error: null }
+    if (errorExclusion) throw errorExclusion
+
+    const exclusion = Boolean(tieneExclusion)
+    const patron = publicidad || ignorar || exclusion || !autenticado
       ? null
       : await buscarPatron(cliente, tarea.usuario_id, analisis)
     const clasificacionPatron = patron ? aplicarPatron(patron, analisis) : null
-    const evaluacion = ignorar || clasificacionPatron
+    const evaluacion = ignorar || exclusion || clasificacionPatron
       ? null
       : evaluarPreviamente(analisis, asunto, autenticado, tieneListUnsubscribe)
     let validarSombra = Boolean(
@@ -261,6 +314,7 @@ export async function procesarCorreoGmail(
       && await debeValidarEnSombra(tarea.gmail_message_id, patron)
     )
 
+    let motivoRevision: string | null = exclusion ? 'exclusion_aprendida' : null
     let origen = ignorar
       ? 'regla'
       : patron?.alcance === 'global'
@@ -272,11 +326,29 @@ export async function procesarCorreoGmail(
             : 'ia'
     let clasificacion = ignorar
       ? clasificacionIgnorada()
-      : clasificacionPatron || evaluacion?.clasificacionLocal || null
+      : exclusion
+        ? clasificacionRevision(analisis, asunto)
+        : clasificacionPatron || evaluacion?.clasificacionLocal || null
     let clasificacionParaAprender: ClasificacionCorreo | null = null
     let validacionPendiente: { patronId: string; coincide: boolean } | null = null
 
     if (!clasificacion || validarSombra) {
+      let configuracionIa
+      try {
+        configuracionIa = leerConfiguracionIA()
+      } catch {
+        configuracionIa = null
+      }
+      if (!configuracionIa || configuracionIa.proveedor === 'none') {
+        if (clasificacion && validarSombra) {
+          validarSombra = false
+        } else {
+          clasificacion = clasificacionRevision(analisis, asunto)
+          motivoRevision = configuracionIa ? 'ia_deshabilitada' : 'ia_no_configurada'
+        }
+      }
+
+      if (!clasificacion || validarSombra) {
       const enteroEntorno = (nombre: string, predeterminado: number) => {
         const valor = Number(Deno.env.get(nombre))
         return Number.isInteger(valor) && valor > 0 ? valor : predeterminado
@@ -297,26 +369,19 @@ export async function procesarCorreoGmail(
         if (clasificacion && validarSombra) {
           validarSombra = false
         } else {
-        if (reserva?.motivo === 'intentos_agotados') {
-          throw new ErrorIA(
-            'AI_REINTENTOS_AGOTADOS',
-            'El correo agotó sus intentos de análisis inteligente.',
-            503,
-          )
-        }
-        const disponible = Date.parse(String(reserva?.disponible_en || ''))
-        throw new ErrorIA(
-          'AI_PRESUPUESTO_DIARIO',
-          'El análisis inteligente alcanzó el presupuesto disponible.',
-          429,
-          Number.isFinite(disponible) ? Math.max(60_000, disponible - Date.now()) : 900_000,
-        )
+          clasificacion = clasificacionRevision(analisis, asunto)
+          motivoRevision = reserva?.motivo === 'intentos_agotados'
+            ? 'reintentos_ia_agotados'
+            : 'presupuesto_ia_agotado'
         }
       }
 
       if (reserva?.permitido) {
         intentoIaActual = Number(reserva.intentos_ia || (tarea.intentos_ia + 1))
-        const clasificacionIA = await clasificarCorreo({
+        let clasificacionIA: ClasificacionCorreo
+        let omitirResultadoIa = false
+        try {
+          clasificacionIA = await clasificarCorreo({
         asunto,
         fecha,
         dominio_remitente: analisis.dominioRemitente,
@@ -342,7 +407,28 @@ export async function procesarCorreoGmail(
         registrar: (metricas) => {
           metricasIA.valor = metricas
         },
-      })
+          })
+        } catch (error) {
+          const temporal = error instanceof ErrorIA && [
+            'AI_LIMITE_TEMPORAL',
+            'AI_TIMEOUT',
+            'AI_PROVEEDOR_NO_DISPONIBLE',
+          ].includes(error.codigo)
+          if (temporal && intentoIaActual < 2) throw error
+          if (clasificacion && validarSombra) {
+            validarSombra = false
+            omitirResultadoIa = true
+            clasificacionIA = clasificacion
+          } else {
+            clasificacion = clasificacionRevision(analisis, asunto)
+            motivoRevision = temporal
+              ? 'reintentos_ia_agotados'
+              : error instanceof ErrorIA && error.codigo === 'AI_CONFIGURACION_INCOMPLETA'
+                ? 'ia_no_configurada'
+                : 'ia_no_disponible'
+            clasificacionIA = clasificacion
+          }
+        }
 
         const tokensEntrada = metricasIA.valor?.tokens_entrada || 0
         const tokensCache = metricasIA.valor?.tokens_cache || 0
@@ -356,7 +442,9 @@ export async function procesarCorreoGmail(
           // La reserva conservadora queda vigente si no puede confirmarse el uso.
         }
 
-        if (validarSombra && patron && clasificacionPatron) {
+        if (omitirResultadoIa) {
+          // Una validación auxiliar fallida no invalida un patrón ya seguro.
+        } else if (validarSombra && patron && clasificacionPatron) {
           const coincide = clasificacionesCoinciden(clasificacionPatron, clasificacionIA)
           validacionPendiente = { patronId: patron.id, coincide }
           clasificacion = coincide ? clasificacionPatron : clasificacionIA
@@ -367,8 +455,9 @@ export async function procesarCorreoGmail(
         } else {
           clasificacion = clasificacionIA
           origen = 'ia'
-          clasificacionParaAprender = clasificacionIA
+          if (!motivoRevision) clasificacionParaAprender = clasificacionIA
         }
+      }
       }
     }
 
@@ -378,9 +467,13 @@ export async function procesarCorreoGmail(
         ...clasificacion,
         requiere_revision: true,
       }
+      motivoRevision = 'remitente_no_autenticado'
+    }
+    if (clasificacion.requiere_revision && !motivoRevision) {
+      motivoRevision = 'clasificacion_ambigua'
     }
 
-    const detectado = debeCrearVencimiento(clasificacion)
+    const detectado = !motivoRevision && debeCrearVencimiento(clasificacion)
     const huella = detectado
       ? await huellaFuncional(clasificacion, analisis, asunto)
       : null
@@ -411,6 +504,12 @@ export async function procesarCorreoGmail(
           tokens_cache: metricasIA.valor?.tokens_cache,
           tokens_salida: metricasIA.valor?.tokens_salida,
           duracion_ia_ms: metricasIA.valor?.duracion_ms,
+          llamada_ia: Boolean(metricasIA.valor),
+          duracion_procesamiento_ms: Date.now() - inicioProcesamiento,
+          remitente_autenticado: autenticado,
+          requiere_revision: Boolean(motivoRevision),
+          motivo_revision: motivoRevision,
+          candidatos_revision: motivoRevision ? candidatosRevision(analisis) : null,
           vencimiento: detectado
             ? {
                 tipo: clasificacion.tipo,

@@ -32,7 +32,7 @@
       <header class="cabecera-subpagina">
         <button class="menu-movil" data-menu aria-label="Abrir menú" aria-expanded="false">☰</button>
         <a class="volver-inicio" href="./app.html" aria-label="Volver al Dashboard">←</a>
-        <div><p class="eyebrow">Criterios personales</p><h1>Reglas personales</h1><p>Priorizá o descartá correos mediante condiciones simples.</p></div>
+        <div><p class="eyebrow">Criterios personales</p><h1>Reglas personales</h1><p>Ignorá correos mediante condiciones simples y privadas.</p></div>
         <div class="cabecera-subpagina__acciones">
           <span>Hola, <strong data-nombre>cargando…</strong></span>
           <img class="avatar avatar--imagen" data-avatar-imagen alt="" width="44" height="44" referrerpolicy="no-referrer" hidden>
@@ -41,20 +41,21 @@
       </header>
       <div data-alertas></div>
       <section class="panel panel--pagina">
-        <div class="titulo-seccion"><div><h2>Tus reglas</h2><p>“Priorizar” autoriza al remitente para eventos automáticos; “Ignorar” descarta el correo.</p></div><button class="boton boton--primario" data-nueva-regla>Nueva regla</button></div>
+        <div class="titulo-seccion"><div><h2>Tus reglas</h2><p>Las reglas de ignorar evitan análisis y autoagenda. La creación automática depende de tu configuración, la confianza y la autenticación del remitente.</p></div><button class="boton boton--primario" data-nueva-regla>Nueva regla</button></div>
         <div data-reglas class="lista-vacia">Cargando reglas…</div>
       </section>
     </main>
     <dialog data-regla-dialog>
       <form method="dialog" data-regla-form>
         <header><div><p class="eyebrow">Regla personal</p><h2>Nueva regla</h2></div><button value="cancel" formnovalidate class="cerrar" aria-label="Cerrar">×</button></header>
-        <label>Nombre<input name="nombre" required maxlength="100" placeholder="Ej.: Priorizar facturas"></label>
+        <label>Nombre<input name="nombre" required maxlength="100" placeholder="Ej.: Ignorar promociones semanales"></label>
         <div class="campos-dobles">
           <label>Campo<select name="campo"><option value="remitente">Remitente</option><option value="asunto">Asunto</option></select></label>
           <label>Operador<select name="operador"><option value="contiene">Contiene</option><option value="igual">Es igual a</option></select></label>
         </div>
         <label>Valor<input name="valor" required maxlength="200"></label>
-        <label>Acción<select name="accion"><option value="priorizar">Priorizar y autorizar automatización</option><option value="ignorar">Ignorar</option></select></label>
+        <input type="hidden" name="accion" value="ignorar">
+        <p>Acción: <strong>Ignorar</strong>. Las reglas históricas “Priorizar” quedan inertes y no se borran.</p>
         <footer><button value="cancel" formnovalidate class="boton boton--secundario">Cancelar</button><button value="default" class="boton boton--primario" data-guardar-regla>Guardar regla</button></footer>
       </form>
     </dialog>

@@ -20,6 +20,7 @@ export type CandidatoFecha = {
 
 export type CandidatoMonto = {
   valor: number
+  moneda: 'ARS' | 'USD' | 'EUR'
   texto: string
   indice: number
 }
@@ -268,14 +269,22 @@ function numeroArgentino(valor: string) {
 
 export function extraerMontos(texto: string): CandidatoMonto[] {
   const resultados: CandidatoMonto[] = []
-  const vistas = new Set<number>()
-  const patron = /(?:\$\s*|ARS\s*)(\d{1,3}(?:[.\s]\d{3})+(?:,\d{1,2})?|\d+(?:[.,]\d{1,2})?)/gi
+  const vistas = new Set<string>()
+  const patron = /(?:(ARS|USD|EUR)\s*|(US\$|\$|€)\s*)(\d{1,3}(?:[.\s]\d{3})+(?:,\d{1,2})?|\d+(?:[.,]\d{1,2})?)/gi
   for (const coincidencia of texto.matchAll(patron)) {
-    const valor = numeroArgentino(coincidencia[1])
-    if (valor === null || vistas.has(valor)) continue
-    vistas.add(valor)
+    const valor = numeroArgentino(coincidencia[3])
+    const indicador = (coincidencia[1] || coincidencia[2] || '').toUpperCase()
+    const moneda = indicador === 'USD' || indicador === 'US$'
+      ? 'USD'
+      : indicador === 'EUR' || indicador === '€'
+        ? 'EUR'
+        : 'ARS'
+    const clave = `${moneda}:${valor}`
+    if (valor === null || vistas.has(clave)) continue
+    vistas.add(clave)
     resultados.push({
       valor,
+      moneda,
       texto: contextoCercano(texto, coincidencia.index || 0, coincidencia[0].length),
       indice: resultados.length,
     })

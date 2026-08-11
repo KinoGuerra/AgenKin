@@ -4,13 +4,14 @@
 
 ```text
 Gmail History → cola durable → (Publicidad) → regla Ignorar
-→ patrón verificado → clasificación local segura → Groq compacto
+→ exclusión privada → patrón personal/global verificado → clasificación local segura
+→ Groq opcional → revisión manual
 → persistencia atómica → Agenda interna → Calendar principal opcional
 ```
 
 La marca explícita `(Publicidad)` en el asunto se resuelve primero como
 promoción, aunque el contenido incluya fechas, montos o llamados a la acción.
-Fuera de esa marca, un correo dudoso continúa hacia Groq: sólo se resuelve como
+Fuera de esa marca, un correo dudoso continúa hacia Groq si está habilitado: sólo se resuelve como
 promoción sin IA cuando no tiene fechas, expresiones temporales, montos ni
 acciones, y además combina un asunto promocional inequívoco con
 `List-Unsubscribe`.
@@ -89,8 +90,8 @@ pueden recibir un segundo y último intento al día siguiente.
 
 Antes de llamar a Groq se reserva capacidad de forma atómica. Los valores
 predeterminados globales son 300 solicitudes, 80.000 tokens no cacheados y 20
-solicitudes históricas por día. Cuando se alcanza un límite, el correo queda
-diferido hasta el siguiente día sin llamar al proveedor. Los headers de 429
+solicitudes históricas por día. Cuando se alcanza un límite, el correo pasa a
+revisión sin llamar al proveedor. Los headers de 429
 bloquean además las nuevas reservas hasta el instante informado por Groq.
 
 Gmail History sigue siendo el mecanismo principal. Una reconciliación diaria,
