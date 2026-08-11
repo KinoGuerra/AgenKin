@@ -12,6 +12,19 @@ describe('portal separado por subpáginas', () => {
     })
   })
 
+  it('permite contraer el menú sin desplazar la cabecera ni recortar el logo', () => {
+    const estilos = leer('src/styles/portal.css')
+    const pagina = leer('src/pages/app.js')
+    ;['app.html', 'configuracion.html', 'correos.html', 'vencimientos.html', 'agenda.html', 'reglas.html'].forEach((archivo) => {
+      expect(leer(archivo)).toContain('data-menu-lateral-toggle')
+    })
+    expect(estilos).toContain('--ancho-lateral-colapsado: 192px')
+    expect(estilos).toContain('.barra-lateral--colapsada .marca--lateral { width: 168px; }')
+    expect(estilos).toContain('width: calc(100% - var(--ancho-lateral))')
+    expect(pagina).toContain("localStorage.getItem(CLAVE_MENU_LATERAL) === 'true'")
+    expect(pagina).toContain("'barra-lateral--colapsada'")
+  })
+
   it('calcula correos de hoy y protege las solicitudes de mejora por usuario', () => {
     const migracion = leer('supabase/migrations/20260728214956_agregar_correos_analizados_hoy.sql')
     expect(migracion).toContain("'correos_analizados_hoy'")
