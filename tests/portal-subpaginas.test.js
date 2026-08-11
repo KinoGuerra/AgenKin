@@ -21,6 +21,8 @@ describe('portal separado por subpáginas', () => {
       expect(contenido).toContain('encabezado-global')
       expect(contenido).toContain('data-menu-lateral-toggle')
       expect(contenido).toContain('data-notificaciones-ancla')
+      expect(contenido).toContain('Datos del usuario')
+      expect(contenido).toContain('data-plan-vencimiento')
     })
     expect(estilos).toContain('--alto-encabezado: 86px')
     expect(estilos).toContain('--ancho-lateral-colapsado: 116px')
@@ -34,6 +36,8 @@ describe('portal separado por subpáginas', () => {
     expect(pagina).toContain("'barra-lateral--colapsada'")
     expect(pagina).toContain("icono.textContent = colapsado ? '>' : '<'")
     expect(notificaciones).toContain("document.querySelector('[data-notificaciones-ancla]')")
+    expect(estilos).toContain('border-radius: 50%')
+    expect(estilos).toContain('backdrop-filter: blur(18px) saturate(135%)')
   })
 
   it('calcula correos de hoy y protege las solicitudes de mejora por usuario', () => {
@@ -65,7 +69,8 @@ describe('portal separado por subpáginas', () => {
     expect(servicio).toContain(
       'vencimientos_detectados!vencimientos_correo_usuario_fkey(titulo,descripcion,fecha_vencimiento,monto)',
     )
-    expect(servicio).toContain("consultas.conexion = supabase.rpc('obtener_estado_conexion_google')")
+    expect(servicio).toContain("conexion: supabase.rpc('obtener_estado_conexion_google')")
+    expect(servicio).toContain("resumen: supabase.rpc('obtener_panel_usuario')")
     expect(servicio).toContain('id,conexion_google_id,gmail_message_id')
     expect(servicio).not.toContain('conexiones_google!correos_conexion_usuario_fkey')
     expect(pagina).toContain('correo.google_email')
