@@ -867,9 +867,12 @@ function esVistaMovil() {
 function actualizarMenuLateral() {
   if (!barraLateral || !botonMenuLateral) return
   const colapsado = barraLateral.classList.contains('barra-lateral--colapsada')
+  botonMenuLateral.dataset.state = colapsado ? 'collapsed' : 'expanded'
   botonMenuLateral.setAttribute('aria-expanded', String(!colapsado))
   botonMenuLateral.setAttribute('aria-label', colapsado ? 'Expandir menú' : 'Contraer menú')
   botonMenuLateral.title = botonMenuLateral.getAttribute('aria-label')
+  const icono = botonMenuLateral.querySelector('span')
+  if (icono) icono.textContent = colapsado ? '>' : '<'
 }
 
 function restaurarMenuLateral() {

@@ -13,9 +13,16 @@
   </head>
   <body class="portal" data-portal-page="vencimientos">
     <a class="salto-contenido" href="#contenido">Saltar al contenido</a>
+    <header class="encabezado-global">
+      <a class="encabezado-global__marca" href="./app.html" aria-label="AgenKin, portal de usuario"><img src="./src/assets/agenkin-logo-dark.png" alt="AgenKin"></a>
+      <div class="encabezado-global__tarjetas">
+        <article class="tarjeta-encabezado tarjeta-encabezado--usuario"><div><p>Portal de usuario</p><strong>Hola, <span data-nombre>cargando…</span></strong><small><span data-plan-cabecera>Consultando…</span> · <span data-plan-estado></span></small></div><div data-notificaciones-ancla></div><img class="avatar avatar--imagen" data-avatar-imagen alt="" width="44" height="44" referrerpolicy="no-referrer" hidden><span class="avatar" data-avatar-iniciales aria-hidden="true">A</span></article>
+        <article class="tarjeta-encabezado"><p>Conexiones</p><div><span>Gmail</span><strong data-header-gmail>Consultando…</strong></div><div><span>Calendar</span><strong data-header-calendar>Consultando…</strong></div></article>
+        <article class="tarjeta-encabezado tarjeta-encabezado--agenda"><p>Agenda</p><div><span>Última actualización</span><strong data-header-agenda>Sin actualizaciones</strong></div><button class="boton boton--primario boton--sincronizar-agenda" data-scan aria-label="Actualizar correos y eventos de Agenda ahora">Actualizar</button></article>
+      </div>
+    </header>
     <aside class="barra-lateral">
-      <a class="marca marca--imagen marca--lateral" href="./app.html" aria-label="AgenKin, portal de usuario"><img src="./src/assets/agenkin-logo-dark.png" alt="AgenKin"></a>
-      <button class="menu-lateral-toggle" type="button" data-menu-lateral-toggle aria-label="Contraer menú" aria-expanded="true"><span aria-hidden="true">‹</span></button>
+      <button class="menu-lateral-toggle" type="button" data-menu-lateral-toggle aria-label="Contraer menú" aria-expanded="true"><span aria-hidden="true">&lt;</span></button>
       <nav aria-label="Portal del usuario">
         <a href="./app.html">Dashboard</a>
         <a href="./correos.html">Correos analizados</a>
@@ -34,11 +41,6 @@
         <button class="menu-movil" data-menu aria-label="Abrir menú" aria-expanded="false">☰</button>
         <a class="volver-inicio" href="./app.html" aria-label="Volver al Dashboard">←</a>
         <div><p class="eyebrow">Fechas detectadas</p><h1>Vencimientos</h1><p>Revisá hallazgos futuros y descartá los que AgenKin no deba volver a autoagendar.</p></div>
-        <div class="cabecera-subpagina__acciones">
-          <span>Hola, <strong data-nombre>cargando…</strong></span>
-          <img class="avatar avatar--imagen" data-avatar-imagen alt="" width="44" height="44" referrerpolicy="no-referrer" hidden>
-          <span class="avatar" data-avatar-iniciales aria-hidden="true">A</span>
-        </div>
       </header>
       <div data-alertas></div>
       <section class="panel panel--pagina">

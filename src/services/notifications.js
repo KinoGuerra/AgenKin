@@ -28,7 +28,8 @@ async function registrarServiceWorker() {
 }
 
 function crearCentro() {
-  const cabecera = document.querySelector('.cabecera-subpagina__acciones')
+  const cabecera = document.querySelector('[data-notificaciones-ancla]')
+    || document.querySelector('.cabecera-subpagina__acciones')
     || document.querySelector('.cabecera-identidad__superior')
   if (!cabecera || document.querySelector('[data-centro-notificaciones]')) return null
 
