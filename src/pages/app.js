@@ -4,6 +4,11 @@ import { protegerRuta } from '../guards/route-guard.js'
 import { cerrarSesion } from '../services/auth.js'
 import { invocarFuncion } from '../services/edge.js'
 import { cargarEventosAgenda, cargarPortal } from '../services/portal.js'
+import {
+  desactivarPushDispositivoActual,
+  inicializarCentroNotificaciones,
+  inicializarPreferenciasNotificaciones,
+} from '../services/notifications.js'
 import { supabase } from '../services/supabase.js'
 import { formatearAvisoDia, formatearMontoARS } from '../utils/clasificacion.js'
 import { esFechaActualOFutura, fechaActualIso, formatearFecha, formatearFechaHora } from '../utils/fechas.js'
@@ -23,6 +28,8 @@ const dialogoEventoManual = document.querySelector('[data-evento-manual-dialog]'
 const formularioEventoManual = document.querySelector('[data-evento-manual-form]')
 const dialogoRegla = document.querySelector('[data-regla-dialog]')
 const formularioRegla = document.querySelector('[data-regla-form]')
+const dialogoRevisionCorreo = document.querySelector('[data-revision-correo-dialog]')
+const formularioRevisionCorreo = document.querySelector('[data-revision-correo-form]')
 const formularioAutomatizacion = document.querySelector('[data-auto-form]')
 const sincronizacionAutomatica = document.querySelector('[data-auto-sync]')
 const eventosAutomaticos = document.querySelector('[data-auto-events]')
@@ -226,6 +233,7 @@ function errorCorreoTemporal(codigo) {
 }
 
 function etiquetaEstadoCorreo(correo) {
+  if (correo.requiere_revision) return 'Requiere revisión'
   return correo.estado_procesamiento === 'error' && errorCorreoTemporal(correo.error_procesamiento)
     ? 'pendiente'
     : correo.estado_procesamiento
@@ -242,6 +250,16 @@ function crearDetalleCorreo(correo) {
   if (correo.detalle_compactado) {
     titulo.textContent = 'Detalle compactado'
     resumen.textContent = 'Se conserva únicamente el registro antirrepetición y la métrica histórica.'
+  } else if (correo.requiere_revision) {
+    titulo.textContent = 'Requiere revisión'
+    resumen.textContent = 'Comprobá los candidatos detectados antes de crear un evento.'
+    const revisar = document.createElement('button')
+    revisar.type = 'button'
+    revisar.className = 'boton boton--mini boton--revision-correo'
+    revisar.dataset.revisarCorreo = correo.id
+    revisar.textContent = 'Revisar'
+    celda.append(titulo, resumen, revisar)
+    return celda
   } else if (correo.error_procesamiento === 'AI_LIMITE_TEMPORAL') {
     titulo.textContent = 'Análisis pendiente'
     resumen.textContent = 'El servicio de IA alcanzó su límite temporal. AgenKin hará un último intento al día siguiente.'
@@ -655,6 +673,101 @@ async function refrescar() {
   if (paginaPortal === 'agenda') await cargarMesAgenda()
 }
 
+function tipoSugeridoRevision(correo) {
+  const acciones = (correo.candidatos_revision?.acciones || []).join(' ').toLowerCase()
+  if (/turno|cita/.test(acciones)) return 'turno'
+  if (/reunion/.test(acciones)) return 'reunion'
+  if (/renov/.test(acciones)) return 'renovacion'
+  if (/entreg/.test(acciones)) return 'entrega'
+  if (/document|presentar/.test(acciones)) return 'documentacion'
+  if (/responder|completar/.test(acciones)) return 'respuesta'
+  if (/pagar|abonar|factura|vence|vencimiento/.test(acciones)) return 'pago'
+  return 'otro'
+}
+
+function renderCandidatosRevision(candidatos = {}) {
+  const lista = document.querySelector('[data-revision-candidatos]')
+  if (!lista) return
+  lista.replaceChildren()
+  const filas = [
+    ['Fechas', (candidatos.fechas || []).map((item) => item.valor)],
+    ['Horas', (candidatos.horas || []).map((item) => item.valor)],
+    ['Importes', (candidatos.montos || []).map((item) => `${item.moneda || 'ARS'} ${item.valor}`)],
+    ['Acciones', candidatos.acciones || []],
+    ['Entidad', candidatos.entidad ? [candidatos.entidad] : []],
+    ['Referencia', candidatos.referencia ? [candidatos.referencia] : []],
+  ]
+  filas.forEach(([etiqueta, valores]) => {
+    const termino = document.createElement('dt')
+    termino.textContent = etiqueta
+    const detalle = document.createElement('dd')
+    detalle.textContent = valores.length ? valores.join(' · ') : 'No detectado'
+    lista.append(termino, detalle)
+  })
+}
+
+function abrirRevisionCorreo(correo) {
+  const candidatos = correo.candidatos_revision || {}
+  formularioRevisionCorreo.reset()
+  formularioRevisionCorreo.elements.p_correo_id.value = correo.id
+  formularioRevisionCorreo.elements.p_tipo.value = tipoSugeridoRevision(correo)
+  formularioRevisionCorreo.elements.p_titulo.value = correo.asunto || 'Compromiso pendiente'
+  formularioRevisionCorreo.elements.p_fecha.min = fechaActualIso()
+  formularioRevisionCorreo.elements.p_fecha.value = candidatos.fechas?.[0]?.valor || ''
+  formularioRevisionCorreo.elements.p_hora.value = candidatos.horas?.[0]?.valor || ''
+  formularioRevisionCorreo.elements.p_entidad.value = candidatos.entidad || ''
+  formularioRevisionCorreo.elements.p_monto.value = candidatos.montos?.[0]?.valor ?? ''
+  renderCandidatosRevision(candidatos)
+  const motivo = document.querySelector('[data-revision-motivo]')
+  motivo.textContent = correo.motivo_revision === 'exclusion_aprendida'
+    ? 'Un descarte anterior evitó la autoagenda. Podés confirmar este caso manualmente.'
+    : 'AgenKin no encontró una única interpretación segura. Comprobá los datos antes de guardar.'
+  const gmail = document.querySelector('[data-revision-gmail]')
+  const cuenta = Array.isArray(correo.conexiones_google)
+    ? correo.conexiones_google[0]
+    : correo.conexiones_google
+  const identificador = correo.gmail_thread_id || correo.gmail_message_id
+  if (cuenta?.google_email && /^[A-Za-z0-9_-]+$/.test(identificador || '')) {
+    gmail.href = `https://mail.google.com/mail/u/?authuser=${encodeURIComponent(cuenta.google_email)}#all/${identificador}`
+    gmail.hidden = false
+  } else {
+    gmail.removeAttribute('href')
+    gmail.hidden = true
+  }
+  dialogoRevisionCorreo.showModal()
+  formularioRevisionCorreo.elements.p_titulo.focus()
+}
+
+async function abrirDestinoNotificacion() {
+  if (paginaPortal !== 'agenda') return
+  const id = new URLSearchParams(window.location.search).get('notificacion')
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id || '')) return
+  const { data: notificacion, error } = await supabase
+    .from('notificaciones')
+    .select('evento_id')
+    .eq('id', id)
+    .eq('estado', 'entregada')
+    .maybeSingle()
+  if (error || !notificacion?.evento_id) {
+    mostrarAviso('La notificación ya no está disponible.', 'info')
+    return
+  }
+  const { data: evento } = await supabase
+    .from('eventos_calendar')
+    .select('fecha_evento')
+    .eq('id', notificacion.evento_id)
+    .neq('estado_sincronizacion', 'eliminado')
+    .maybeSingle()
+  if (!evento?.fecha_evento) {
+    mostrarAviso('El evento ya no está disponible.', 'info')
+    return
+  }
+  const fecha = new Date(evento.fecha_evento)
+  mesAgenda = new Date(fecha.getFullYear(), fecha.getMonth(), 1)
+  await cargarMesAgenda(claveFecha(fecha))
+  await supabase.rpc('marcar_notificacion_leida', { p_notificacion_id: id })
+}
+
 function obtenerIniciales(nombre, email) {
   const partes = (nombre || '').trim().split(/\s+/).filter(Boolean)
   if (partes.length) return partes.slice(0, 2).map((parte) => parte[0]).join('').toUpperCase()
@@ -718,6 +831,9 @@ async function iniciar() {
     definirTexto('[data-nombre]', contexto.perfil.nombre_completo?.split(' ')[0] || 'bienvenido')
     renderAvatar(contexto)
     await refrescar()
+    await abrirDestinoNotificacion()
+    await inicializarCentroNotificaciones()
+    await inicializarPreferenciasNotificaciones()
     const parametros = new URLSearchParams(window.location.search)
     if (parametros.get('google') === 'conectado') {
       const servicio = parametros.get('servicio') === 'calendar' ? 'Google Calendar' : 'Gmail'
@@ -772,6 +888,7 @@ document.addEventListener('click', (evento) => {
 })
 document.querySelector('[data-logout]')?.addEventListener('click', async (evento) => {
   setCargando(evento.currentTarget, true)
+  await desactivarPushDispositivoActual().catch(() => null)
   try { await cerrarSesion() } catch { mostrarAviso('No se pudo cerrar la sesión.', 'error') }
 })
 document.querySelector('[data-request-plan]')?.addEventListener('click', async (evento) => {
@@ -925,6 +1042,51 @@ document.querySelector('[data-correos]')?.addEventListener('change', async (even
   } catch (error) {
     mostrarAviso(error.message, 'error')
     await refrescar()
+  }
+})
+document.querySelector('[data-correos]')?.addEventListener('click', (evento) => {
+  const boton = evento.target.closest('[data-revisar-correo]')
+  if (!boton) return
+  const correo = datosPortal.correos.find((item) => item.id === boton.dataset.revisarCorreo)
+  if (correo) abrirRevisionCorreo(correo)
+})
+formularioRevisionCorreo?.addEventListener('submit', async (evento) => {
+  if (evento.submitter?.value === 'cancel') return
+  evento.preventDefault()
+  const boton = evento.submitter
+  setCargando(boton, true, 'Guardando…')
+  try {
+    const payload = Object.fromEntries(new FormData(formularioRevisionCorreo))
+    payload.p_hora ||= null
+    payload.p_entidad ||= null
+    payload.p_monto = payload.p_monto === '' ? null : Number(payload.p_monto)
+    const { error } = await supabase.rpc('confirmar_revision_correo', payload)
+    if (error) throw error
+    dialogoRevisionCorreo.close()
+    mostrarAviso('Revisión confirmada y evento guardado en Agenda.', 'exito')
+    await refrescar()
+  } catch (error) {
+    mostrarAviso(error.message || 'No se pudo confirmar la revisión.', 'error')
+  } finally {
+    setCargando(boton, false)
+  }
+})
+document.querySelector('[data-descartar-revision]')?.addEventListener('click', async (evento) => {
+  if (!confirm('¿Descartar esta revisión? Si el remitente está autenticado, AgenKin recordará de forma privada esta plantilla.')) return
+  const boton = evento.currentTarget
+  setCargando(boton, true, 'Descartando…')
+  try {
+    const { error } = await supabase.rpc('descartar_revision_correo', {
+      p_correo_id: formularioRevisionCorreo.elements.p_correo_id.value,
+    })
+    if (error) throw error
+    dialogoRevisionCorreo.close()
+    mostrarAviso('Revisión descartada.', 'exito')
+    await refrescar()
+  } catch (error) {
+    mostrarAviso(error.message || 'No se pudo descartar la revisión.', 'error')
+  } finally {
+    setCargando(boton, false)
   }
 })
 document.querySelector('[data-correos-anterior]')?.addEventListener('click', async () => {

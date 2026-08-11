@@ -50,6 +50,21 @@
         </nav>
       </section>
     </main>
+    <dialog data-revision-correo-dialog>
+      <form method="dialog" data-revision-correo-form>
+        <header><div><p class="eyebrow">Confirmación segura</p><h2>Revisar correo</h2></div><button value="cancel" formnovalidate class="cerrar" aria-label="Cerrar">×</button></header>
+        <input type="hidden" name="p_correo_id">
+        <p data-revision-motivo>Comprobá los datos antes de crear el evento.</p>
+        <dl class="candidatos-revision" data-revision-candidatos aria-label="Candidatos detectados"></dl>
+        <label>Tipo<select name="p_tipo"><option value="pago">Pago</option><option value="vencimiento">Vencimiento</option><option value="turno">Turno</option><option value="reunion">Reunión</option><option value="renovacion">Renovación</option><option value="entrega">Entrega</option><option value="respuesta">Respuesta</option><option value="documentacion">Documentación</option><option value="otro">Otro</option></select></label>
+        <label>Título<input name="p_titulo" required maxlength="160" autocomplete="off"></label>
+        <label>Descripción <span class="sr-only">opcional</span><textarea name="p_descripcion" maxlength="1000"></textarea></label>
+        <div class="campos-dobles"><label>Fecha<input name="p_fecha" type="date" required></label><label>Hora <span class="sr-only">opcional</span><input name="p_hora" type="time"></label></div>
+        <div class="campos-dobles"><label>Entidad <span class="sr-only">opcional</span><input name="p_entidad" maxlength="120"></label><label>Monto <span class="sr-only">opcional</span><input name="p_monto" type="number" min="0" max="999999999999.99" step="0.01"></label></div>
+        <a class="accion-sutil" data-revision-gmail target="_blank" rel="noopener noreferrer" hidden>Abrir mensaje original en Gmail ↗</a>
+        <footer><button value="cancel" formnovalidate class="boton boton--secundario">Cancelar</button><button type="button" class="boton boton--texto" data-descartar-revision>Descartar</button><button value="default" class="boton boton--primario">Confirmar y guardar</button></footer>
+      </form>
+    </dialog>
     <script type="module" src="./src/pages/app.js"></script>
   </body>
 </html>

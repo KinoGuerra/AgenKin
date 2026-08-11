@@ -182,6 +182,9 @@ async function cargar() {
       'advertencia',
     )
   }
+  if (Number(datos.metricas?.alerta_mas_antigua_minutos || 0) > 30) {
+    mostrarAviso('La cola de notificaciones supera los 30 minutos de demora.', 'error')
+  }
 
   renderUsuarios(datos.usuarios || [])
   renderAuditoria(datos.auditoria || [])

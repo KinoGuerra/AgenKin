@@ -53,3 +53,9 @@ verify_jwt = false
 
 [functions.process-calendar-queue]
 verify_jwt = false
+
+[functions.process-notifications-scheduled]
+verify_jwt = false
+
+[functions.manage-web-push]
+verify_jwt = true

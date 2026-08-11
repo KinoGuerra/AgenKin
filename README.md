@@ -73,7 +73,7 @@ Se eligió JavaScript multipágina sin React ni router: GitHub Pages sirve cada 
 - npm 10 o superior.
 - Supabase CLI para aplicar base y funciones.
 - Proyecto Google Cloud para habilitar integraciones.
-- Cuenta de Groq para la clasificación con Structured Outputs.
+- Cuenta de Groq opcional para la clasificación con Structured Outputs.
 
 ## Inicio local
 
@@ -172,10 +172,11 @@ vez desde Configuración.
 
 ## IA y secretos
 
-Seguir [Configuración de Groq](docs/CONFIGURACION_GROQ.md). Groq es el proveedor
-predeterminado y se usa desde el worker global mediante el módulo compartido de
-procesamiento; nunca se llama al proveedor desde `scan-gmail` ni desde el
-frontend.
+Seguir [Configuración de Groq](docs/CONFIGURACION_GROQ.md). Groq es opcional y
+se usa desde el worker global mediante el módulo compartido de procesamiento;
+nunca se llama al proveedor desde `scan-gmail` ni desde el frontend. Con
+`AI_PROVIDER=none`, o sin clave configurada, los casos ambiguos pasan a revisión
+sin reservar presupuesto ni realizar solicitudes externas.
 
 Configurar los secretos de IA en Supabase, nunca en el frontend:
 
@@ -193,11 +194,11 @@ supabase secrets set \
 
 Las credenciales de Google se configuran por separado según
 [Configuración de Google](docs/CONFIGURACION_GOOGLE.md). Las variables de IA
-mantienen nombres genéricos para poder cambiar de proveedor, pero el valor
-predeterminado documentado es Groq con `openai/gpt-oss-20b`.
+mantienen nombres genéricos, pero esta versión acepta sólo `groq` y `none`; el
+modelo predeterminado es `openai/gpt-oss-20b`.
 
-El adaptador usa JSON Schema estricto, timeout configurable, hasta tres intentos
-totales para errores transitorios y validación local antes de persistir. Antes
+El adaptador usa JSON Schema estricto, timeout configurable, una sola llamada
+por intento y como máximo un segundo intento al día siguiente. Antes
 de consultar la IA extrae localmente fechas, importes, acciones y entidades, y
 reduce el contenido relevante a 1.200 caracteres. El contrato compacto y el
 flujo completo están en [Análisis de correos](docs/ANALISIS_CORREOS.md). Cada correo se reclama por
@@ -238,7 +239,18 @@ supabase functions deploy sync-gmail-scheduled --no-verify-jwt
 supabase functions deploy process-gmail-queue --no-verify-jwt
 supabase functions deploy create-calendar-scheduled --no-verify-jwt
 supabase functions deploy process-calendar-queue --no-verify-jwt
+supabase functions deploy manage-web-push
+supabase functions deploy process-notifications-scheduled --no-verify-jwt
 ```
+
+## Notificaciones internas y Web Push
+
+Cada evento de Agenda se versiona y se reconcilia de forma asíncrona. Los avisos
+del día previo y del mismo día se programan a las 09:00 en la zona horaria del
+usuario. El centro interno funciona sin Push; una falla externa nunca revierte
+ni oculta un evento. Consultá [Notificaciones](docs/NOTIFICACIONES.md) para
+configurar VAPID, retención, validación de endpoints y el orden seguro de
+publicación.
 
 `scan-gmail` descubre mensajes de todas las cuentas Gmail activas del usuario y
 los deja en una cola durable. Los workers globales procesan esa cola sin llamadas
@@ -257,9 +269,9 @@ idempotente.
 ## Operación de la beta Free
 
 - La sincronización automática usa jobs globales; no se crea un cron por cuenta.
-- Existen cinco jobs: descubrimiento Gmail cada 5 minutos, procesamiento Gmail
-  cada minuto, autoagenda cada 2 minutos, Calendar cada minuto y mantenimiento
-  diario.
+- Existen seis jobs: descubrimiento Gmail cada 5 minutos, procesamiento Gmail
+  cada minuto, autoagenda cada 2 minutos, Calendar y notificaciones cada minuto,
+  y mantenimiento diario.
 - Gmail se consulta incrementalmente mediante History y la cola reparte capacidad
   entre cuentas para evitar que una bandeja monopolice el worker.
 - Una reconciliación diaria recorre en páginas de 100 los últimos siete días.

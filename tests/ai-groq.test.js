@@ -7,6 +7,7 @@ import {
   debeCrearVencimiento,
   ESQUEMA_CLASIFICACION_CORREO,
   ErrorIA,
+  leerConfiguracionIA,
   prepararDatosCorreo,
   redactarDatosSensibles,
   sanitizarTextoCorreo,
@@ -24,6 +25,20 @@ const entorno = {
   AI_MODEL: 'openai/gpt-oss-20b',
   AI_TIMEOUT_MS: '1000',
 }
+
+describe('configuración opcional del proveedor', () => {
+  it('desactiva IA sin clave y no inventa una configuración', () => {
+    expect(leerConfiguracionIA(() => undefined).proveedor).toBe('none')
+  })
+
+  it('mantiene compatibilidad con GROQ_API_KEY', () => {
+    const configuracion = leerConfiguracionIA((nombre) => (
+      nombre === 'GROQ_API_KEY' ? 'clave-groq' : undefined
+    ))
+    expect(configuracion.proveedor).toBe('groq')
+    expect(configuracion.apiKey).toBe('clave-groq')
+  })
+})
 
 describe('minimización de datos antes de Groq', () => {
   it('redacta correos, números largos, enlaces y credenciales', () => {
