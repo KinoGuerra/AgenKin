@@ -635,10 +635,7 @@ function renderPortal(datos) {
 
   const suscripcion = resumen.suscripcion || {}
   definirTexto('[data-plan-cabecera]', suscripcion.plan || 'Sin plan')
-  definirTexto(
-    '[data-plan-estado]',
-    suscripcion.estado ? `${suscripcion.estado} · vence ${formatearFecha(suscripcion.fecha_vencimiento)}` : 'Sin suscripción',
-  )
+  definirTexto('[data-plan-vencimiento]', formatearFecha(suscripcion.fecha_vencimiento))
   const campos = {
     plan: suscripcion.plan || 'Sin plan',
     estado: suscripcion.estado || 'Sin suscripción',
@@ -827,7 +824,8 @@ async function iniciar() {
     const contexto = await protegerRuta('app')
     if (!contexto) return
     usuarioActualId = contexto.user.id
-    definirTexto('[data-nombre]', contexto.perfil.nombre_completo?.split(' ')[0] || 'bienvenido')
+    const nombreGoogle = contexto.user?.user_metadata?.full_name || contexto.perfil.nombre_completo || ''
+    definirTexto('[data-nombre]', nombreGoogle.split(' ')[0] || 'Usuario')
     renderAvatar(contexto)
     await refrescar()
     await abrirDestinoNotificacion()
