@@ -46,6 +46,8 @@ describe('portal separado por subpáginas', () => {
       expect(contenido).toContain('data-icon="✉⌕"')
       expect(contenido).toContain('data-icon="✉✓"')
       expect(contenido).toContain('data-tooltip="Cerrar sesión"')
+      expect(contenido).toContain('class="navegacion-lateral__texto"')
+      expect(contenido).toContain('class="boton-lateral__texto"')
     })
     expect(estilos).toContain('--alto-encabezado: 116px')
     expect(estilos).toContain('--ancho-lateral-colapsado: 116px')
@@ -67,6 +69,8 @@ describe('portal separado por subpáginas', () => {
     expect(estilos).toContain('.barra-lateral.barra-lateral--colapsada nav a')
     expect(estilos).toContain('grid-template-columns: repeat(3, minmax(0, 1fr))')
     expect(estilos).toContain('font-size: 1.45rem')
+    expect(estilos).toContain('transform: scale(.72) rotate(-5deg)')
+    expect(estilos).toContain('.navegacion-lateral__texto')
   })
 
   it('calcula correos de hoy y protege las solicitudes de mejora por usuario', () => {

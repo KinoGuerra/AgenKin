@@ -92,20 +92,26 @@
 .barra-lateral.barra-lateral--colapsada nav a {
   display: grid;
   min-height: 42px;
-  place-items: center;
+  grid-template-columns: minmax(0, 1fr) 0;
   padding: .65rem;
-  font-size: 0;
+  text-align: center;
 }
-.barra-lateral--colapsada nav a::before { content: attr(data-icon); color: currentColor; font-family: ui-monospace, "Cascadia Code", Consolas, monospace; font-size: 1.45rem; font-weight: 850; letter-spacing: -.16em; }
+.barra-lateral nav a::before { content: attr(data-icon); grid-column: 1; width: 0; overflow: hidden; color: currentColor; font-family: ui-monospace, "Cascadia Code", Consolas, monospace; font-size: 1.45rem; font-weight: 850; letter-spacing: -.16em; line-height: 1; opacity: 0; transform: scale(.72) rotate(-5deg); transform-origin: center; transition: width .26s ease, opacity .18s ease, transform .34s cubic-bezier(.22, 1, .36, 1); }
+.barra-lateral--colapsada nav a::before { width: auto; opacity: 1; transform: scale(1) rotate(0); }
 .barra-lateral--colapsada .tema-switch__texto { display: none; }
 .barra-lateral--colapsada .tema-switch { justify-content: center; padding-inline: .45rem; }
 .barra-lateral--colapsada .tema-switch__pista { margin-left: 0; }
-.barra-lateral--colapsada .boton--lateral { min-height: 42px; padding-inline: .5rem; font-size: 0; }
-.barra-lateral--colapsada .boton--lateral::before { content: "⇥"; font-size: 1.2rem; }
+.barra-lateral--colapsada .boton--lateral { grid-template-columns: minmax(0, 1fr) 0; min-height: 42px; padding-inline: .5rem; }
+.barra-lateral--colapsada .boton--lateral::before { width: auto; opacity: 1; transform: scale(1) rotate(0); }
 .barra-lateral nav { display: grid; gap: .25rem; }
-.barra-lateral nav a { position: relative; display: flex; min-height: 42px; align-items: center; padding: .65rem .8rem; border-radius: 8px; color: #bdd0c8; font-size: .87rem; text-decoration: none; }
+.barra-lateral nav a { position: relative; display: grid; grid-template-columns: 0 minmax(0, 1fr); min-height: 42px; align-items: center; padding: .65rem .8rem; border-radius: 8px; color: #bdd0c8; font-size: .87rem; text-decoration: none; transition: grid-template-columns .32s cubic-bezier(.22, 1, .36, 1), padding .32s cubic-bezier(.22, 1, .36, 1), background .2s ease, color .2s ease; }
+.navegacion-lateral__texto { grid-column: 2; overflow: hidden; white-space: nowrap; opacity: 1; transform: translateX(0); transition: opacity .16s ease .1s, transform .28s cubic-bezier(.22, 1, .36, 1), width .32s cubic-bezier(.22, 1, .36, 1); }
+.barra-lateral--colapsada .navegacion-lateral__texto { width: 0; opacity: 0; transform: translateX(-.55rem); transition-delay: 0s; }
 .barra-lateral nav a:hover, .barra-lateral nav a.activo { background: rgb(255 255 255 / 9%); color: white; }
-.boton--lateral { width: 100%; margin-top: auto; border-color: rgb(255 255 255 / 15%); background: transparent; color: white; }
+.boton--lateral { display: grid; grid-template-columns: 0 minmax(0, 1fr); width: 100%; min-height: 42px; align-items: center; margin-top: auto; border-color: rgb(255 255 255 / 15%); background: transparent; color: white; text-align: left; transition: grid-template-columns .32s cubic-bezier(.22, 1, .36, 1), padding .32s cubic-bezier(.22, 1, .36, 1), background .2s ease, color .2s ease; }
+.boton--lateral::before { content: "⇥"; grid-column: 1; width: 0; overflow: hidden; font-size: 1.28rem; line-height: 1; opacity: 0; transform: scale(.72) rotate(-5deg); transform-origin: center; transition: width .26s ease, opacity .18s ease, transform .34s cubic-bezier(.22, 1, .36, 1); }
+.boton-lateral__texto { grid-column: 2; overflow: hidden; white-space: nowrap; opacity: 1; transform: translateX(0); transition: opacity .16s ease .1s, transform .28s cubic-bezier(.22, 1, .36, 1), width .32s cubic-bezier(.22, 1, .36, 1); }
+.barra-lateral--colapsada .boton-lateral__texto { width: 0; opacity: 0; transform: translateX(-.55rem); transition-delay: 0s; }
 .barra-lateral--colapsada [data-tooltip]::after {
   position: absolute;
   z-index: 60;
