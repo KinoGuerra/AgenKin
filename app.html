@@ -44,6 +44,7 @@
     </aside>
     <main id="contenido" class="contenido-portal">
       <div data-alertas></div>
+      <div class="fecha-dashboard"><time data-dashboard-fecha></time></div>
 
       <section class="accesos-directos" aria-labelledby="titulo-accesos-directos">
         <h2 id="titulo-accesos-directos" class="accesos-directos__titulo">Accesos directos</h2>
@@ -54,11 +55,8 @@
         </nav>
       </section>
 
-      <section id="inicio" class="dashboard-inicio" aria-labelledby="titulo-resumen">
-        <div class="titulo-seccion dashboard-titulo">
-          <div><p class="eyebrow">Vista general</p><h2 id="titulo-resumen">Tu actividad</h2><p>Una lectura rápida de lo que AgenKin organizó por vos.</p></div>
-          <time data-dashboard-fecha></time>
-        </div>
+      <section id="inicio" class="actividad-dashboard" aria-labelledby="titulo-resumen">
+        <h2 id="titulo-resumen" class="actividad-dashboard__titulo">Tu actividad</h2>
         <div class="dashboard-grid">
           <a class="dashboard-card dashboard-card--dias" href="./configuracion.html#suscripcion">
             <span class="dashboard-card__etiqueta">Días usando AgenKin</span>

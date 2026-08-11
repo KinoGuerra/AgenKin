@@ -23,6 +23,15 @@ describe('portal separado por subpáginas', () => {
     expect(accesos).not.toContain('<strong>Reglas</strong>')
   })
 
+  it('ubica la fecha antes de accesos y agrupa la actividad en un panel flotante', () => {
+    const portada = leer('app.html')
+    expect(portada.indexOf('data-dashboard-fecha')).toBeLessThan(portada.indexOf('accesos-directos'))
+    expect(portada).toContain('class="actividad-dashboard"')
+    expect(portada).toContain('class="actividad-dashboard__titulo">Tu actividad</h2>')
+    expect(portada).not.toContain('Vista general')
+    expect(portada).not.toContain('Una lectura rápida de lo que AgenKin organizó por vos.')
+  })
+
   it('mantiene el encabezado fijo y el control lateral centrado', () => {
     const estilos = leer('src/styles/portal.css')
     const pagina = leer('src/pages/app.js')
@@ -57,6 +66,7 @@ describe('portal separado por subpáginas', () => {
     expect(estilos).toContain('content: attr(data-tooltip)')
     expect(estilos).toContain('.barra-lateral.barra-lateral--colapsada nav a')
     expect(estilos).toContain('grid-template-columns: repeat(3, minmax(0, 1fr))')
+    expect(estilos).toContain('font-size: 1.45rem')
   })
 
   it('calcula correos de hoy y protege las solicitudes de mejora por usuario', () => {
