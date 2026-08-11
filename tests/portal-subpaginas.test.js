@@ -41,6 +41,10 @@ describe('portal separado por subpáginas', () => {
     expect(servicio).toContain(
       'vencimientos_detectados!vencimientos_correo_usuario_fkey(titulo,descripcion,fecha_vencimiento,monto)',
     )
+    expect(servicio).toContain("consultas.conexion = supabase.rpc('obtener_estado_conexion_google')")
+    expect(servicio).toContain('id,conexion_google_id,gmail_message_id')
+    expect(servicio).not.toContain('conexiones_google!correos_conexion_usuario_fkey')
+    expect(pagina).toContain('correo.google_email')
     expect(servicio).toContain(
       'correos_procesados!vencimientos_correo_usuario_fkey(asunto)',
     )

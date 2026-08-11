@@ -723,12 +723,9 @@ function abrirRevisionCorreo(correo) {
     ? 'Un descarte anterior evitó la autoagenda. Podés confirmar este caso manualmente.'
     : 'AgenKin no encontró una única interpretación segura. Comprobá los datos antes de guardar.'
   const gmail = document.querySelector('[data-revision-gmail]')
-  const cuenta = Array.isArray(correo.conexiones_google)
-    ? correo.conexiones_google[0]
-    : correo.conexiones_google
   const identificador = correo.gmail_thread_id || correo.gmail_message_id
-  if (cuenta?.google_email && /^[A-Za-z0-9_-]+$/.test(identificador || '')) {
-    gmail.href = `https://mail.google.com/mail/u/?authuser=${encodeURIComponent(cuenta.google_email)}#all/${identificador}`
+  if (correo.google_email && /^[A-Za-z0-9_-]+$/.test(identificador || '')) {
+    gmail.href = `https://mail.google.com/mail/u/?authuser=${encodeURIComponent(correo.google_email)}#all/${identificador}`
     gmail.hidden = false
   } else {
     gmail.removeAttribute('href')
