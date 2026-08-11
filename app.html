@@ -26,12 +26,12 @@
         <span aria-hidden="true">&lt;</span>
       </button>
       <nav aria-label="Portal del usuario">
-        <a class="activo" href="./app.html">Dashboard</a>
-        <a href="./correos.html">Correos analizados</a>
-        <a href="./vencimientos.html">Vencimientos</a>
-        <a href="./agenda.html">Agenda</a>
-        <a href="./reglas.html">Reglas personales</a>
-        <a href="./configuracion.html">Configuración</a>
+        <a class="activo" href="./app.html" data-icon="▦" data-tooltip="Dashboard">Dashboard</a>
+        <a href="./correos.html" data-icon="✉⌕" data-tooltip="Correos analizados">Correos analizados</a>
+        <a href="./vencimientos.html" data-icon="✉✓" data-tooltip="Vencimientos">Vencimientos</a>
+        <a href="./agenda.html" data-icon="▣" data-tooltip="Agenda">Agenda</a>
+        <a href="./reglas.html" data-icon="▤✎" data-tooltip="Reglas personales">Reglas personales</a>
+        <a href="./configuracion.html" data-icon="⚙" data-tooltip="Configuración">Configuración</a>
       </nav>
       <div class="acciones-laterales">
         <label class="tema-switch">
@@ -39,7 +39,7 @@
           <input type="checkbox" role="switch" data-theme-toggle aria-label="Modo oscuro">
           <span class="tema-switch__pista" aria-hidden="true"><span class="tema-switch__indicador" data-theme-icon>☀</span></span>
         </label>
-        <button class="boton boton--lateral" data-logout>Cerrar sesión</button>
+        <button class="boton boton--lateral" data-logout data-tooltip="Cerrar sesión">Cerrar sesión</button>
       </div>
     </aside>
     <main id="contenido" class="contenido-portal">
@@ -48,11 +48,11 @@
       <section class="accesos-directos" aria-labelledby="titulo-accesos-directos">
         <h2 id="titulo-accesos-directos" class="accesos-directos__titulo">Accesos directos</h2>
         <nav class="accesos-rapidos" aria-labelledby="titulo-accesos-directos">
-          <a href="./configuracion.html"><span aria-hidden="true">⌘</span><strong>Configuración</strong><small>Plan y conexiones</small></a>
-          <a href="./correos.html"><span aria-hidden="true">✉</span><strong>Correos</strong><small>Últimos análisis</small></a>
-          <a href="./vencimientos.html"><span aria-hidden="true">!</span><strong>Vencimientos</strong><small>Fechas detectadas</small></a>
-          <a href="./agenda.html"><span aria-hidden="true">□</span><strong>Agenda</strong><small>Calendario interno</small></a>
-          <a href="./reglas.html"><span aria-hidden="true">⌁</span><strong>Reglas</strong><small>Filtros personales</small></a>
+          <a href="./configuracion.html"><span aria-hidden="true">⚙</span><strong>Configuración</strong><small>Plan y conexiones</small></a>
+          <a href="./correos.html"><span aria-hidden="true">✉⌕</span><strong>Correos</strong><small>Últimos análisis</small></a>
+          <a href="./vencimientos.html"><span aria-hidden="true">✉✓</span><strong>Vencimientos</strong><small>Fechas detectadas</small></a>
+          <a href="./agenda.html"><span aria-hidden="true">▣</span><strong>Agenda</strong><small>Calendario interno</small></a>
+          <a href="./reglas.html"><span aria-hidden="true">▤✎</span><strong>Reglas</strong><small>Filtros personales</small></a>
         </nav>
       </section>
 
