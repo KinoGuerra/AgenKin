@@ -278,3 +278,23 @@ dialog footer { justify-content: flex-end; }
   *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; }
   ::view-transition-old(root), ::view-transition-new(root) { animation-duration: .01ms !important; }
 }
+@font-face {
+  font-family: "Material Symbols Rounded";
+  font-style: normal;
+  font-weight: 400;
+  src: url("../assets/material-symbols-rounded.woff") format("woff");
+  font-display: block;
+}
+
+.material-symbols-rounded {
+  display: inline-block;
+  font-family: "Material Symbols Rounded";
+  font-size: 1.25rem;
+  font-style: normal;
+  font-weight: 400;
+  letter-spacing: normal;
+  line-height: 1;
+  white-space: nowrap;
+  word-wrap: normal;
+  font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+}

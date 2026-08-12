@@ -25,16 +25,16 @@
 
       <p class="etiqueta-lateral">Centro de operaciones</p>
       <nav aria-label="Panel administrativo">
-        <a class="activo" href="#resumen"><span aria-hidden="true">⌂</span>Resumen</a>
-        <a href="#usuarios"><span aria-hidden="true">◎</span>Usuarios</a>
-        <a href="#auditoria"><span aria-hidden="true">↻</span>Auditoría</a>
+        <a class="activo" href="#resumen"><span class="material-symbols-rounded" aria-hidden="true">dashboard</span>Resumen</a>
+        <a href="#usuarios"><span class="material-symbols-rounded" aria-hidden="true">group</span>Usuarios</a>
+        <a href="#auditoria"><span class="material-symbols-rounded" aria-hidden="true">history</span>Auditoría</a>
       </nav>
 
       <div class="acciones-laterales">
         <label class="tema-switch">
           <span class="tema-switch__texto" data-theme-label>Modo oscuro</span>
           <input type="checkbox" role="switch" data-theme-toggle aria-label="Modo oscuro">
-          <span class="tema-switch__pista" aria-hidden="true"><span class="tema-switch__indicador" data-theme-icon>☀</span></span>
+          <span class="tema-switch__pista" aria-hidden="true"><span class="tema-switch__indicador material-symbols-rounded" data-theme-icon>light_mode</span></span>
         </label>
         <a class="boton boton--lateral" href="./access.html">Cambiar de portal</a>
         <button class="boton boton--lateral" type="button" data-logout>Cerrar sesión</button>
@@ -44,7 +44,7 @@
 
     <main id="contenido" class="contenido-portal">
       <header class="cabecera-portal cabecera-admin">
-        <button class="menu-movil" type="button" data-menu aria-label="Abrir menú" aria-expanded="false">☰</button>
+        <button class="menu-movil material-symbols-rounded" type="button" data-menu aria-label="Abrir menú" aria-expanded="false">menu</button>
         <a class="marca-admin-movil" href="./admin.html" aria-label="AgenKin, administración">
           <img class="logo-tema logo-tema--claro" src="./src/assets/agenkin-logo-light.png" alt="AgenKin">
           <img class="logo-tema logo-tema--oscuro" src="./src/assets/agenkin-logo-dark.png" alt="">
@@ -79,7 +79,7 @@
 
         <div class="metricas metricas--admin">
           <section class="grupo-metricas" aria-labelledby="grupo-usuarios">
-            <header><span aria-hidden="true">◎</span><h3 id="grupo-usuarios">Usuarios</h3></header>
+            <header><span class="material-symbols-rounded" aria-hidden="true">group</span><h3 id="grupo-usuarios">Usuarios</h3></header>
             <article><small>Registrados</small><strong data-metrica="registrados">—</strong><span>Total acumulado</span></article>
             <article><small>Activos</small><strong data-metrica="activos">—</strong><span>Pueden ingresar</span></article>
             <article><small>En prueba</small><strong data-metrica="prueba">—</strong><span>Período vigente</span></article>

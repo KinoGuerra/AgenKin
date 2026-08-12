@@ -23,21 +23,21 @@
     </header>
     <aside class="barra-lateral">
       <button class="menu-lateral-toggle" type="button" data-menu-lateral-toggle aria-label="Contraer menú" aria-expanded="true">
-        <span aria-hidden="true">&lt;</span>
+        <span class="material-symbols-rounded" aria-hidden="true">chevron_left</span>
       </button>
       <nav aria-label="Portal del usuario">
-        <a class="activo" href="./app.html" data-icon="▦" data-tooltip="Dashboard"><span class="navegacion-lateral__texto">Dashboard</span></a>
-        <a href="./correos.html" data-icon="✉⌕" data-tooltip="Correos analizados"><span class="navegacion-lateral__texto">Correos analizados</span></a>
-        <a href="./vencimientos.html" data-icon="✉✓" data-tooltip="Vencimientos"><span class="navegacion-lateral__texto">Vencimientos</span></a>
-        <a href="./agenda.html" data-icon="▣" data-tooltip="Agenda"><span class="navegacion-lateral__texto">Agenda</span></a>
-        <a href="./reglas.html" data-icon="▤✎" data-tooltip="Reglas personales"><span class="navegacion-lateral__texto">Reglas personales</span></a>
-        <a href="./configuracion.html" data-icon="⚙" data-tooltip="Configuraciones"><span class="navegacion-lateral__texto">Configuraciones</span></a>
+        <a class="activo" href="./app.html" data-icon="dashboard" data-tooltip="Dashboard"><span class="navegacion-lateral__texto">Dashboard</span></a>
+        <a href="./correos.html" data-icon="manage_search" data-tooltip="Correos analizados"><span class="navegacion-lateral__texto">Correos analizados</span></a>
+        <a href="./vencimientos.html" data-icon="mark_email_read" data-tooltip="Vencimientos"><span class="navegacion-lateral__texto">Vencimientos</span></a>
+        <a href="./agenda.html" data-icon="calendar_month" data-tooltip="Agenda"><span class="navegacion-lateral__texto">Agenda</span></a>
+        <a href="./reglas.html" data-icon="edit_note" data-tooltip="Reglas personales"><span class="navegacion-lateral__texto">Reglas personales</span></a>
+        <a href="./configuracion.html" data-icon="settings" data-tooltip="Configuraciones"><span class="navegacion-lateral__texto">Configuraciones</span></a>
       </nav>
       <div class="acciones-laterales">
         <label class="tema-switch">
           <span class="tema-switch__texto" data-theme-label>Modo oscuro</span>
           <input type="checkbox" role="switch" data-theme-toggle aria-label="Modo oscuro">
-          <span class="tema-switch__pista" aria-hidden="true"><span class="tema-switch__indicador" data-theme-icon>☀</span></span>
+          <span class="tema-switch__pista" aria-hidden="true"><span class="tema-switch__indicador material-symbols-rounded" data-theme-icon>light_mode</span></span>
         </label>
         <button class="boton boton--lateral" data-logout data-tooltip="Cerrar sesión"><span class="boton-lateral__texto">Cerrar sesión</span></button>
       </div>
@@ -49,9 +49,9 @@
       <section class="accesos-directos" aria-labelledby="titulo-accesos-directos">
         <h2 id="titulo-accesos-directos" class="accesos-directos__titulo">Accesos directos</h2>
         <nav class="accesos-rapidos" aria-labelledby="titulo-accesos-directos">
-          <a href="./vencimientos.html"><span aria-hidden="true">✉✓</span><strong>Vencimientos</strong><small>Fechas detectadas</small></a>
-          <a href="./agenda.html"><span aria-hidden="true">▣</span><strong>Agenda</strong><small>Calendario interno</small></a>
-          <a href="./configuracion.html"><span aria-hidden="true">⚙</span><strong>Configuraciones</strong><small>Plan y conexiones</small></a>
+          <a href="./vencimientos.html"><span class="material-symbols-rounded" aria-hidden="true">mark_email_read</span><strong>Vencimientos</strong><small>Fechas detectadas</small></a>
+          <a href="./agenda.html"><span class="material-symbols-rounded" aria-hidden="true">calendar_month</span><strong>Agenda</strong><small>Calendario interno</small></a>
+          <a href="./configuracion.html"><span class="material-symbols-rounded" aria-hidden="true">settings</span><strong>Configuraciones</strong><small>Plan y conexiones</small></a>
         </nav>
       </section>
 
@@ -76,7 +76,7 @@
           <article class="dashboard-card dashboard-card--avisos" aria-labelledby="titulo-avisos-dia">
             <div class="dashboard-card__cabecera avisos-dia__encabezado">
               <div><span class="dashboard-card__etiqueta">Próximas acciones</span><h3 id="titulo-avisos-dia">Avisos del día</h3></div>
-              <a class="accion-sutil" href="./vencimientos.html">Ver todos <span aria-hidden="true">→</span></a>
+              <a class="accion-sutil" href="./vencimientos.html">Ver todos <span class="material-symbols-rounded" aria-hidden="true">arrow_forward</span></a>
             </div>
             <ul class="avisos-dia__lista" data-avisos-dia aria-live="polite">
               <li class="avisos-dia__vacio">Consultando vencimientos…</li>
@@ -85,7 +85,7 @@
           <article class="dashboard-card dashboard-card--categorias">
             <div class="dashboard-card__cabecera">
               <div><span class="dashboard-card__etiqueta">Mapa de correos</span><h3>Distribución por grupo</h3></div>
-              <a class="accion-sutil" href="./correos.html">Ver detalle <span aria-hidden="true">→</span></a>
+              <a class="accion-sutil" href="./correos.html">Ver detalle <span class="material-symbols-rounded" aria-hidden="true">arrow_forward</span></a>
             </div>
             <div class="tabla-scroll">
               <table class="tabla-categorias">
