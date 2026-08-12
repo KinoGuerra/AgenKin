@@ -43,7 +43,7 @@ describe('barrera visual del portal administrador', () => {
     expect(estilosPortal).toContain('grid-template-columns: repeat(3, minmax(220px, 1fr))')
     expect(estilosPortal).toContain('.encabezado-global__tarjetas--admin .tarjeta-encabezado { min-width: 220px; flex: 0 0 220px; }')
     expect(estilosPortal).toContain('.panel-alertas-operativas[hidden] { display: none; }')
-    expect(adminHtml).toContain('data-icon="swap_horiz"')
+    expect(adminHtml).toContain('data-icon="switch_account"')
     expect(adminHtml).toContain('data-icon="logout"')
     expect(adminHtml).not.toContain('class="enlace-lateral__texto"')
     expect(estilosPortal).toContain('.portal--admin .boton--lateral::before { content: attr(data-icon); }')
