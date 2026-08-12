@@ -127,49 +127,48 @@ function cerrarMenu() {
 
 function inicializarAcordeones() {
   const acordeones = [...document.querySelectorAll('.preguntas details')]
-  const reducirMovimiento = window.matchMedia('(prefers-reduced-motion: reduce)')
-  if (!acordeones.length || reducirMovimiento.matches || typeof acordeones[0].animate !== 'function') return
+  if (!acordeones.length || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
 
-  document.documentElement.classList.add('acordeones-animados')
   acordeones.forEach((acordeon) => {
     const resumen = acordeon.querySelector('summary')
-    const contenido = acordeon.querySelector('p')
-    if (!resumen) return
+    const contenido = acordeon.querySelector('.respuesta-frecuente')
+    if (!resumen || !contenido) return
 
     resumen.addEventListener('click', (evento) => {
       evento.preventDefault()
       if (acordeon.dataset.animando === 'true') return
 
       const abrir = !acordeon.open
-      const altoInicial = acordeon.getBoundingClientRect().height
-      if (abrir) acordeon.open = true
-      const altoFinal = abrir
-        ? acordeon.scrollHeight
-        : resumen.getBoundingClientRect().height
       acordeon.dataset.animando = 'true'
-      acordeon.style.height = `${altoInicial}px`
-      acordeon.style.overflow = 'hidden'
-      void acordeon.offsetHeight
+      if (abrir) acordeon.open = true
+      else acordeon.dataset.cerrando = 'true'
 
-      const duracion = abrir ? 360 : 300
-      const animacion = acordeon.animate(
-        [{ height: `${altoInicial}px` }, { height: `${altoFinal}px` }],
-        { duration: duracion, easing: 'cubic-bezier(.22, 1, .36, 1)', fill: 'forwards' },
-      )
-      const animacionContenido = contenido?.animate(
-        abrir
-          ? [{ opacity: 0, transform: 'translateY(-6px)' }, { opacity: 1, transform: 'translateY(0)' }]
-          : [{ opacity: 1, transform: 'translateY(0)' }, { opacity: 0, transform: 'translateY(-4px)' }],
-        { duration: abrir ? 220 : 150, easing: 'ease-out', fill: 'forwards' },
-      )
+      const alturaContenido = contenido.scrollHeight
+      contenido.style.transition = 'none'
+      contenido.style.maxHeight = abrir ? '0px' : `${alturaContenido}px`
+      contenido.style.opacity = abrir ? '0' : '1'
+      contenido.style.transform = abrir ? 'translateY(-.35rem)' : 'translateY(0)'
+      void contenido.offsetHeight
 
-      animacion.finished.finally(() => {
-        animacion.cancel()
-        animacionContenido?.cancel()
+      const finalizar = (eventoFinal) => {
+        if (eventoFinal.target !== contenido || eventoFinal.propertyName !== 'max-height') return
+        contenido.removeEventListener('transitionend', finalizar)
         if (!abrir) acordeon.open = false
-        acordeon.style.height = ''
-        acordeon.style.overflow = ''
+        contenido.style.maxHeight = ''
+        contenido.style.opacity = ''
+        contenido.style.transform = ''
+        contenido.style.transition = ''
+        delete acordeon.dataset.cerrando
         delete acordeon.dataset.animando
+      }
+      contenido.addEventListener('transitionend', finalizar)
+      window.requestAnimationFrame(() => {
+        contenido.style.transition = ''
+        window.requestAnimationFrame(() => {
+          contenido.style.maxHeight = abrir ? `${alturaContenido}px` : '0px'
+          contenido.style.opacity = abrir ? '1' : '0'
+          contenido.style.transform = abrir ? 'translateY(0)' : 'translateY(-.35rem)'
+        })
       })
     })
   })

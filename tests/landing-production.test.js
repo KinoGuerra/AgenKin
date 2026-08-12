@@ -38,9 +38,11 @@ describe('landing preparada para producción', () => {
   it('anima las respuestas frecuentes al abrir y cerrar, respetando movimiento reducido', () => {
     expect(landingJs).toContain('function inicializarAcordeones()')
     expect(landingJs).toContain("'(prefers-reduced-motion: reduce)'")
-    expect(estilosLanding).toContain('.preguntas details::details-content')
-    expect(estilosLanding).toContain('interpolate-size: allow-keywords')
-    expect(estilosLanding).toContain('content-visibility .38s allow-discrete')
+    expect(landingJs).toContain("eventoFinal.propertyName !== 'max-height'")
+    expect(landingJs).toContain('if (!abrir) acordeon.open = false')
+    expect(landingJs).toContain("contenido.style.maxHeight = abrir ? '0px'")
+    expect(estilosLanding).toContain('max-height .36s cubic-bezier(.22, 1, .36, 1)')
+    expect(estilosLanding).toContain('.respuesta-frecuente')
   })
 
   it('muestra los límites multicuenta de los planes públicos', () => {
