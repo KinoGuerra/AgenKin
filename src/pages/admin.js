@@ -1,4 +1,5 @@
 import '../components/theme.js'
+import { inicializarColapsoLateral } from '../components/sidebar.js'
 import { crearCelda, estadoVacio, mostrarAviso, setCargando } from '../components/ui.js'
 import { protegerRuta } from '../guards/route-guard.js'
 import { cerrarSesion } from '../services/auth.js'
@@ -13,6 +14,8 @@ const dialogo = document.querySelector('[data-admin-dialog]')
 const formulario = document.querySelector('[data-admin-form]')
 const filtros = document.querySelector('[data-filtros]')
 const botonMenu = document.querySelector('[data-menu]')
+const botonActualizar = document.querySelector('[data-admin-actualizar]')
+const anclaAlertasOperativas = document.querySelector('[data-alertas-operativas]')
 const ACCIONES = [
   ['activar', 'Activar acceso'],
   ['suspender', 'Suspender acceso'],
@@ -48,20 +51,21 @@ function obtenerIniciales(nombre, email) {
   return (email || 'SA').slice(0, 2).toUpperCase()
 }
 
-function renderPerfil(perfil) {
-  const nombre = perfil.nombre_completo || 'Administrador'
-  const email = perfil.email || 'Cuenta superadministradora'
+function renderPerfil(contexto) {
+  const perfil = contexto.perfil || {}
+  const nombre = perfil.nombre_completo || contexto.user?.user_metadata?.full_name || 'Administrador'
+  const email = perfil.email || contexto.user?.email || 'Cuenta superadministradora'
   const imagen = document.querySelector('[data-admin-avatar]')
   const iniciales = document.querySelector('[data-admin-iniciales]')
 
-  document.querySelector('[data-admin-nombre]').textContent = nombre
-  document.querySelector('[data-admin-email]').textContent = email
+  document.querySelector('[data-admin-nombre]').textContent = nombre.trim().split(/\s+/)[0] || 'Administrador'
   iniciales.textContent = obtenerIniciales(nombre, email)
 
-  if (!perfil.avatar_url) return
+  const avatar = perfil.avatar_url || contexto.user?.user_metadata?.avatar_url || contexto.user?.user_metadata?.picture
+  if (!avatar) return
 
   try {
-    const url = new URL(perfil.avatar_url)
+    const url = new URL(avatar)
     if (url.protocol !== 'https:') return
     imagen.src = url.href
     imagen.alt = `Foto de ${nombre}`
@@ -76,14 +80,106 @@ function renderPerfil(perfil) {
   }
 }
 
-function cerrarMenu() {
+function cerrarMenu({ devolverFoco = false } = {}) {
   document.body.classList.remove('menu-abierto')
   botonMenu.setAttribute('aria-expanded', 'false')
   botonMenu.setAttribute('aria-label', 'Abrir menú')
+  if (devolverFoco) botonMenu.focus()
+}
+
+function numero(valor) {
+  return Number.isFinite(Number(valor)) ? Number(valor) : 0
+}
+
+function incidenciasOperativas(metricas) {
+  const incidencias = []
+  const megabytes = Math.round(numero(metricas.bytes_base) / 1024 / 1024)
+  if (metricas.detener_carga_historica) {
+    incidencias.push({ nivel: 'critica', texto: `El almacenamiento alcanzó ${megabytes} MB. La carga histórica debe mantenerse detenida.` })
+  } else if (metricas.alerta_almacenamiento) {
+    incidencias.push({ nivel: 'advertencia', texto: `El almacenamiento alcanzó ${megabytes} MB. Revisá retención y capacidad.` })
+  }
+  const antiguedad = numero(metricas.alerta_mas_antigua_minutos)
+  if (antiguedad > 30) incidencias.push({ nivel: 'critica', texto: `La cola de alertas lleva ${antiguedad} minutos pendiente.` })
+  return incidencias
+}
+
+function crearCentroOperativo() {
+  const boton = document.createElement('button')
+  boton.className = 'campana-operativa material-symbols-rounded'
+  boton.type = 'button'
+  boton.textContent = 'notifications'
+  boton.setAttribute('aria-label', 'Abrir alertas operativas')
+  boton.setAttribute('aria-expanded', 'false')
+  const badge = document.createElement('span')
+  badge.className = 'badge-operativa'
+  badge.hidden = true
+  badge.setAttribute('aria-hidden', 'true')
+  boton.append(badge)
+
+  const panel = document.createElement('section')
+  panel.className = 'panel-alertas-operativas'
+  panel.hidden = true
+  panel.setAttribute('aria-label', 'Alertas operativas')
+  const titulo = document.createElement('h2')
+  titulo.textContent = 'Alertas operativas'
+  const lista = document.createElement('ul')
+  const contexto = document.createElement('p')
+  contexto.className = 'panel-alertas-operativas__contexto'
+  const actualizar = document.createElement('button')
+  actualizar.className = 'boton boton--secundario boton--mini'
+  actualizar.type = 'button'
+  actualizar.textContent = 'Actualizar estado'
+  panel.append(titulo, lista, contexto, actualizar)
+  anclaAlertasOperativas.append(boton, panel)
+
+  const cerrar = () => {
+    panel.hidden = true
+    boton.setAttribute('aria-expanded', 'false')
+  }
+  boton.addEventListener('click', () => {
+    const abierto = panel.hidden
+    panel.hidden = !abierto
+    boton.setAttribute('aria-expanded', String(abierto))
+    if (abierto) actualizar.focus()
+  })
+  actualizar.addEventListener('click', () => actualizarEstadoOperativo(actualizar))
+  document.addEventListener('click', (evento) => {
+    if (!anclaAlertasOperativas.contains(evento.target)) cerrar()
+  })
+  return { boton, badge, lista, contexto, cerrar }
+}
+
+const centroOperativo = crearCentroOperativo()
+
+function renderCentroOperativo(metricas) {
+  const incidencias = incidenciasOperativas(metricas)
+  centroOperativo.badge.hidden = !incidencias.length
+  centroOperativo.badge.textContent = incidencias.length > 9 ? '9+' : String(incidencias.length)
+  centroOperativo.boton.classList.toggle('campana-operativa--incidencia', Boolean(incidencias.length))
+  centroOperativo.boton.setAttribute('aria-label', incidencias.length ? `Abrir alertas operativas: ${incidencias.length} incidencia${incidencias.length === 1 ? '' : 's'}` : 'Abrir alertas operativas')
+  centroOperativo.lista.replaceChildren()
+  if (!incidencias.length) {
+    const item = document.createElement('li')
+    item.className = 'alerta-operativa alerta-operativa--estable'
+    item.textContent = 'No hay incidencias que requieran atención.'
+    centroOperativo.lista.append(item)
+  } else {
+    incidencias.forEach((incidencia) => {
+      const item = document.createElement('li')
+      item.className = `alerta-operativa alerta-operativa--${incidencia.nivel}`
+      item.textContent = incidencia.texto
+      centroOperativo.lista.append(item)
+    })
+  }
+  centroOperativo.contexto.textContent = `Contexto: ${numero(metricas.errores)} errores recientes · ${numero(metricas.revisiones_pendientes)} revisiones · ${numero(metricas.alertas_pendientes)} alertas pendientes · ${numero(metricas.push_temporales)} Push en reintento.`
 }
 
 function renderUsuarios(usuarios) {
   tbody.replaceChildren()
+  document.querySelector('[data-admin-resultados]').textContent = usuarios.length
+    ? `${usuarios.length} usuario${usuarios.length === 1 ? '' : 's'} en esta página.`
+    : 'No hay usuarios que coincidan con los filtros.'
   if (!usuarios.length) {
     const fila = document.createElement('tr')
     const celda = crearCelda('No hay usuarios que coincidan con los filtros.')
@@ -175,16 +271,14 @@ async function cargar() {
     const elemento = document.querySelector(`[data-metrica="${nombre}"]`)
     if (elemento) elemento.textContent = valor
   })
-  if (datos.metricas?.alerta_almacenamiento) {
-    const megabytes = Math.round(Number(datos.metricas.bytes_base || 0) / 1024 / 1024)
-    mostrarAviso(
-      `La base usa aproximadamente ${megabytes} MB. Revisá retención y el paso a Supabase Pro.`,
-      'advertencia',
-    )
-  }
-  if (Number(datos.metricas?.alerta_mas_antigua_minutos || 0) > 30) {
-    mostrarAviso('La cola de notificaciones supera los 30 minutos de demora.', 'error')
-  }
+  const metricas = datos.metricas || {}
+  document.querySelector('[data-admin-registrados]').textContent = numero(metricas.registrados)
+  document.querySelector('[data-admin-activos]').textContent = numero(metricas.activos)
+  document.querySelector('[data-admin-cuentas-gmail]').textContent = numero(metricas.cuentas_gmail)
+  document.querySelector('[data-admin-errores]').textContent = numero(metricas.errores)
+  const antiguedad = numero(metricas.alerta_mas_antigua_minutos)
+  document.querySelector('[data-admin-cola]').textContent = antiguedad ? `${antiguedad} min` : 'Sin demora'
+  renderCentroOperativo(metricas)
 
   renderUsuarios(datos.usuarios || [])
   renderAuditoria(datos.auditoria || [])
@@ -197,12 +291,23 @@ async function cargar() {
   }).format(new Date())}`
 }
 
+async function actualizarEstadoOperativo(boton) {
+  setCargando(boton, true, 'Actualizando…')
+  try {
+    await cargar()
+  } catch (error) {
+    mostrarAviso(error.message || 'No se pudo actualizar el estado operativo.', 'error')
+  } finally {
+    setCargando(boton, false)
+  }
+}
+
 async function iniciar() {
   try {
     const contexto = await protegerRuta('admin')
     if (!contexto) return
     administradorId = contexto.user.id
-    renderPerfil(contexto.perfil)
+    renderPerfil(contexto)
     document.documentElement.classList.remove('ruta-protegida-pendiente')
     await cargar()
   } catch (error) {
@@ -211,15 +316,23 @@ async function iniciar() {
   }
 }
 
+const menuAdmin = document.querySelector('.barra-lateral')
+if (menuAdmin) {
+  menuAdmin.id ||= 'menu-administracion'
+  botonMenu.setAttribute('aria-controls', menuAdmin.id)
+}
+inicializarColapsoLateral({ clave: 'agenkin_menu_admin_colapsado', claseCuerpo: 'menu-admin-colapsado' })
 botonMenu.addEventListener('click', (evento) => {
   const abierto = document.body.classList.toggle('menu-abierto')
   evento.currentTarget.setAttribute('aria-expanded', String(abierto))
   evento.currentTarget.setAttribute('aria-label', abierto ? 'Cerrar menú' : 'Abrir menú')
 })
-document.querySelector('[data-menu-overlay]').addEventListener('click', cerrarMenu)
+document.querySelector('[data-menu-overlay]').addEventListener('click', () => cerrarMenu({ devolverFoco: true }))
 document.querySelectorAll('.barra-lateral nav a').forEach((enlace) => enlace.addEventListener('click', cerrarMenu))
 document.addEventListener('keydown', (evento) => {
-  if (evento.key === 'Escape' && document.body.classList.contains('menu-abierto')) cerrarMenu()
+  if (evento.key !== 'Escape') return
+  if (document.body.classList.contains('menu-abierto')) cerrarMenu({ devolverFoco: true })
+  centroOperativo.cerrar()
 })
 document.querySelector('[data-logout]').addEventListener('click', async () => {
   try {
@@ -228,6 +341,7 @@ document.querySelector('[data-logout]').addEventListener('click', async () => {
     mostrarAviso('No se pudo cerrar la sesión.', 'error')
   }
 })
+botonActualizar.addEventListener('click', () => actualizarEstadoOperativo(botonActualizar))
 filtros.addEventListener('submit', async (evento) => {
   evento.preventDefault()
   pagina = 1

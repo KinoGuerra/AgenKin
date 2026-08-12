@@ -17,11 +17,20 @@ describe('landing preparada para producción', () => {
 
   it('explica permisos y tratamiento de datos antes del ingreso', () => {
     expect(landing).toContain('Gmail en modo lectura')
-    expect(landing).toContain('Calendar se autoriza por separado')
+    expect(landing).toContain('Un Calendar opcional por usuario')
+    expect(landing).toContain('Alertas internas opcionales')
     expect(landing).toContain('Sin guardar el cuerpo completo')
     expect(landing).toContain('./privacidad.html#eliminacion')
     expect(landing).not.toContain('A definir')
     expect(landing).not.toContain('El MVP')
+    expect(landing).not.toContain('remitentes que hayas priorizado')
+  })
+
+  it('describe la Agenda interna, revisión y Calendar sin prometer automatización total', () => {
+    expect(landing).toContain('Agenda interna es la fuente principal')
+    expect(landing).toContain('Los casos ambiguos quedan para revisión')
+    expect(landing).toContain('una sola conexión Calendar opcional')
+    expect(landing).toContain('Web Push se activa voluntariamente')
   })
 
   it('muestra los límites multicuenta de los planes públicos', () => {

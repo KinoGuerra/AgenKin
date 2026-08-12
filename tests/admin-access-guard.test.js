@@ -7,6 +7,7 @@ const accessHtml = leer('access.html')
 const admin = leer('src/pages/admin.js')
 const access = leer('src/pages/access.js')
 const estilos = leer('src/styles/global.css')
+const estilosPortal = leer('src/styles/portal.css')
 
 describe('barrera visual del portal administrador', () => {
   it('mantiene oculto admin.html hasta completar sesión, rol y AAL2', () => {
@@ -23,5 +24,17 @@ describe('barrera visual del portal administrador', () => {
     expect(access).toContain("await protegerRuta('admin')")
     expect(access.indexOf("await protegerRuta('admin')"))
       .toBeLessThan(access.indexOf('window.location.assign(enlaceAdmin.href)'))
+  })
+
+  it('usa un encabezado operativo y un estado de menú independiente', () => {
+    expect(adminHtml).toContain('encabezado-global--admin')
+    expect(adminHtml).toContain('data-menu-lateral-toggle')
+    expect(adminHtml).toContain('data-alertas-operativas')
+    expect(admin).toContain("inicializarColapsoLateral({ clave: 'agenkin_menu_admin_colapsado'")
+    expect(leer('src/pages/app.js')).toContain("inicializarColapsoLateral({ clave: 'agenkin_menu_lateral_colapsado' })")
+    expect(admin).toContain('detener_carga_historica')
+    expect(admin).toContain('alerta_mas_antigua_minutos')
+    expect(admin).not.toContain("from('notificaciones')")
+    expect(estilosPortal).toContain('body.menu-admin-colapsado .portal--admin .menu-lateral-toggle')
   })
 })

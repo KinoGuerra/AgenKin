@@ -379,6 +379,19 @@ body {
 .franja-confianza strong { font-family: Bahnschrift, "Arial Narrow", Aptos, sans-serif; }
 .franja-confianza span { color: var(--tinta-suave); font-size: .78rem; }
 
+.icono-funcion {
+  display: grid;
+  width: 2.35rem;
+  height: 2.35rem;
+  place-items: center;
+  margin: .85rem 0 -.1rem;
+  border: 1px solid color-mix(in srgb, var(--verde) 30%, var(--borde));
+  border-radius: 11px 11px 11px 3px;
+  background: color-mix(in srgb, var(--verde) 10%, var(--superficie));
+  color: var(--verde);
+  font-size: 1.22rem;
+}
+
 .seccion {
   width: min(1180px, calc(100% - 2rem));
   margin: 0 auto;

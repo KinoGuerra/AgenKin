@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="AgenKin detecta vencimientos y fechas importantes en Gmail, los organiza en una agenda propia y puede sincronizarlos con Google Calendar.">
+    <meta name="description" content="AgenKin detecta fechas importantes en las cuentas Gmail que autorices, las organiza primero en una Agenda interna y permite sincronizar un único Google Calendar opcional.">
     <meta name="application-name" content="AgenKin">
     <meta name="author" content="AgenKin">
     <meta name="robots" content="index, follow, max-image-preview:large">
@@ -15,7 +15,7 @@
     <meta property="og:locale" content="es_AR">
     <meta property="og:site_name" content="AgenKin">
     <meta property="og:title" content="AgenKin — Del correo a tu agenda">
-    <meta property="og:description" content="Detectá vencimientos en Gmail, revisalos en tu Agenda y sincronizalos con Google Calendar.">
+    <meta property="og:description" content="Detectá fechas en Gmail, revisalas en tu Agenda interna y sincronizá un Calendar opcional bajo tu control.">
     <meta property="og:url" content="https://kinoguerra.github.io/AgenKin/">
     <meta property="og:image" content="https://kinoguerra.github.io/AgenKin/agenkin-social.png">
     <meta property="og:image:width" content="1200">
@@ -92,8 +92,8 @@
             <span>AgenKin lo convierte en agenda.</span>
           </h1>
           <p class="hero__descripcion" itemprop="description">
-            Detectá pagos, servicios, suscripciones y turnos en Gmail. Revisalos en una
-            agenda propia y, si querés, sincronizalos con Google Calendar.
+            Conectá las cuentas Gmail que admite tu plan. AgenKin detecta fechas importantes,
+            las deja primero en tu Agenda interna y replica solo lo que elijas en Google Calendar.
           </p>
           <div class="acciones hero__acciones">
             <button class="boton boton--primario boton--google" type="button" data-login>
@@ -107,7 +107,8 @@
           </p>
           <ul class="garantias-hero">
             <li>Gmail en modo lectura</li>
-            <li>Calendar se autoriza por separado</li>
+            <li>Alertas internas opcionales</li>
+            <li>Un Calendar opcional por usuario</li>
             <li>Sin guardar el cuerpo completo</li>
           </ul>
           <div data-alertas></div>
@@ -160,7 +161,7 @@
       <section class="franja-confianza" aria-label="Principios del servicio">
         <article><strong>Permisos separados</strong><span>Ingresar no conecta tu correo ni tu calendario.</span></article>
         <article><strong>Agenda primero</strong><span>El evento queda guardado aunque Google no esté disponible.</span></article>
-        <article><strong>Automatización acotada</strong><span>Solo para remitentes priorizados y fechas futuras confiables.</span></article>
+        <article><strong>Automatización acotada</strong><span>Solo cuando tu configuración y señales seguras coinciden.</span></article>
       </section>
 
       <section class="seccion proceso" id="como-funciona" aria-labelledby="titulo-proceso">
@@ -177,18 +178,18 @@
           </li>
           <li>
             <span>02 · Lectura</span>
-            <h3>Conectá Gmail</h3>
-            <p>Autorizá acceso de solo lectura y ejecutá la primera revisión cuando estés listo.</p>
+            <h3>Conectá tus Gmail</h3>
+            <p>Sumá una o más cuentas según tu plan, siempre con acceso de solo lectura.</p>
           </li>
           <li>
             <span>03 · Agenda</span>
-            <h3>Revisá lo detectado</h3>
-            <p>Confirmá fechas, importes y categorías antes de convertir cada hallazgo en evento.</p>
+            <h3>Decidí desde Agenda</h3>
+            <p>Los casos ambiguos quedan para revisión; los seguros siguen tus preferencias de automatización.</p>
           </li>
           <li>
             <span>04 · Sincronización</span>
             <h3>Sumá Calendar si querés</h3>
-            <p>Conectalo por separado para replicar tus eventos en el calendario “Agenda”.</p>
+            <p>Elegí una única conexión Calendar para replicar eventos; las alertas internas siguen siendo opcionales.</p>
           </li>
         </ol>
       </section>
@@ -196,31 +197,35 @@
       <section class="seccion grilla-beneficios" id="funciones" aria-labelledby="titulo-funciones">
         <div class="beneficios__introduccion">
           <p class="eyebrow">Un tablero para lo que no puede olvidarse</p>
-          <h2 id="titulo-funciones">AgenKin ordena la bandeja con categorías que sí entendés</h2>
-          <p>La clasificación sirve para priorizar, corregir y medir. Nunca reemplaza tu revisión.</p>
+          <h2 id="titulo-funciones">Una agenda confiable empieza con decisiones claras</h2>
+          <p>La detección organiza posibilidades; vos conservás el control sobre cada vencimiento, conexión y aviso.</p>
           <a class="enlace-flecha" href="#planes">Comparar capacidades <span class="material-symbols-rounded" aria-hidden="true">arrow_forward</span></a>
         </div>
 
         <div class="tarjetas">
           <article>
-            <span class="codigo-categoria">01 · TAR</span>
-            <h3>Tarjetas</h3>
-            <p>Resúmenes, cierres y vencimientos con importe y entidad cuando están disponibles.</p>
+            <span class="codigo-categoria">01 · GMAIL</span>
+            <span class="material-symbols-rounded icono-funcion" aria-hidden="true">mark_email_read</span>
+            <h3>Varias bandejas</h3>
+            <p>Conectá las cuentas Gmail que incluye tu plan, sin permisos para enviar, borrar ni modificar mensajes.</p>
           </article>
           <article>
-            <span class="codigo-categoria">02 · SER</span>
-            <h3>Servicios</h3>
-            <p>Luz, gas, internet, seguros y otras facturas que llegan todos los meses.</p>
+            <span class="codigo-categoria">02 · REVISIÓN</span>
+            <span class="material-symbols-rounded icono-funcion" aria-hidden="true">fact_check</span>
+            <h3>Revisión cuando hace falta</h3>
+            <p>Si una fecha, una acción o un importe no son claros, el correo queda visible para que decidas.</p>
           </article>
           <article>
-            <span class="codigo-categoria">03 · SUS</span>
-            <h3>Suscripciones</h3>
-            <p>Renovaciones y cobros recurrentes para anticiparte a la próxima fecha.</p>
+            <span class="codigo-categoria">03 · AGENDA</span>
+            <span class="material-symbols-rounded icono-funcion" aria-hidden="true">calendar_month</span>
+            <h3>Agenda y alertas</h3>
+            <p>La Agenda interna es la fuente principal. Activá recordatorios y Web Push solo si los querés recibir.</p>
           </article>
           <article>
-            <span class="codigo-categoria">04 · TUR</span>
-            <h3>Turnos y otros</h3>
-            <p>Citas, reservas, reuniones y compromisos que necesitan un lugar en tu agenda.</p>
+            <span class="codigo-categoria">04 · CALENDAR</span>
+            <span class="material-symbols-rounded icono-funcion" aria-hidden="true">event_available</span>
+            <h3>Calendar sin dependencia</h3>
+            <p>Elegí una sola conexión Calendar opcional. Si Google no está disponible, tu Agenda conserva el evento.</p>
           </article>
         </div>
       </section>
@@ -243,7 +248,7 @@
             <div><dt>Gmail</dt><dd>Solo lectura. No enviamos, eliminamos ni marcamos mensajes.</dd></div>
             <div><dt>IA</dt><dd>Texto limitado y sanitizado; se redactan credenciales y datos sensibles reconocibles.</dd></div>
             <div><dt>Almacenamiento</dt><dd>Metadatos mínimos y resultado estructurado, no el cuerpo completo permanente.</dd></div>
-            <div><dt>Control</dt><dd>Desconectá Gmail o Calendar en forma individual cuando quieras.</dd></div>
+            <div><dt>Control</dt><dd>Desconectá cada Gmail cuando quieras y elegí, cambiá o desactivá la única conexión Calendar.</dd></div>
           </dl>
         </div>
       </section>
@@ -260,7 +265,7 @@
             <ul>
               <li>Sincronización automática o manual</li>
               <li>Agenda interna</li>
-              <li>Clasificación por grupos</li>
+              <li>Revisión manual de casos ambiguos</li>
             </ul>
             <button class="boton boton--secundario" type="button" data-login><span data-login-label>Empezar prueba</span></button>
           </article>
@@ -282,7 +287,7 @@
             <ul>
               <li>Sincronización independiente</li>
               <li>Una Agenda consolidada</li>
-              <li>Sincronización con Calendar</li>
+              <li>Un Calendar opcional</li>
             </ul>
             <button class="boton boton--secundario" type="button" data-login><span data-login-label>Ingresar a AgenKin</span></button>
           </article>
@@ -293,8 +298,8 @@
             <p class="plan__capacidad"><strong>3</strong> cuentas Gmail</p>
             <ul>
               <li>Sincronización incremental</li>
-              <li>Patrones que reducen uso de IA</li>
-              <li>Un Calendar elegido</li>
+              <li>Patrones verificados y privados</li>
+              <li>Un Calendar opcional</li>
             </ul>
             <button class="boton boton--primario" type="button" data-login><span data-login-label>Ingresar a AgenKin</span></button>
           </article>
@@ -305,7 +310,7 @@
             <ul>
               <li>Sin límite comercial de mensajes</li>
               <li>Procesamiento justo entre cuentas</li>
-              <li>Agenda y métricas unificadas</li>
+              <li>Agenda, alertas y métricas unificadas</li>
             </ul>
             <button class="boton boton--secundario" type="button" data-login><span data-login-label>Ingresar a AgenKin</span></button>
           </article>
@@ -324,11 +329,15 @@
         </details>
         <details>
           <summary>¿AgenKin crea eventos automáticamente?</summary>
-          <p>Solo si la activás. Todos los planes permiten sincronización automática o manual; la creación automática se limita a fechas futuras de alta confianza provenientes de remitentes que hayas priorizado.</p>
+          <p>Solo si la activás. La creación automática exige tu configuración activa, fecha futura, remitente autenticado, confianza suficiente y que el correo no requiera revisión.</p>
         </details>
         <details>
           <summary>¿Qué ocurre si Google Calendar está desconectado?</summary>
-          <p>El evento se conserva en la Agenda interna. Si luego conectás Calendar, los eventos pendientes pueden sincronizarse sin duplicarse.</p>
+          <p>El evento se conserva en la Agenda interna. Podés elegir una única conexión Calendar por usuario y, si luego la conectás, los eventos pendientes pueden sincronizarse sin duplicarse.</p>
+        </details>
+        <details>
+          <summary>¿Cómo funcionan las alertas?</summary>
+          <p>Las alertas internas son opcionales. Web Push se activa voluntariamente desde un dispositivo compatible y muestra un aviso genérico; los detalles se consultan dentro del portal.</p>
         </details>
         <details>
           <summary>¿Guarda el contenido completo de mis correos?</summary>

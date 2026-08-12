@@ -1494,3 +1494,160 @@ td select { min-width: 150px; padding: .4rem; font-size: .75rem; }
 @media (prefers-reduced-motion: reduce) {
   .accesos-rapidos a { animation: none; will-change: auto; }
 }
+
+/* Administración unificada con el portal: conserva la jerarquía operativa sin otra superficie de datos. */
+.portal--admin { --ancho-lateral: 250px; --ancho-lateral-colapsado: 116px; }
+.portal--admin .barra-lateral {
+  inset: var(--alto-encabezado) auto 0 0;
+  width: var(--ancho-lateral);
+  overflow: visible;
+  padding: 1rem .7rem;
+  background: linear-gradient(180deg, #071a2a, #0a2e49);
+  transition: width .38s var(--menu-lateral-ease), padding .38s var(--menu-lateral-ease), transform .24s ease;
+}
+.portal--admin .barra-lateral::before { display: none; }
+.portal--admin .barra-lateral .identidad-producto { gap: .45rem; }
+.portal--admin .barra-lateral .marca--lateral { width: 190px; transition: width .34s var(--menu-lateral-ease), opacity .22s ease; }
+.portal--admin .barra-lateral .entorno-producto { transition: opacity .2s ease, transform .3s var(--menu-lateral-ease); }
+.portal--admin .etiqueta-lateral { margin: 2.2rem .75rem .65rem; transition: opacity .18s ease, transform .3s var(--menu-lateral-ease); }
+.portal--admin .barra-lateral nav { gap: .25rem; }
+.portal--admin .barra-lateral nav a {
+  display: grid;
+  height: 42px;
+  min-height: 42px;
+  grid-template-columns: 1.5rem minmax(0, 1fr);
+  gap: .7rem;
+  padding: .65rem .8rem;
+  border: 0;
+  border-radius: 8px;
+  color: #bdd0c8;
+}
+.portal--admin .barra-lateral nav a::before { content: none; }
+.portal--admin .barra-lateral nav a > .material-symbols-rounded {
+  display: grid;
+  width: 1.5rem;
+  height: 1.5rem;
+  place-items: center;
+  color: currentColor;
+  font-size: 1.25rem;
+  transition: color .2s ease, transform .34s var(--menu-lateral-ease), font-size .3s ease;
+}
+.portal--admin .barra-lateral nav a:hover,
+.portal--admin .barra-lateral nav a.activo { border: 0; background: rgb(255 255 255 / 9%); box-shadow: none; color: white; }
+.portal--admin .barra-lateral nav a.activo::after { position: absolute; left: 0; width: 3px; height: 22px; border-radius: 0 999px 999px 0; background: #65d3ef; content: ""; }
+.portal--admin .enlace-lateral__texto {
+  display: block;
+  width: auto;
+  overflow: hidden;
+  white-space: nowrap;
+  opacity: 1;
+  transform: translateX(0);
+  transition: max-width .34s var(--menu-lateral-ease), opacity .18s ease .1s, transform .34s var(--menu-lateral-ease);
+}
+.portal--admin .boton--lateral {
+  display: grid;
+  min-height: 42px;
+  grid-template-columns: 1.5rem minmax(0, 1fr);
+  gap: .7rem;
+  align-items: center;
+  padding: .55rem .75rem;
+}
+.portal--admin .boton--lateral::before { display: none; }
+.portal--admin .boton--lateral > .material-symbols-rounded { font-size: 1.25rem; }
+.portal--admin .barra-lateral--colapsada { width: var(--ancho-lateral-colapsado); padding-inline: .75rem; }
+.portal--admin .barra-lateral--colapsada .marca--lateral { width: 78px; }
+.portal--admin .barra-lateral--colapsada .entorno-producto,
+.portal--admin .barra-lateral--colapsada .etiqueta-lateral { opacity: 0; pointer-events: none; transform: translateX(-.45rem); }
+.portal--admin .barra-lateral--colapsada nav a,
+.portal--admin .barra-lateral--colapsada .boton--lateral { display: grid; min-height: 42px; grid-template-columns: 1fr; gap: 0; padding-inline: .5rem; text-align: center; }
+.portal--admin .barra-lateral--colapsada nav a > .material-symbols-rounded,
+.portal--admin .barra-lateral--colapsada .boton--lateral > .material-symbols-rounded { width: 100%; height: auto; font-size: 1.5rem; }
+.portal--admin .barra-lateral--colapsada .enlace-lateral__texto { max-width: 0; opacity: 0; transform: translateX(-.55rem); transition-delay: 0s; }
+.portal--admin .menu-lateral-toggle {
+  position: fixed;
+  top: 50dvh;
+  left: calc(var(--ancho-lateral) + 1px);
+  z-index: 45;
+  transform: translate(-50%, -50%);
+}
+body.menu-admin-colapsado .portal--admin .menu-lateral-toggle { left: calc(var(--ancho-lateral-colapsado) + 1px); }
+.portal--admin .contenido-portal { width: calc(100% - var(--ancho-lateral)); margin-left: var(--ancho-lateral); padding: calc(var(--alto-encabezado) + 1.25rem) clamp(1rem, 4vw, 4rem) 5rem; transition: width .38s var(--menu-lateral-ease), margin-left .38s var(--menu-lateral-ease); }
+body.menu-admin-colapsado .portal--admin .contenido-portal { width: calc(100% - var(--ancho-lateral-colapsado)); margin-left: var(--ancho-lateral-colapsado); }
+.encabezado-global--admin .encabezado-global__marca { background: linear-gradient(105deg, #061725 0%, #082941 34%, #0a3d5e 58%, color-mix(in srgb, #0a3d5e 63%, var(--fondo)) 84%, var(--fondo) 100%); }
+.encabezado-global__tarjetas--admin { grid-auto-rows: 96px; }
+.tarjeta-encabezado--operador { grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: .75rem; }
+.datos-operador { display: flex; min-width: 0; align-items: center; gap: .65rem; }
+.datos-operador > div { display: grid; min-width: 0; gap: .15rem; }
+.datos-operador strong, .datos-operador small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.datos-operador strong { font-size: .8rem; }
+.datos-operador small { color: var(--tinta-suave); font-size: .66rem; }
+.avatar--admin { width: 52px; height: 52px; flex: 0 0 52px; font-size: .95rem; }
+.alertas-operativas { position: absolute; top: .32rem; right: .32rem; }
+.campana-operativa {
+  position: relative;
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--verde) 30%, var(--borde));
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--superficie) 75%, transparent);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 24%), 0 8px 20px rgb(10 47 73 / 10%);
+  color: var(--verde);
+  cursor: pointer;
+}
+.campana-operativa:hover, .campana-operativa:focus-visible { outline: 0; border-color: var(--verde); background: color-mix(in srgb, var(--verde) 13%, var(--superficie)); }
+.campana-operativa--incidencia { color: #c97613; }
+.badge-operativa { position: absolute; top: -4px; right: -5px; min-width: 17px; padding: 1px 4px; border: 2px solid var(--superficie); border-radius: 999px; background: #cb4a38; color: white; font-family: ui-monospace, "Cascadia Code", Consolas, monospace; font-size: .58rem; font-weight: 800; line-height: 1.25; }
+.panel-alertas-operativas { position: absolute; z-index: 55; top: calc(100% + .65rem); right: 0; display: grid; width: min(340px, calc(100vw - 2rem)); gap: .7rem; padding: 1rem; border: 1px solid var(--borde); border-radius: 16px; background: color-mix(in srgb, var(--superficie) 94%, var(--fondo)); box-shadow: 0 20px 48px rgb(5 22 36 / 22%); backdrop-filter: blur(18px); }
+.panel-alertas-operativas h2 { margin: 0; font-size: .9rem; }
+.panel-alertas-operativas ul { display: grid; gap: .5rem; margin: 0; padding: 0; list-style: none; }
+.alerta-operativa { padding: .65rem .7rem; border-radius: 10px; font-size: .74rem; line-height: 1.4; }
+.alerta-operativa--critica { background: color-mix(in srgb, #d9534f 13%, var(--superficie-suave)); color: var(--tinta); }
+.alerta-operativa--advertencia { background: color-mix(in srgb, #f4b860 17%, var(--superficie-suave)); color: var(--tinta); }
+.alerta-operativa--estable { background: color-mix(in srgb, var(--exito) 11%, var(--superficie-suave)); color: var(--tinta); }
+.panel-alertas-operativas__contexto { margin: 0; color: var(--tinta-suave); font-size: .68rem; line-height: 1.45; }
+.tarjeta-encabezado--resumen .datos-encabezado,
+.tarjeta-encabezado--estado .datos-encabezado { gap: .19rem; }
+.boton--actualizar-admin { position: absolute; right: .65rem; bottom: .55rem; min-height: 30px; padding: .35rem .55rem; font-size: .65rem; }
+.boton--actualizar-admin .material-symbols-rounded { font-size: .9rem; }
+.resumen-admin { margin-bottom: 1.5rem; }
+.titulo-seccion--admin h1 { margin: 0; }
+.estado-resultados { margin: -.25rem 0 .75rem; color: var(--tinta-suave); font-size: .76rem; }
+.portal--admin .metricas--admin { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.estado-admin { display: inline-flex; padding: .23rem .48rem; border-radius: 999px; background: var(--superficie-suave); color: var(--tinta); font-size: .68rem; font-weight: 750; }
+
+@media (max-width: 1050px) {
+  .portal--admin .metricas--admin { grid-template-columns: 1fr; }
+  .portal--admin .metricas--admin .grupo-metricas { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .portal--admin .metricas--admin .grupo-metricas > header { grid-column: 1 / -1; }
+}
+@media (max-width: 760px) {
+  .portal--admin .barra-lateral { width: min(280px, 85vw); transform: translateX(-105%); }
+  .portal--admin .barra-lateral--colapsada { width: min(280px, 85vw); padding-inline: .7rem; }
+  .portal--admin .barra-lateral--colapsada .marca--lateral { width: 190px; }
+  .portal--admin .barra-lateral--colapsada .entorno-producto,
+  .portal--admin .barra-lateral--colapsada .etiqueta-lateral { opacity: 1; pointer-events: auto; transform: none; }
+  .portal--admin .barra-lateral--colapsada nav a,
+  .portal--admin .barra-lateral--colapsada .boton--lateral { grid-template-columns: 1.5rem minmax(0, 1fr); gap: .7rem; padding-inline: .8rem; text-align: left; }
+  .portal--admin .barra-lateral--colapsada nav a > .material-symbols-rounded,
+  .portal--admin .barra-lateral--colapsada .boton--lateral > .material-symbols-rounded { width: 1.5rem; font-size: 1.25rem; }
+  .portal--admin .barra-lateral--colapsada .enlace-lateral__texto { max-width: none; opacity: 1; transform: none; }
+  .portal--admin .menu-lateral-toggle { display: none; }
+  .portal--admin .contenido-portal, body.menu-admin-colapsado .portal--admin .contenido-portal { width: 100%; margin-left: 0; padding: calc(var(--alto-encabezado) + 1rem) 1rem 4rem; }
+  .tarjeta-encabezado--operador { min-width: 220px; }
+  .tarjeta-encabezado--estado { min-width: 220px; }
+  .panel-alertas-operativas { position: fixed; top: 5.3rem; right: .75rem; }
+}
+@media (max-width: 520px) {
+  .portal--admin .metricas--admin .grupo-metricas,
+  .portal--admin .metricas--admin .grupo-metricas--notificaciones { grid-template-columns: 1fr; }
+  .tarjeta-encabezado--operador { min-width: 210px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .portal--admin .barra-lateral,
+  .portal--admin .contenido-portal,
+  .portal--admin .enlace-lateral__texto,
+  .portal--admin .barra-lateral nav a > .material-symbols-rounded,
+  .portal--admin .menu-lateral-toggle { transition: none; }
+}

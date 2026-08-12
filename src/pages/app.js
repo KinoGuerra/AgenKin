@@ -1,4 +1,5 @@
 import '../components/theme.js'
+import { inicializarColapsoLateral } from '../components/sidebar.js'
 import { crearCelda, estadoVacio, mostrarAviso, setCargando } from '../components/ui.js'
 import { protegerRuta } from '../guards/route-guard.js'
 import { cerrarSesion } from '../services/auth.js'
@@ -36,8 +37,6 @@ const eventosAutomaticos = document.querySelector('[data-auto-events]')
 const umbralAutomatico = document.querySelector('[data-auto-threshold]')
 const botonMenu = document.querySelector('[data-menu]')
 const barraLateral = document.querySelector('.barra-lateral')
-const botonMenuLateral = document.querySelector('[data-menu-lateral-toggle]')
-const CLAVE_MENU_LATERAL = 'agenkin_menu_lateral_colapsado'
 const SOLAPAS_CONFIGURACION = {
   suscripcion: 'cuenta',
   google: 'conexiones',
@@ -907,54 +906,16 @@ function cerrarMenuPortal() {
   botonMenu?.setAttribute('aria-label', 'Abrir menú')
 }
 
-function esVistaMovil() {
-  return window.matchMedia('(max-width: 760px)').matches
-}
-
-function actualizarMenuLateral() {
-  if (!barraLateral || !botonMenuLateral) return
-  const colapsado = barraLateral.classList.contains('barra-lateral--colapsada')
-  botonMenuLateral.dataset.state = colapsado ? 'collapsed' : 'expanded'
-  botonMenuLateral.setAttribute('aria-expanded', String(!colapsado))
-  botonMenuLateral.setAttribute('aria-label', colapsado ? 'Expandir menú' : 'Contraer menú')
-  botonMenuLateral.title = botonMenuLateral.getAttribute('aria-label')
-  const icono = botonMenuLateral.querySelector('span')
-  if (icono) icono.textContent = colapsado ? 'chevron_right' : 'chevron_left'
-}
-
-function restaurarMenuLateral() {
-  if (!barraLateral || esVistaMovil()) {
-    barraLateral?.classList.remove('barra-lateral--colapsada')
-    actualizarMenuLateral()
-    return
-  }
-  try {
-    barraLateral.classList.toggle('barra-lateral--colapsada', localStorage.getItem(CLAVE_MENU_LATERAL) === 'true')
-  } catch {
-    barraLateral.classList.remove('barra-lateral--colapsada')
-  }
-  actualizarMenuLateral()
-}
-
 if (botonMenu && barraLateral) {
   barraLateral.id ||= 'menu-portal'
   botonMenu.setAttribute('aria-controls', barraLateral.id)
 }
 
-if (botonMenuLateral && barraLateral) {
+if (barraLateral) {
   barraLateral.querySelectorAll('nav a, [data-logout]').forEach((control) => {
     control.title ||= control.textContent.trim()
   })
-  restaurarMenuLateral()
-  botonMenuLateral.addEventListener('click', () => {
-    if (esVistaMovil()) return
-    const colapsado = barraLateral.classList.toggle('barra-lateral--colapsada')
-    try { localStorage.setItem(CLAVE_MENU_LATERAL, String(colapsado)) } catch {
-      // El menú sigue funcionando aunque el navegador bloquee el almacenamiento local.
-    }
-    actualizarMenuLateral()
-  })
-  window.addEventListener('resize', restaurarMenuLateral)
+  inicializarColapsoLateral({ clave: 'agenkin_menu_lateral_colapsado' })
 }
 
 botonMenu?.addEventListener('click', (evento) => {

@@ -23,56 +23,75 @@
         <span class="entorno-producto">Administración</span>
       </div>
 
+      <button class="menu-lateral-toggle material-symbols-rounded" type="button" data-menu-lateral-toggle aria-label="Contraer menú lateral" aria-expanded="true">chevron_left</button>
       <p class="etiqueta-lateral">Centro de operaciones</p>
       <nav aria-label="Panel administrativo">
-        <a class="activo" href="#resumen"><span class="material-symbols-rounded" aria-hidden="true">dashboard</span>Resumen</a>
-        <a href="#usuarios"><span class="material-symbols-rounded" aria-hidden="true">group</span>Usuarios</a>
-        <a href="#auditoria"><span class="material-symbols-rounded" aria-hidden="true">history</span>Auditoría</a>
+        <a class="activo" href="#resumen" data-tooltip="Resumen"><span class="material-symbols-rounded" aria-hidden="true">dashboard</span><span class="enlace-lateral__texto">Resumen</span></a>
+        <a href="#usuarios" data-tooltip="Usuarios"><span class="material-symbols-rounded" aria-hidden="true">group</span><span class="enlace-lateral__texto">Usuarios</span></a>
+        <a href="#auditoria" data-tooltip="Auditoría"><span class="material-symbols-rounded" aria-hidden="true">history</span><span class="enlace-lateral__texto">Auditoría</span></a>
       </nav>
 
       <div class="acciones-laterales">
-        <label class="tema-switch">
+        <label class="tema-switch" data-tooltip="Cambiar tema">
           <span class="tema-switch__texto" data-theme-label>Modo oscuro</span>
           <input type="checkbox" role="switch" data-theme-toggle aria-label="Modo oscuro">
           <span class="tema-switch__pista" aria-hidden="true"><span class="tema-switch__indicador material-symbols-rounded" data-theme-icon>light_mode</span></span>
         </label>
-        <a class="boton boton--lateral" href="./access.html">Cambiar de portal</a>
-        <button class="boton boton--lateral" type="button" data-logout>Cerrar sesión</button>
+        <a class="boton boton--lateral" href="./access.html" data-tooltip="Cambiar de portal"><span class="material-symbols-rounded" aria-hidden="true">swap_horiz</span><span class="enlace-lateral__texto">Cambiar de portal</span></a>
+        <button class="boton boton--lateral" type="button" data-logout data-tooltip="Cerrar sesión"><span class="material-symbols-rounded" aria-hidden="true">logout</span><span class="enlace-lateral__texto">Cerrar sesión</span></button>
       </div>
     </aside>
     <button class="fondo-menu" type="button" data-menu-overlay aria-label="Cerrar menú"></button>
 
-    <main id="contenido" class="contenido-portal">
-      <header class="cabecera-portal cabecera-admin">
+    <header class="encabezado-global encabezado-global--admin">
+      <div class="encabezado-global__marca">
         <button class="menu-movil material-symbols-rounded" type="button" data-menu aria-label="Abrir menú" aria-expanded="false">menu</button>
-        <a class="marca-admin-movil" href="./admin.html" aria-label="AgenKin, administración">
+        <a class="marca marca--imagen" href="./admin.html" aria-label="AgenKin, administración">
           <img class="logo-tema logo-tema--claro" src="./src/assets/agenkin-logo-light.png" alt="AgenKin">
           <img class="logo-tema logo-tema--oscuro" src="./src/assets/agenkin-logo-dark.png" alt="">
         </a>
-        <div class="cabecera-admin__titulo">
-          <p class="eyebrow">Centro de operaciones</p>
-          <h1>Administración</h1>
-          <p>Supervisá el acceso, los planes y la actividad de AgenKin.</p>
-        </div>
-        <div class="cabecera-admin__acciones">
-          <div class="perfil-admin" aria-label="Perfil administrador">
-            <img class="avatar avatar--imagen" data-admin-avatar alt="" hidden>
-            <span class="avatar" data-admin-iniciales aria-hidden="true">SA</span>
-            <span class="perfil-admin__datos">
+      </div>
+      <div class="encabezado-global__tarjetas encabezado-global__tarjetas--admin">
+        <article class="tarjeta-encabezado tarjeta-encabezado--operador">
+          <h2 class="tarjeta-encabezado__titulo">Operador</h2>
+          <div class="datos-operador">
+            <img class="avatar avatar--imagen avatar--admin" data-admin-avatar alt="" hidden>
+            <span class="avatar avatar--admin" data-admin-iniciales aria-hidden="true">SA</span>
+            <div>
               <strong data-admin-nombre>Administrador</strong>
-              <small data-admin-email>Validando perfil…</small>
-            </span>
+              <small data-admin-rol>Superadministrador</small>
+            </div>
           </div>
-        </div>
-      </header>
+          <div class="alertas-operativas" data-alertas-operativas></div>
+        </article>
+        <article class="tarjeta-encabezado tarjeta-encabezado--resumen">
+          <h2 class="tarjeta-encabezado__titulo">Usuarios y cuentas</h2>
+          <dl class="datos-encabezado">
+            <div><dt>Registrados</dt><dd data-admin-registrados>—</dd></div>
+            <div><dt>Activos</dt><dd data-admin-activos>—</dd></div>
+            <div><dt>Gmail activas</dt><dd data-admin-cuentas-gmail>—</dd></div>
+          </dl>
+        </article>
+        <article class="tarjeta-encabezado tarjeta-encabezado--estado">
+          <h2 class="tarjeta-encabezado__titulo">Estado operativo</h2>
+          <dl class="datos-encabezado">
+            <div><dt>Errores recientes</dt><dd data-admin-errores>—</dd></div>
+            <div><dt>Cola de alertas</dt><dd data-admin-cola>—</dd></div>
+          </dl>
+          <button class="boton boton--secundario boton--actualizar-admin" type="button" data-admin-actualizar><span class="material-symbols-rounded" aria-hidden="true">refresh</span>Actualizar</button>
+        </article>
+      </div>
+    </header>
 
+    <main id="contenido" class="contenido-portal">
       <div data-alertas></div>
 
       <section id="resumen" class="resumen-admin" aria-labelledby="titulo-resumen-admin">
         <div class="titulo-seccion titulo-seccion--admin">
           <div>
-            <p class="eyebrow">Estado general</p>
-            <h2 id="titulo-resumen-admin">Pulso de AgenKin</h2>
+            <p class="eyebrow">Centro de operaciones</p>
+            <h1 id="titulo-resumen-admin">Administración</h1>
+            <p>Supervisá el acceso, los planes y la actividad de AgenKin.</p>
           </div>
           <time data-actualizado>Actualizando datos…</time>
         </div>
@@ -86,14 +105,14 @@
           </section>
 
           <section class="grupo-metricas grupo-metricas--alerta" aria-labelledby="grupo-accesos">
-            <header><span aria-hidden="true">!</span><h3 id="grupo-accesos">Accesos y planes</h3></header>
+            <header><span class="material-symbols-rounded" aria-hidden="true">admin_panel_settings</span><h3 id="grupo-accesos">Accesos y planes</h3></header>
             <article><small>Suspendidos</small><strong data-metrica="suspendidos">—</strong><span>Acceso pausado</span></article>
             <article><small>Bloqueados</small><strong data-metrica="bloqueados">—</strong><span>Acceso denegado</span></article>
             <article><small>Suscripciones vencidas</small><strong data-metrica="vencidas">—</strong><span>Requieren revisión</span></article>
           </section>
 
           <section class="grupo-metricas grupo-metricas--actividad" aria-labelledby="grupo-actividad">
-            <header><span aria-hidden="true">↗</span><h3 id="grupo-actividad">Actividad del período</h3></header>
+            <header><span class="material-symbols-rounded" aria-hidden="true">monitoring</span><h3 id="grupo-actividad">Actividad del período</h3></header>
             <article><small>Correos procesados</small><strong data-metrica="correos">—</strong><span>Uso mensual</span></article>
             <article><small>Eventos creados</small><strong data-metrica="eventos">—</strong><span>Confirmados</span></article>
             <article><small>Cuentas Gmail</small><strong data-metrica="cuentas_gmail">—</strong><span>Conectadas</span></article>
@@ -101,7 +120,7 @@
           </section>
 
           <section class="grupo-metricas grupo-metricas--notificaciones" aria-labelledby="grupo-notificaciones">
-            <header><span aria-hidden="true">◉</span><h3 id="grupo-notificaciones">Alertas y Push</h3></header>
+            <header><span class="material-symbols-rounded" aria-hidden="true">notifications_active</span><h3 id="grupo-notificaciones">Alertas y Push</h3></header>
             <article><small>Revisiones</small><strong data-metrica="revisiones_pendientes">—</strong><span>Pendientes</span></article>
             <article><small>Alertas</small><strong data-metrica="alertas_pendientes">—</strong><span>Programadas</span></article>
             <article><small>Antigüedad</small><strong data-metrica="alerta_mas_antigua_minutos">—</strong><span>Minutos</span></article>
@@ -130,6 +149,7 @@
             <button class="boton boton--primario" type="submit" data-aplicar-filtros>Aplicar filtros</button>
           </div>
         </form>
+        <p class="estado-resultados" data-admin-resultados aria-live="polite">Cargando usuarios…</p>
 
         <div class="tabla-scroll tabla-scroll--admin" role="region" aria-label="Usuarios de AgenKin" tabindex="0">
           <table>
