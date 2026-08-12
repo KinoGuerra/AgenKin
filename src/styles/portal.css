@@ -1570,9 +1570,9 @@ td select { min-width: 150px; padding: .4rem; font-size: .75rem; }
   z-index: 45;
   transform: translate(-50%, -50%);
 }
-body.menu-admin-colapsado .portal--admin .menu-lateral-toggle { left: calc(var(--ancho-lateral-colapsado) + 1px); }
+body.portal--admin.menu-admin-colapsado .menu-lateral-toggle { left: calc(var(--ancho-lateral-colapsado) + 1px); }
 .portal--admin .contenido-portal { width: calc(100% - var(--ancho-lateral)); margin-left: var(--ancho-lateral); padding: calc(var(--alto-encabezado) + 1.25rem) clamp(1rem, 4vw, 4rem) 5rem; transition: width .38s var(--menu-lateral-ease), margin-left .38s var(--menu-lateral-ease); }
-body.menu-admin-colapsado .portal--admin .contenido-portal { width: calc(100% - var(--ancho-lateral-colapsado)); margin-left: var(--ancho-lateral-colapsado); }
+body.portal--admin.menu-admin-colapsado .contenido-portal { width: calc(100% - var(--ancho-lateral-colapsado)); margin-left: var(--ancho-lateral-colapsado); }
 .encabezado-global--admin .encabezado-global__marca { background: linear-gradient(105deg, #061725 0%, #082941 34%, #0a3d5e 58%, color-mix(in srgb, #0a3d5e 63%, var(--fondo)) 84%, var(--fondo) 100%); }
 .encabezado-global__tarjetas--admin { grid-auto-rows: 96px; }
 .tarjeta-encabezado--operador { grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: .75rem; }
@@ -1634,7 +1634,7 @@ body.menu-admin-colapsado .portal--admin .contenido-portal { width: calc(100% - 
   .portal--admin .barra-lateral--colapsada .boton--lateral > .material-symbols-rounded { width: 1.5rem; font-size: 1.25rem; }
   .portal--admin .barra-lateral--colapsada .enlace-lateral__texto { max-width: none; opacity: 1; transform: none; }
   .portal--admin .menu-lateral-toggle { display: none; }
-  .portal--admin .contenido-portal, body.menu-admin-colapsado .portal--admin .contenido-portal { width: 100%; margin-left: 0; padding: calc(var(--alto-encabezado) + 1rem) 1rem 4rem; }
+  .portal--admin .contenido-portal, body.portal--admin.menu-admin-colapsado .contenido-portal { width: 100%; margin-left: 0; padding: calc(var(--alto-encabezado) + 1rem) 1rem 4rem; }
   .tarjeta-encabezado--operador { min-width: 220px; }
   .tarjeta-encabezado--estado { min-width: 220px; }
   .panel-alertas-operativas { position: fixed; top: 5.3rem; right: .75rem; }

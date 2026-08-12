@@ -8,6 +8,7 @@ const admin = leer('src/pages/admin.js')
 const access = leer('src/pages/access.js')
 const estilos = leer('src/styles/global.css')
 const estilosPortal = leer('src/styles/portal.css')
+const funcionAdministrativa = leer('supabase/functions/admin-manage-user/index.ts')
 
 describe('barrera visual del portal administrador', () => {
   it('mantiene oculto admin.html hasta completar sesión, rol y AAL2', () => {
@@ -35,6 +36,8 @@ describe('barrera visual del portal administrador', () => {
     expect(admin).toContain('detener_carga_historica')
     expect(admin).toContain('alerta_mas_antigua_minutos')
     expect(admin).not.toContain("from('notificaciones')")
-    expect(estilosPortal).toContain('body.menu-admin-colapsado .portal--admin .menu-lateral-toggle')
+    expect(estilosPortal).toContain('body.portal--admin.menu-admin-colapsado .menu-lateral-toggle')
+    expect(funcionAdministrativa).toContain('if (metricasResultado.error)')
+    expect(funcionAdministrativa).not.toContain('metricasResultado.error || notificacionesResultado.error')
   })
 })

@@ -59,7 +59,7 @@ Deno.serve(async (request) => {
         cliente.rpc('metricas_administrativas'),
         cliente.rpc('metricas_notificaciones_push'),
       ])
-      if (metricasResultado.error || notificacionesResultado.error) {
+      if (metricasResultado.error) {
         throw new Error('No se pudieron cargar las métricas')
       }
       return json({
@@ -68,7 +68,8 @@ Deno.serve(async (request) => {
         auditoria: auditoriaResultado.data,
         metricas: {
           ...(metricasResultado.data || {}),
-          ...(notificacionesResultado.data || {}),
+          // Las alertas son contexto operativo: no deben impedir administrar usuarios.
+          ...(notificacionesResultado.error ? {} : notificacionesResultado.data || {}),
         },
         paginas: Math.max(1, Math.ceil((usuariosResultado.count || 0) / TAMANO_PAGINA)),
       })
