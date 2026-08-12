@@ -22,24 +22,24 @@
       </div>
     </header>
     <aside class="barra-lateral">
-      <button class="menu-lateral-toggle" type="button" data-menu-lateral-toggle aria-label="Contraer menú" aria-expanded="true"><span aria-hidden="true">&lt;</span></button>
+      <button class="menu-lateral-toggle" type="button" data-menu-lateral-toggle aria-label="Contraer menú" aria-expanded="true"> <span class="material-symbols-rounded" aria-hidden="true">chevron_left</span></button>
       <nav aria-label="Portal del usuario">
-        <a href="./app.html" data-icon="▦" data-tooltip="Dashboard"><span class="navegacion-lateral__texto">Dashboard</span></a>
-        <a href="./correos.html" data-icon="✉⌕" data-tooltip="Correos analizados"><span class="navegacion-lateral__texto">Correos analizados</span></a>
-        <a href="./vencimientos.html" data-icon="✉✓" data-tooltip="Vencimientos"><span class="navegacion-lateral__texto">Vencimientos</span></a>
-        <a href="./agenda.html" data-icon="▣" data-tooltip="Agenda"><span class="navegacion-lateral__texto">Agenda</span></a>
-        <a class="activo" href="./reglas.html" data-icon="▤✎" data-tooltip="Reglas personales"><span class="navegacion-lateral__texto">Reglas personales</span></a>
-        <a href="./configuracion.html" data-icon="⚙" data-tooltip="Configuraciones"><span class="navegacion-lateral__texto">Configuraciones</span></a>
+        <a href="./app.html" data-icon="dashboard" data-tooltip="Dashboard"><span class="navegacion-lateral__texto">Dashboard</span></a>
+        <a href="./correos.html" data-icon="manage_search" data-tooltip="Correos analizados"><span class="navegacion-lateral__texto">Correos analizados</span></a>
+        <a href="./vencimientos.html" data-icon="mark_email_read" data-tooltip="Vencimientos"><span class="navegacion-lateral__texto">Vencimientos</span></a>
+        <a href="./agenda.html" data-icon="calendar_month" data-tooltip="Agenda"><span class="navegacion-lateral__texto">Agenda</span></a>
+        <a class="activo" href="./reglas.html" data-icon="edit_note" data-tooltip="Reglas personales"><span class="navegacion-lateral__texto">Reglas personales</span></a>
+        <a href="./configuracion.html" data-icon="settings" data-tooltip="Configuraciones"><span class="navegacion-lateral__texto">Configuraciones</span></a>
       </nav>
       <div class="acciones-laterales">
-        <label class="tema-switch"><span class="tema-switch__texto" data-theme-label>Modo oscuro</span><input type="checkbox" role="switch" data-theme-toggle aria-label="Modo oscuro"><span class="tema-switch__pista" aria-hidden="true"><span class="tema-switch__indicador" data-theme-icon>☀</span></span></label>
+        <label class="tema-switch"><span class="tema-switch__texto" data-theme-label>Modo oscuro</span><input type="checkbox" role="switch" data-theme-toggle aria-label="Modo oscuro"><span class="tema-switch__pista" aria-hidden="true"><span class="tema-switch__indicador material-symbols-rounded" data-theme-icon>light_mode</span></span></label>
         <button class="boton boton--lateral" data-logout data-tooltip="Cerrar sesión"><span class="boton-lateral__texto">Cerrar sesión</span></button>
       </div>
     </aside>
     <main id="contenido" class="contenido-portal">
       <header class="cabecera-subpagina">
-        <button class="menu-movil" data-menu aria-label="Abrir menú" aria-expanded="false">☰</button>
-        <a class="volver-inicio" href="./app.html" aria-label="Volver al Dashboard">←</a>
+        <button class="menu-movil material-symbols-rounded" data-menu aria-label="Abrir menú" aria-expanded="false">menu</button>
+        <a class="volver-inicio material-symbols-rounded" href="./app.html" aria-label="Volver al Dashboard">arrow_back</a>
         <div><p class="eyebrow">Criterios personales</p><h1>Reglas personales</h1><p>Ignorá correos mediante condiciones simples y privadas.</p></div>
       </header>
       <div data-alertas></div>

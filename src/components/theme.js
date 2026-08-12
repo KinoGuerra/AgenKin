@@ -29,7 +29,7 @@
         boton.title = oscuro ? 'Activar modo claro' : 'Activar modo oscuro'
       }
       const icono = contenedor?.querySelector('[data-theme-icon]')
-      if (icono) icono.textContent = esInterruptor ? (oscuro ? '☾' : '☀') : (oscuro ? '☀' : '☾')
+      if (icono) icono.textContent = esInterruptor ? (oscuro ? 'dark_mode' : 'light_mode') : (oscuro ? 'light_mode' : 'dark_mode')
       const etiqueta = contenedor?.querySelector('[data-theme-label]')
       if (etiqueta) etiqueta.textContent = esInterruptor ? 'Modo oscuro' : (oscuro ? 'Claro' : 'Oscuro')
     })

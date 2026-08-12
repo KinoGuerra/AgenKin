@@ -43,8 +43,9 @@ function crearCentro() {
   boton.setAttribute('aria-label', 'Abrir notificaciones')
   boton.setAttribute('aria-expanded', 'false')
   const icono = document.createElement('span')
+  icono.className = 'material-symbols-rounded'
   icono.setAttribute('aria-hidden', 'true')
-  icono.textContent = '🔔'
+  icono.textContent = 'notifications'
   const contador = document.createElement('strong')
   contador.dataset.notificacionesContador = ''
   contador.textContent = '0'

@@ -596,8 +596,10 @@ body {
 
 .planes li::before {
   color: var(--verde);
-  content: "✓";
-  font-weight: 900;
+  content: "check";
+  font-family: "Material Symbols Rounded";
+  font-size: 1.05rem;
+  font-variation-settings: "FILL" 0, "wght" 500, "GRAD" 0, "opsz" 20;
 }
 
 .planes .boton { width: 100%; margin-top: auto; }
@@ -631,7 +633,10 @@ body {
   border: 1px solid var(--borde);
   border-radius: 50%;
   color: var(--verde);
-  content: "+";
+  content: "add";
+  font-family: "Material Symbols Rounded";
+  font-size: 1.1rem;
+  font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 20;
   transition: transform .2s ease;
 }
 

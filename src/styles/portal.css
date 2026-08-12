@@ -63,7 +63,7 @@
   font-size: .68rem;
   letter-spacing: .01em;
 }
-.tarjeta-encabezado--agenda .boton--sincronizar-agenda::before { content: "↻"; font-size: .95rem; font-weight: 900; line-height: 0; }
+.tarjeta-encabezado--agenda .boton--sincronizar-agenda::before { content: "sync"; font-family: "Material Symbols Rounded"; font-size: 1rem; font-weight: 400; line-height: 0; font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24; }
 .tarjeta-encabezado--agenda .boton--sincronizar-agenda:hover:not(:disabled),
 .tarjeta-encabezado--agenda .boton--sincronizar-agenda:focus-visible {
   border-color: color-mix(in srgb, var(--verde) 78%, white);
@@ -104,7 +104,7 @@
 .menu-lateral-toggle::before { content: ""; position: absolute; inset: 7px; border-radius: 13px; background: linear-gradient(180deg, color-mix(in srgb, var(--verde) 16%, transparent), transparent 58%), color-mix(in srgb, var(--superficie) 70%, transparent); opacity: .72; transition: opacity .3s ease, transform .34s var(--menu-lateral-ease); }
 .menu-lateral-toggle:hover, .menu-lateral-toggle:focus-visible { border-color: color-mix(in srgb, var(--verde) 48%, var(--borde)); color: var(--tinta); outline: 0; box-shadow: 0 18px 34px color-mix(in srgb, #000 17%, transparent), 0 0 0 4px color-mix(in srgb, var(--verde) 10%, transparent); scale: 1.04; }
 .menu-lateral-toggle:hover::before, .menu-lateral-toggle:focus-visible::before { opacity: 1; transform: scale(.94); }
-.menu-lateral-toggle span { position: relative; z-index: 1; min-width: 1ch; display: inline-block; font-family: ui-monospace, "Cascadia Code", Consolas, monospace; font-size: 1.18rem; font-weight: 900; line-height: 1; text-align: center; filter: drop-shadow(0 2px 5px color-mix(in srgb, var(--verde) 28%, transparent)); transform: translateX(0) scaleX(.92); transition: transform .42s var(--menu-lateral-ease), opacity .24s ease, filter .3s ease; }
+.menu-lateral-toggle span { position: relative; z-index: 1; min-width: 1ch; display: inline-block; font-size: 1.35rem; font-weight: 400; line-height: 1; text-align: center; filter: drop-shadow(0 2px 5px color-mix(in srgb, var(--verde) 28%, transparent)); transform: translateX(0) scaleX(.92); transition: transform .42s var(--menu-lateral-ease), opacity .24s ease, filter .3s ease; }
 .barra-lateral--colapsada { width: var(--ancho-lateral-colapsado); padding-inline: .75rem; }
 .barra-lateral.barra-lateral--colapsada nav a {
   display: grid;
@@ -113,7 +113,7 @@
   padding: .65rem;
   text-align: center;
 }
-.barra-lateral nav a::before { content: attr(data-icon); grid-column: 1; width: 0; overflow: hidden; color: currentColor; font-family: ui-monospace, "Cascadia Code", Consolas, monospace; font-size: 1.45rem; font-weight: 850; letter-spacing: -.16em; line-height: 1; opacity: 0; transform: scale(.72) rotate(-5deg); transform-origin: center; transition: width .26s ease, opacity .18s ease, transform .34s cubic-bezier(.22, 1, .36, 1); }
+.barra-lateral nav a::before { content: attr(data-icon); grid-column: 1; width: 0; overflow: hidden; color: currentColor; font-family: "Material Symbols Rounded"; font-size: 1.55rem; font-weight: 400; letter-spacing: normal; line-height: 1; opacity: 0; transform: scale(.72) rotate(-5deg); transform-origin: center; font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24; transition: width .26s ease, opacity .18s ease, transform .34s cubic-bezier(.22, 1, .36, 1); }
 .barra-lateral--colapsada nav a::before { width: auto; opacity: 1; transform: scale(1) rotate(0); }
 .barra-lateral--colapsada .tema-switch__texto { display: none; }
 .barra-lateral--colapsada .tema-switch { justify-content: center; padding-inline: .45rem; }
@@ -126,7 +126,7 @@
 .barra-lateral--colapsada .navegacion-lateral__texto { width: 0; opacity: 0; transform: translateX(-.55rem); transition-delay: 0s; }
 .barra-lateral nav a:hover, .barra-lateral nav a.activo { background: rgb(255 255 255 / 9%); color: white; }
 .boton--lateral { display: grid; grid-template-columns: 0 minmax(0, 1fr); width: 100%; min-height: 42px; align-items: center; margin-top: auto; border-color: rgb(255 255 255 / 15%); background: transparent; color: white; text-align: left; transition: grid-template-columns .32s cubic-bezier(.22, 1, .36, 1), padding .32s cubic-bezier(.22, 1, .36, 1), background .2s ease, color .2s ease; }
-.boton--lateral::before { content: "⇥"; grid-column: 1; width: 0; overflow: hidden; font-size: 1.28rem; line-height: 1; opacity: 0; transform: scale(.72) rotate(-5deg); transform-origin: center; transition: width .26s ease, opacity .18s ease, transform .34s cubic-bezier(.22, 1, .36, 1); }
+.boton--lateral::before { content: "logout"; grid-column: 1; width: 0; overflow: hidden; font-family: "Material Symbols Rounded"; font-size: 1.4rem; line-height: 1; opacity: 0; transform: scale(.72) rotate(-5deg); transform-origin: center; font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24; transition: width .26s ease, opacity .18s ease, transform .34s cubic-bezier(.22, 1, .36, 1); }
 .boton-lateral__texto { grid-column: 2; overflow: hidden; white-space: nowrap; opacity: 1; transform: translateX(0); transition: opacity .16s ease .1s, transform .28s cubic-bezier(.22, 1, .36, 1), width .32s cubic-bezier(.22, 1, .36, 1); }
 .barra-lateral--colapsada .boton-lateral__texto { width: 0; opacity: 0; transform: translateX(-.55rem); transition-delay: 0s; }
 .barra-lateral--colapsada [data-tooltip]::after {
@@ -209,6 +209,7 @@
   box-shadow: 0 3px 10px rgb(0 0 0 / 24%);
   transition: transform .45s cubic-bezier(.34, 1.56, .64, 1), background .3s ease, color .3s ease;
 }
+.tema-switch__indicador.material-symbols-rounded { font-family: "Material Symbols Rounded"; font-size: .9rem; font-weight: 400; }
 .tema-switch input:checked + .tema-switch__pista {
   border-color: rgb(83 220 233 / 68%);
   background: linear-gradient(135deg, #1fb8f0, #20cfae);
@@ -284,6 +285,7 @@
 }
 :root[data-theme="dark"] .accion-sutil { color: var(--verde); }
 .accion-sutil:hover { border-color: currentColor; }
+.accion-sutil .material-symbols-rounded { font-size: 1rem; }
 .cabecera-portal--inicio .accion-sutil { align-self: end; line-height: 1.2; }
 .cuadrante-estado--conexiones {
   min-height: 150px;
@@ -441,6 +443,7 @@
   font-weight: 900;
   text-decoration: none;
 }
+.volver-inicio.material-symbols-rounded { font-family: "Material Symbols Rounded"; font-size: 1.25rem; font-weight: 400; }
 .cabecera-subpagina__acciones { display: flex; align-items: center; gap: .7rem; }
 .cabecera-subpagina__acciones > span:first-child { color: var(--tinta-suave); font-size: .72rem; white-space: nowrap; }
 .panel--pagina { margin-top: 0; }
@@ -848,6 +851,7 @@ a.dashboard-card:hover { border-color: color-mix(in srgb, var(--verde) 52%, var(
   font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
   font-weight: 900;
 }
+.servicio-icono.material-symbols-rounded { font-family: "Material Symbols Rounded"; font-size: 1.35rem; font-weight: 400; }
 .panel--agenda { overflow: hidden; }
 .agenda-cabecera { align-items: flex-end; }
 .agenda-acciones { display: flex; align-items: center; justify-content: flex-end; gap: .85rem; }
@@ -863,6 +867,7 @@ a.dashboard-card:hover { border-color: color-mix(in srgb, var(--verde) 52%, var(
   font-size: 1.2rem;
   font-weight: 500;
 }
+.agenda-nuevo-evento__icono.material-symbols-rounded { font-family: "Material Symbols Rounded"; font-size: 1.2rem; font-weight: 400; }
 .ayuda-evento-manual { margin: -.15rem 0 0; font-size: .8rem; }
 .agenda-navegacion { display: flex; align-items: center; gap: .45rem; }
 .agenda-navegacion strong {

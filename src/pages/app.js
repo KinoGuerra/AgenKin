@@ -460,8 +460,8 @@ function renderCuentasGoogle(cuentas = [], calendar = {}) {
     const identidad = document.createElement('div')
     identidad.className = 'cuenta-google__identidad'
     const icono = document.createElement('span')
-    icono.className = 'servicio-icono'
-    icono.textContent = 'G'
+    icono.className = 'servicio-icono material-symbols-rounded'
+    icono.textContent = 'mail'
     icono.setAttribute('aria-hidden', 'true')
     const textos = document.createElement('div')
     const email = document.createElement('strong')
@@ -919,7 +919,7 @@ function actualizarMenuLateral() {
   botonMenuLateral.setAttribute('aria-label', colapsado ? 'Expandir menú' : 'Contraer menú')
   botonMenuLateral.title = botonMenuLateral.getAttribute('aria-label')
   const icono = botonMenuLateral.querySelector('span')
-  if (icono) icono.textContent = colapsado ? '>' : '<'
+  if (icono) icono.textContent = colapsado ? 'chevron_right' : 'chevron_left'
 }
 
 function restaurarMenuLateral() {

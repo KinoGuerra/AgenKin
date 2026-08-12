@@ -20,7 +20,7 @@
     documento.querySelectorAll('[data-theme-toggle]').forEach((boton) => {
       boton.setAttribute('aria-pressed', String(oscuro))
       boton.setAttribute('aria-label', oscuro ? 'Activar modo claro' : 'Activar modo oscuro')
-      boton.querySelector('[data-theme-icon]').textContent = oscuro ? '☀' : '☾'
+      boton.querySelector('[data-theme-icon]').textContent = oscuro ? 'light_mode' : 'dark_mode'
       boton.querySelector('[data-theme-label]').textContent = oscuro ? 'Claro' : 'Oscuro'
     })
   }
