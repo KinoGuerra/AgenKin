@@ -47,7 +47,9 @@ function crearCentro() {
   icono.setAttribute('aria-hidden', 'true')
   icono.textContent = 'notifications'
   const contador = document.createElement('strong')
+  contador.className = 'badge-notificaciones badge-notificaciones--posicionada'
   contador.dataset.notificacionesContador = ''
+  contador.setAttribute('aria-hidden', 'true')
   contador.textContent = '0'
   contador.hidden = true
   boton.append(icono, contador)
@@ -126,6 +128,7 @@ async function actualizarContador() {
   const total = Number(count || 0)
   contador.textContent = total > 99 ? '99+' : String(total)
   contador.hidden = total === 0
+  boton.classList.toggle('campana-notificaciones--con-alertas', total > 0)
   boton.setAttribute('aria-label', total
     ? `Abrir notificaciones, ${total} sin leer`
     : 'Abrir notificaciones')
@@ -226,20 +229,95 @@ function textoEstadoDispositivo() {
   return 'Compatible. El permiso se solicitará únicamente al usar el botón de activación.'
 }
 
+function poblarZonasHorarias(select, zonaDispositivo) {
+  const respaldo = [
+    'America/Argentina/Cordoba',
+    'America/Argentina/Buenos_Aires',
+    'America/Santiago',
+    'America/Sao_Paulo',
+    'America/Mexico_City',
+    'Europe/Madrid',
+    'UTC',
+  ]
+  const zonas = typeof Intl.supportedValuesOf === 'function'
+    ? Intl.supportedValuesOf('timeZone')
+    : respaldo
+  const valores = [...new Set([...zonas, zonaDispositivo])].sort()
+  select.replaceChildren()
+  valores.forEach((valor) => {
+    const opcion = document.createElement('option')
+    opcion.value = valor
+    opcion.textContent = valor
+    select.append(opcion)
+  })
+}
+
+function seleccionarZonaHoraria(select, valor) {
+  const zona = typeof valor === 'string' && valor.trim() ? valor.trim() : 'America/Argentina/Cordoba'
+  if (![...select.options].some((opcion) => opcion.value === zona)) {
+    const opcion = document.createElement('option')
+    opcion.value = zona
+    opcion.textContent = zona
+    select.append(opcion)
+  }
+  select.value = zona
+}
+
+function sincronizarDependenciasNotificaciones(recibir, previo, dia, horaPrevia) {
+  const activas = recibir.checked
+  if (!activas) {
+    previo.checked = false
+    dia.checked = false
+  }
+  previo.disabled = !activas
+  dia.disabled = !activas
+  horaPrevia.disabled = !activas || !previo.checked
+  const controlesDependientes = [previo, dia, horaPrevia]
+  controlesDependientes.forEach((control) => {
+    control.closest('label')?.classList.toggle('opcion-automatizacion--inactiva', control.disabled)
+  })
+}
+
+function resumenPreferenciasNotificaciones({ recibir, previo, dia, horaPrevia, zona }) {
+  if (!recibir) {
+    return 'Se desactivarán los avisos previos y los del día de vencimiento. Las alertas pendientes se cancelarán; tu historial se conserva.'
+  }
+  const momentos = []
+  if (previo) momentos.push(`el día previo a las ${String(horaPrevia).padStart(2, '0')}:00`)
+  if (dia) momentos.push('el día del vencimiento a las 09:00')
+  return momentos.length
+    ? `Se programarán avisos ${momentos.join(' y ')} en ${zona}.`
+    : 'No se programarán avisos hasta que actives al menos un momento.'
+}
+
+function confirmarPreferenciasNotificaciones(dialogo) {
+  if (!dialogo || typeof dialogo.showModal !== 'function') {
+    return Promise.resolve(globalThis.confirm('¿Querés guardar estas preferencias de notificaciones?'))
+  }
+  return new Promise((resolver) => {
+    dialogo.addEventListener('close', () => resolver(dialogo.returnValue === 'confirmar'), { once: true })
+    dialogo.showModal()
+  })
+}
+
 export async function inicializarPreferenciasNotificaciones() {
   const formulario = document.querySelector('[data-notificaciones-form]')
   if (!formulario) return
   const recibir = formulario.elements.recibir_notificaciones
   const previo = formulario.elements.notificar_dia_previo
   const dia = formulario.elements.notificar_dia_vencimiento
+  const horaPrevia = formulario.elements.hora_notificacion_previa
   const zona = formulario.elements.zona_horaria_notificaciones
   const estado = document.querySelector('[data-push-estado]')
+  const dialogo = document.querySelector('[data-confirmar-notificaciones]')
+  const resumenConfirmacion = document.querySelector('[data-confirmar-notificaciones-resumen]')
   const zonaDispositivo = Intl.DateTimeFormat().resolvedOptions().timeZone || 'America/Argentina/Cordoba'
   document.querySelector('[data-zona-detectada]').textContent = `Este dispositivo usa ${zonaDispositivo}.`
+  poblarZonasHorarias(zona, zonaDispositivo)
   estado.textContent = textoEstadoDispositivo()
   const { data, error } = await supabase
     .from('perfiles')
-    .select('recibir_notificaciones,notificar_dia_previo,notificar_dia_vencimiento,zona_horaria_notificaciones')
+    .select('recibir_notificaciones,notificar_dia_previo,notificar_dia_vencimiento,zona_horaria_notificaciones,hora_notificacion_previa')
     .single()
   if (error) {
     estado.textContent = 'No pudimos cargar tus preferencias.'
@@ -248,21 +326,35 @@ export async function inicializarPreferenciasNotificaciones() {
   recibir.checked = data.recibir_notificaciones
   previo.checked = data.notificar_dia_previo
   dia.checked = data.notificar_dia_vencimiento
-  zona.value = data.zona_horaria_notificaciones
+  seleccionarZonaHoraria(zona, data.zona_horaria_notificaciones)
+  horaPrevia.value = String(data.hora_notificacion_previa ?? 9)
+  sincronizarDependenciasNotificaciones(recibir, previo, dia, horaPrevia)
 
   formulario.addEventListener('submit', async (evento) => {
     evento.preventDefault()
-    const boton = evento.submitter
+    const preferencias = {
+      recibir: recibir.checked,
+      previo: recibir.checked && previo.checked,
+      dia: recibir.checked && dia.checked,
+      horaPrevia: Number(horaPrevia.value),
+      zona: zona.value,
+    }
+    resumenConfirmacion.textContent = resumenPreferenciasNotificaciones(preferencias)
+    if (!await confirmarPreferenciasNotificaciones(dialogo)) return
+    const boton = formulario.querySelector('[type="submit"]')
     boton.disabled = true
     try {
       const { error: errorGuardar } = await supabase.rpc('actualizar_preferencias_notificacion', {
-        p_recibir: recibir.checked,
-        p_dia_previo: previo.checked,
-        p_dia_vencimiento: dia.checked,
-        p_zona_horaria: zona.value,
+        p_recibir: preferencias.recibir,
+        p_dia_previo: preferencias.previo,
+        p_dia_vencimiento: preferencias.dia,
+        p_zona_horaria: preferencias.zona,
+        p_hora_previa: preferencias.horaPrevia,
       })
       if (errorGuardar) throw errorGuardar
-      estado.textContent = !previo.checked && !dia.checked
+      estado.textContent = !preferencias.recibir
+        ? 'Notificaciones desactivadas. Los avisos pendientes se cancelaron.'
+        : !preferencias.previo && !preferencias.dia
         ? 'Preferencias guardadas. No se programarán avisos hasta elegir al menos un momento.'
         : 'Preferencias guardadas.'
     } catch {
@@ -273,9 +365,11 @@ export async function inicializarPreferenciasNotificaciones() {
   })
 
   document.querySelector('[data-zona-dispositivo]').addEventListener('click', () => {
-    zona.value = zonaDispositivo
+    seleccionarZonaHoraria(zona, zonaDispositivo)
     estado.textContent = `Zona detectada: ${zona.value}. Guardá para aplicarla.`
   })
+  recibir.addEventListener('change', () => sincronizarDependenciasNotificaciones(recibir, previo, dia, horaPrevia))
+  previo.addEventListener('change', () => sincronizarDependenciasNotificaciones(recibir, previo, dia, horaPrevia))
   document.querySelector('[data-push-activar]').addEventListener('click', async (evento) => {
     const boton = evento.currentTarget
     if (!recibir.checked) {

@@ -83,15 +83,23 @@
           <div class="configuracion-panel__cabecera"><div><p class="eyebrow">Alertas opcionales</p><h2>Notificaciones</h2><p>Agenda conserva el historial aunque los avisos del dispositivo fallen o estén apagados.</p></div></div>
           <form data-notificaciones-form class="preferencias-notificaciones">
             <label class="opcion-automatizacion"><span><strong>Recibir notificaciones</strong><small>Activa alertas internas para tus próximos eventos.</small></span><input name="recibir_notificaciones" type="checkbox"></label>
-            <label class="opcion-automatizacion"><span><strong>Día previo</strong><small>Aviso a las 09:00 de tu zona horaria.</small></span><input name="notificar_dia_previo" type="checkbox"></label>
+            <label class="opcion-automatizacion"><span><strong>Día previo</strong><small>Elegí la hora local en la que querés recibir este aviso.</small></span><input name="notificar_dia_previo" type="checkbox"></label>
+            <label class="preferencias-notificaciones__horario"><span>Hora del aviso previo</span><select name="hora_notificacion_previa" aria-label="Hora del aviso previo"><option value="0">00:00</option><option value="1">01:00</option><option value="2">02:00</option><option value="3">03:00</option><option value="4">04:00</option><option value="5">05:00</option><option value="6">06:00</option><option value="7">07:00</option><option value="8">08:00</option><option value="9" selected>09:00</option><option value="10">10:00</option><option value="11">11:00</option><option value="12">12:00</option><option value="13">13:00</option><option value="14">14:00</option><option value="15">15:00</option><option value="16">16:00</option><option value="17">17:00</option><option value="18">18:00</option><option value="19">19:00</option><option value="20">20:00</option><option value="21">21:00</option><option value="22">22:00</option><option value="23">23:00</option></select></label>
             <label class="opcion-automatizacion"><span><strong>Día del vencimiento</strong><small>Aviso independiente a las 09:00.</small></span><input name="notificar_dia_vencimiento" type="checkbox"></label>
-            <label>Zona horaria<input name="zona_horaria_notificaciones" required maxlength="100" autocomplete="off" value="America/Argentina/Cordoba"><small data-zona-detectada></small></label>
+            <label>Zona horaria<select name="zona_horaria_notificaciones" required aria-describedby="zona-horaria-detectada"></select><small id="zona-horaria-detectada" data-zona-detectada></small></label>
             <div class="acciones-notificaciones"><button type="button" class="boton boton--secundario" data-zona-dispositivo>Usar zona horaria de este dispositivo</button><button class="boton boton--primario" type="submit">Guardar preferencias</button></div>
           </form>
           <div class="push-dispositivo"><div><strong>Avisos de este dispositivo</strong><p data-push-estado role="status">Comprobando compatibilidad…</p></div><div class="acciones-notificaciones"><button type="button" class="boton boton--secundario" data-push-desactivar>Desactivar en este dispositivo</button><button type="button" class="boton boton--primario" data-push-activar>Activar avisos del dispositivo</button></div></div>
         </section>
       </section>
     </main>
+    <dialog data-confirmar-notificaciones aria-labelledby="confirmar-notificaciones-titulo">
+      <form method="dialog">
+        <header><div><p class="eyebrow">Confirmar cambios</p><h2 id="confirmar-notificaciones-titulo">¿Guardar preferencias de notificaciones?</h2></div><button class="cerrar" type="submit" value="cancelar" aria-label="Cancelar">×</button></header>
+        <p data-confirmar-notificaciones-resumen></p>
+        <footer><button class="boton boton--secundario" type="submit" value="cancelar">Cancelar</button><button class="boton boton--primario" type="submit" value="confirmar">Confirmar y guardar</button></footer>
+      </form>
+    </dialog>
     <script type="module" src="./src/pages/app.js"></script>
   </body>
 </html>

@@ -10,6 +10,10 @@ const migracionPush = readFileSync(
   new URL('../supabase/migrations/20260811185544_web_push_seguro.sql', import.meta.url),
   'utf8',
 )
+const migracionPreferencias = readFileSync(
+  new URL('../supabase/migrations/20260811203000_hora_previa_notificaciones.sql', import.meta.url),
+  'utf8',
+)
 const worker = readFileSync(
   new URL('../supabase/functions/process-notifications-scheduled/index.ts', import.meta.url),
   'utf8',
@@ -76,6 +80,19 @@ describe('colas, RLS y minimización', () => {
     expect(interfaz).not.toContain('innerHTML')
     expect(interfaz).toContain('titulo.textContent = notificacion.titulo')
     expect(interfaz).toContain("Notification.requestPermission()")
+    expect(interfaz).toContain("Intl.supportedValuesOf('timeZone')")
+    expect(interfaz).toContain("contador.className = 'badge-notificaciones badge-notificaciones--posicionada'")
+  })
+
+  it('valida la hora previa y hace dependientes las opciones de la preferencia principal', () => {
+    expect(migracionPreferencias).toContain('check (hora_notificacion_previa between 0 and 23)')
+    expect(migracionPreferencias).toContain('v_dia_previo boolean := coalesce(p_recibir, false) and coalesce(p_dia_previo, false)')
+    expect(migracionPreferencias).toContain("when v_tipo = 'dia_previo' then make_time(v_evento.hora_notificacion_previa, 0, 0)")
+    expect(migracionPreferencias).toContain("set search_path = ''")
+    expect(migracionPreferencias).toContain("notify pgrst, 'reload schema'")
+    expect(interfaz).toContain('sincronizarDependenciasNotificaciones')
+    expect(interfaz).toContain('confirmarPreferenciasNotificaciones')
+    expect(interfaz).toContain('p_hora_previa: preferencias.horaPrevia')
   })
 
   it('preserva sólo el destino permitido tras login y difiere la IA temporal un día', () => {
