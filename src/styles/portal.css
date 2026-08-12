@@ -681,10 +681,11 @@ a.dashboard-card:hover { border-color: color-mix(in srgb, var(--verde) 52%, var(
   transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
 }
 .campana-notificaciones:hover, .campana-notificaciones:focus-visible { border-color: var(--verde); box-shadow: inset 0 1px 0 rgb(255 255 255 / 42%), 0 0 0 4px color-mix(in srgb, var(--verde) 12%, transparent), 0 12px 26px rgb(10 47 73 / 16%); outline: 0; transform: translateY(-1px); }
-.campana-notificaciones strong {
+.campana-notificaciones .badge-notificaciones {
   position: absolute;
-  top: -7px;
-  right: -7px;
+  top: 0;
+  left: 100%;
+  transform: translate(-50%, -50%);
   min-width: 20px;
   padding: .12rem .3rem;
   border: 2px solid var(--superficie);
@@ -693,6 +694,11 @@ a.dashboard-card:hover { border-color: color-mix(in srgb, var(--verde) 52%, var(
   color: white;
   font-size: .62rem;
   line-height: 1.2;
+  box-shadow: 0 4px 10px rgb(130 18 38 / 30%);
+}
+.campana-notificaciones--con-alertas .badge-notificaciones { animation: aviso-notificacion 1.9s ease-in-out infinite; }
+@keyframes aviso-notificacion {
+  50% { box-shadow: 0 0 0 5px rgb(207 62 82 / 14%), 0 4px 10px rgb(130 18 38 / 30%); }
 }
 .panel-notificaciones {
   position: absolute;
@@ -724,6 +730,21 @@ a.dashboard-card:hover { border-color: color-mix(in srgb, var(--verde) 52%, var(
 
 .preferencias-notificaciones { display: grid; gap: .75rem; }
 .preferencias-notificaciones > label:not(.opcion-automatizacion) { display: grid; gap: .35rem; }
+.preferencias-notificaciones__horario {
+  grid-template-columns: minmax(0, 1fr) minmax(100px, 150px);
+  align-items: center;
+  min-height: 58px;
+  padding: .75rem;
+  border: 1px solid var(--borde);
+  border-radius: 12px;
+  background: var(--superficie-suave);
+  font-weight: 750;
+}
+.preferencias-notificaciones__horario select { width: 100%; }
+.opcion-automatizacion--inactiva,
+.preferencias-notificaciones__horario.opcion-automatizacion--inactiva { opacity: .52; }
+.opcion-automatizacion--inactiva input,
+.preferencias-notificaciones__horario select:disabled { cursor: not-allowed; }
 .acciones-notificaciones { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: .6rem; }
 .push-dispositivo {
   display: flex;
@@ -735,6 +756,9 @@ a.dashboard-card:hover { border-color: color-mix(in srgb, var(--verde) 52%, var(
   border-top: 1px solid var(--borde);
 }
 .push-dispositivo p { margin: .25rem 0 0; color: var(--tinta-suave); font-size: .78rem; }
+@media (prefers-reduced-motion: reduce) {
+  .campana-notificaciones--con-alertas .badge-notificaciones { animation: none; }
+}
 .candidatos-revision {
   display: grid;
   grid-template-columns: minmax(5rem, auto) 1fr;
