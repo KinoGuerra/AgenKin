@@ -121,8 +121,16 @@ function crearCentroOperativo() {
   panel.className = 'panel-alertas-operativas'
   panel.hidden = true
   panel.setAttribute('aria-label', 'Alertas operativas')
+  const cabecera = document.createElement('div')
+  cabecera.className = 'panel-alertas-operativas__cabecera'
   const titulo = document.createElement('h2')
   titulo.textContent = 'Alertas operativas'
+  const cerrarAlertas = document.createElement('button')
+  cerrarAlertas.className = 'cerrar-alertas-operativas material-symbols-rounded'
+  cerrarAlertas.type = 'button'
+  cerrarAlertas.textContent = 'close'
+  cerrarAlertas.setAttribute('aria-label', 'Cerrar alertas operativas')
+  cabecera.append(titulo, cerrarAlertas)
   const lista = document.createElement('ul')
   const contexto = document.createElement('p')
   contexto.className = 'panel-alertas-operativas__contexto'
@@ -130,7 +138,7 @@ function crearCentroOperativo() {
   actualizar.className = 'boton boton--secundario boton--mini'
   actualizar.type = 'button'
   actualizar.textContent = 'Actualizar estado'
-  panel.append(titulo, lista, contexto, actualizar)
+  panel.append(cabecera, lista, contexto, actualizar)
   anclaAlertasOperativas.append(boton, panel)
 
   const cerrar = () => {
@@ -144,6 +152,10 @@ function crearCentroOperativo() {
     if (abierto) actualizar.focus()
   })
   actualizar.addEventListener('click', () => actualizarEstadoOperativo(actualizar))
+  cerrarAlertas.addEventListener('click', () => {
+    cerrar()
+    boton.focus()
+  })
   document.addEventListener('click', (evento) => {
     if (!anclaAlertasOperativas.contains(evento.target)) cerrar()
   })
