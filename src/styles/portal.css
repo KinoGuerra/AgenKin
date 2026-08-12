@@ -1621,6 +1621,12 @@ body.portal--admin.menu-admin-colapsado .contenido-portal { width: calc(100% - v
   .portal--admin .metricas--admin { grid-template-columns: 1fr; }
   .portal--admin .metricas--admin .grupo-metricas { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .portal--admin .metricas--admin .grupo-metricas > header { grid-column: 1 / -1; }
+  .encabezado-global__tarjetas--admin {
+    grid-template-columns: repeat(3, minmax(220px, 1fr));
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .encabezado-global__tarjetas--admin::-webkit-scrollbar { display: none; }
 }
 @media (max-width: 760px) {
   .portal--admin .barra-lateral { width: min(280px, 85vw); transform: translateX(-105%); }
@@ -1635,14 +1641,13 @@ body.portal--admin.menu-admin-colapsado .contenido-portal { width: calc(100% - v
   .portal--admin .barra-lateral--colapsada .enlace-lateral__texto { max-width: none; opacity: 1; transform: none; }
   .portal--admin .menu-lateral-toggle { display: none; }
   .portal--admin .contenido-portal, body.portal--admin.menu-admin-colapsado .contenido-portal { width: 100%; margin-left: 0; padding: calc(var(--alto-encabezado) + 1rem) 1rem 4rem; }
-  .tarjeta-encabezado--operador { min-width: 220px; }
-  .tarjeta-encabezado--estado { min-width: 220px; }
+  .encabezado-global__tarjetas--admin .tarjeta-encabezado { min-width: 220px; flex: 0 0 220px; }
   .panel-alertas-operativas { position: fixed; top: 5.3rem; right: .75rem; }
 }
 @media (max-width: 520px) {
   .portal--admin .metricas--admin .grupo-metricas,
   .portal--admin .metricas--admin .grupo-metricas--notificaciones { grid-template-columns: 1fr; }
-  .tarjeta-encabezado--operador { min-width: 210px; }
+  .encabezado-global__tarjetas--admin .tarjeta-encabezado { min-width: 210px; flex-basis: 210px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .portal--admin .barra-lateral,

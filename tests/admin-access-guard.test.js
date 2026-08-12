@@ -39,5 +39,7 @@ describe('barrera visual del portal administrador', () => {
     expect(estilosPortal).toContain('body.portal--admin.menu-admin-colapsado .menu-lateral-toggle')
     expect(funcionAdministrativa).toContain('if (metricasResultado.error)')
     expect(funcionAdministrativa).not.toContain('metricasResultado.error || notificacionesResultado.error')
+    expect(estilosPortal).toContain('grid-template-columns: repeat(3, minmax(220px, 1fr))')
+    expect(estilosPortal).toContain('.encabezado-global__tarjetas--admin .tarjeta-encabezado { min-width: 220px; flex: 0 0 220px; }')
   })
 })
