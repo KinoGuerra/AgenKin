@@ -125,6 +125,56 @@ function cerrarMenu() {
   botonMenu?.setAttribute('aria-label', 'Abrir navegación')
 }
 
+function inicializarAcordeones() {
+  const acordeones = [...document.querySelectorAll('.preguntas details')]
+  const reducirMovimiento = window.matchMedia('(prefers-reduced-motion: reduce)')
+  if (!acordeones.length || reducirMovimiento.matches || typeof acordeones[0].animate !== 'function') return
+
+  document.documentElement.classList.add('acordeones-animados')
+  acordeones.forEach((acordeon) => {
+    const resumen = acordeon.querySelector('summary')
+    const contenido = acordeon.querySelector('p')
+    if (!resumen) return
+
+    resumen.addEventListener('click', (evento) => {
+      evento.preventDefault()
+      if (acordeon.dataset.animando === 'true') return
+
+      const abrir = !acordeon.open
+      const altoInicial = acordeon.getBoundingClientRect().height
+      if (abrir) acordeon.open = true
+      const altoFinal = abrir
+        ? acordeon.scrollHeight
+        : resumen.getBoundingClientRect().height
+      acordeon.dataset.animando = 'true'
+      acordeon.style.height = `${altoInicial}px`
+      acordeon.style.overflow = 'hidden'
+      void acordeon.offsetHeight
+
+      const duracion = abrir ? 360 : 300
+      const animacion = acordeon.animate(
+        [{ height: `${altoInicial}px` }, { height: `${altoFinal}px` }],
+        { duration: duracion, easing: 'cubic-bezier(.22, 1, .36, 1)', fill: 'forwards' },
+      )
+      const animacionContenido = contenido?.animate(
+        abrir
+          ? [{ opacity: 0, transform: 'translateY(-6px)' }, { opacity: 1, transform: 'translateY(0)' }]
+          : [{ opacity: 1, transform: 'translateY(0)' }, { opacity: 0, transform: 'translateY(-4px)' }],
+        { duration: abrir ? 220 : 150, easing: 'ease-out', fill: 'forwards' },
+      )
+
+      animacion.finished.finally(() => {
+        animacion.cancel()
+        animacionContenido?.cancel()
+        if (!abrir) acordeon.open = false
+        acordeon.style.height = ''
+        acordeon.style.overflow = ''
+        delete acordeon.dataset.animando
+      })
+    })
+  })
+}
+
 botonMenu?.addEventListener('click', () => {
   const abierto = cabecera.hasAttribute('data-menu-open')
   if (abierto) {
@@ -152,6 +202,7 @@ document.addEventListener('click', (evento) => {
 botonesIngreso.forEach((boton) => boton.addEventListener('click', ingresar))
 document.querySelector('[data-current-year]').textContent = String(new Date().getFullYear())
 
+inicializarAcordeones()
 prepararAcceso().catch(() => {
   actualizarEstado('No pudimos comprobar el acceso. Intentá nuevamente en unos minutos.', 'error')
 })

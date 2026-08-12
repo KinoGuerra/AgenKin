@@ -4,6 +4,8 @@ import { describe, expect, it } from 'vitest'
 
 const leer = (ruta) => readFileSync(new URL(`../${ruta}`, import.meta.url), 'utf8')
 const landing = leer('index.html')
+const landingJs = leer('src/pages/landing.js')
+const estilosLanding = leer('src/styles/landing.css')
 
 describe('landing preparada para producción', () => {
   it('publica metadatos SEO y sociales consistentes', () => {
@@ -31,6 +33,14 @@ describe('landing preparada para producción', () => {
     expect(landing).toContain('Los casos ambiguos quedan para revisión')
     expect(landing).toContain('una sola conexión Calendar opcional')
     expect(landing).toContain('Web Push se activa voluntariamente')
+  })
+
+  it('anima las respuestas frecuentes al abrir y cerrar, respetando movimiento reducido', () => {
+    expect(landingJs).toContain('function inicializarAcordeones()')
+    expect(landingJs).toContain("'(prefers-reduced-motion: reduce)'")
+    expect(estilosLanding).toContain('.preguntas details::details-content')
+    expect(estilosLanding).toContain('interpolate-size: allow-keywords')
+    expect(estilosLanding).toContain('content-visibility .38s allow-discrete')
   })
 
   it('muestra los límites multicuenta de los planes públicos', () => {

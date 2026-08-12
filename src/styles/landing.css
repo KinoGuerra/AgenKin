@@ -621,7 +621,14 @@ body {
 .preguntas { max-width: 880px; }
 
 .preguntas details {
+  overflow: clip;
   border-bottom: 1px solid var(--borde);
+  interpolate-size: allow-keywords;
+  transition: border-color .32s ease;
+}
+
+.preguntas details[open] {
+  border-color: color-mix(in srgb, var(--verde) 38%, var(--borde));
 }
 
 .preguntas summary {
@@ -633,6 +640,7 @@ body {
   cursor: pointer;
   font-weight: 780;
   list-style: none;
+  transition: color .26s ease, padding .34s cubic-bezier(.22, 1, .36, 1);
 }
 
 .preguntas summary::-webkit-details-marker { display: none; }
@@ -650,10 +658,36 @@ body {
   font-family: "Material Symbols Rounded";
   font-size: 1.1rem;
   font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 20;
-  transition: transform .2s ease;
+  transition: transform .34s cubic-bezier(.22, 1, .36, 1), background .26s ease, border-color .26s ease;
 }
 
-.preguntas details[open] summary::after { transform: rotate(45deg); }
+.preguntas details[open] summary { color: var(--verde-oscuro); }
+.preguntas details[open] summary::after {
+  border-color: color-mix(in srgb, var(--verde) 48%, var(--borde));
+  background: color-mix(in srgb, var(--verde) 10%, var(--superficie));
+  transform: rotate(45deg);
+}
+.preguntas details::details-content {
+  height: 0;
+  overflow: clip;
+  content-visibility: hidden;
+  opacity: 0;
+  transform: translateY(-.38rem);
+  transition: height .38s cubic-bezier(.22, 1, .36, 1), opacity .2s ease, transform .38s cubic-bezier(.22, 1, .36, 1), content-visibility .38s allow-discrete;
+}
+.preguntas details[open]::details-content {
+  height: auto;
+  content-visibility: visible;
+  opacity: 1;
+  transform: translateY(0);
+}
+.acordeones-animados .preguntas details[open]::details-content {
+  height: auto;
+  content-visibility: visible;
+  opacity: 1;
+  transform: none;
+  transition: none;
+}
 .preguntas details p { max-width: 760px; margin: 0 0 1.4rem; }
 
 .cta {
@@ -836,4 +870,8 @@ body {
   .hero__contenido,
   .radar-fechas,
   .radar-fechas__pulso { animation: none; }
+  .preguntas details,
+  .preguntas summary,
+  .preguntas summary::after,
+  .preguntas details::details-content { transition: none; }
 }
