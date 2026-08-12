@@ -101,6 +101,12 @@ function incidenciasOperativas(metricas) {
   }
   const antiguedad = numero(metricas.alerta_mas_antigua_minutos)
   if (antiguedad > 30) incidencias.push({ nivel: 'critica', texto: `La cola de alertas lleva ${antiguedad} minutos pendiente.` })
+  const antiguedadGmail = numero(metricas.gmail_antiguedad_minutos)
+  if (antiguedadGmail > 30) incidencias.push({ nivel: 'critica', texto: `La cola de Gmail lleva ${antiguedadGmail} minutos disponible sin procesar.` })
+  const antiguedadCalendar = numero(metricas.calendar_antiguedad_minutos)
+  if (antiguedadCalendar > 30) incidencias.push({ nivel: 'critica', texto: `La cola de Calendar lleva ${antiguedadCalendar} minutos pendiente.` })
+  const tokensVencidos = numero(metricas.conexiones_token_vencido)
+  if (tokensVencidos) incidencias.push({ nivel: 'advertencia', texto: `${tokensVencidos} conexión${tokensVencidos === 1 ? '' : 'es'} requiere${tokensVencidos === 1 ? '' : 'n'} volver a autorizar Google.` })
   return incidencias
 }
 
@@ -184,7 +190,7 @@ function renderCentroOperativo(metricas) {
       centroOperativo.lista.append(item)
     })
   }
-  centroOperativo.contexto.textContent = `Contexto: ${numero(metricas.errores)} errores recientes · ${numero(metricas.revisiones_pendientes)} revisiones · ${numero(metricas.alertas_pendientes)} alertas pendientes · ${numero(metricas.push_temporales)} Push en reintento.`
+  centroOperativo.contexto.textContent = `Contexto: ${numero(metricas.errores)} errores recientes · ${numero(metricas.gmail_pendientes)} Gmail pendientes · ${numero(metricas.calendar_pendientes)} Calendar pendientes · ${numero(metricas.revisiones_pendientes)} revisiones · ${numero(metricas.alertas_pendientes)} alertas pendientes · ${numero(metricas.push_temporales)} Push en reintento.`
 }
 
 function renderUsuarios(usuarios) {
@@ -288,7 +294,11 @@ async function cargar() {
   document.querySelector('[data-admin-activos]').textContent = numero(metricas.activos)
   document.querySelector('[data-admin-cuentas-gmail]').textContent = numero(metricas.cuentas_gmail)
   document.querySelector('[data-admin-errores]').textContent = numero(metricas.errores)
-  const antiguedad = numero(metricas.alerta_mas_antigua_minutos)
+  const antiguedad = Math.max(
+    numero(metricas.alerta_mas_antigua_minutos),
+    numero(metricas.gmail_antiguedad_minutos),
+    numero(metricas.calendar_antiguedad_minutos),
+  )
   document.querySelector('[data-admin-cola]').textContent = antiguedad ? `${antiguedad} min` : 'Sin demora'
   renderCentroOperativo(metricas)
 

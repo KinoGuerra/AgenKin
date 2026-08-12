@@ -66,6 +66,8 @@ Se eligió JavaScript multipágina sin React ni router: GitHub Pages sirve cada 
   pruebas, límites y privacidad.
 - [Seguridad](docs/SEGURIDAD.md): límites de confianza, RLS, retención y
   respuesta a incidentes.
+- [Preproducción](docs/PREPRODUCCION.md): testers de Google, oleadas de carga,
+  umbrales, monitoreo y rollback operativo.
 
 ## Requisitos
 

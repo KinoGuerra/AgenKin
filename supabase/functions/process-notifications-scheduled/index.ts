@@ -113,8 +113,10 @@ async function enviarEntrega(
 Deno.serve(async (request) => {
   const preflight = manejarPreflight(request)
   if (preflight) return preflight
+  let cronAutorizado = false
   try {
     verificarCron(request)
+    cronAutorizado = true
     const inicio = Date.now()
     const cliente = clienteServicio()
     const { data: reconciliadas, error: errorReconciliar } = await cliente
@@ -161,7 +163,7 @@ Deno.serve(async (request) => {
   } catch (error) {
     return errorSeguro(
       error,
-      401,
+      cronAutorizado ? 500 : 401,
       'No se pudo ejecutar el proceso programado.',
     )
   }

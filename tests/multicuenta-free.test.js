@@ -109,11 +109,15 @@ describe('sincronización multicuenta para Supabase Free', () => {
     const workerGmailCadaMinuto = dias * 24 * 60
     const workerCalendarCadaMinuto = dias * 24 * 60
     const eventosCadaDosMinutos = dias * 24 * 30
+    const notificacionesCadaMinuto = dias * 24 * 60
+    const mantenimientoDiario = dias
     const total = descubridorCadaCinco
       + workerGmailCadaMinuto
       + workerCalendarCadaMinuto
       + eventosCadaDosMinutos
-    expect(total).toBe(116_640)
+      + notificacionesCadaMinuto
+      + mantenimientoDiario
+    expect(total).toBe(159_870)
     expect(total).toBeLessThan(200_000)
     expect(eventosProgramados).not.toContain('/functions/v1/')
     expect(eventosProgramados).toContain("'crear_eventos_automaticos_pendientes'")
