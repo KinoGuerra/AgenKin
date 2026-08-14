@@ -20,8 +20,9 @@ describe('landing preparada para producción', () => {
   it('explica permisos y tratamiento de datos antes del ingreso', () => {
     expect(landing).toContain('Gmail en modo lectura')
     expect(landing).toContain('Calendar opcional')
-    expect(landing).toContain('Tus datos trabajan para vos, no para publicidad')
-    expect(landing).toContain('No vendemos tus datos ni modificamos tu correo')
+    expect(landing).toContain('Tu información, siempre bajo tu control')
+    expect(landing).toContain('No vende tus datos ni modifica tus mensajes')
+    expect(landing).toContain('Solo lectura')
     expect(landing).toContain('./privacidad.html#eliminacion')
     expect(landing).not.toContain('A definir')
     expect(landing).not.toContain('El MVP')
@@ -34,7 +35,7 @@ describe('landing preparada para producción', () => {
     expect(landing).toContain('una sola conexión Calendar opcional')
     expect(landing).toContain('Web Push se activa voluntariamente')
     expect(landing).toContain('<svg viewBox="0 0 1160 410"')
-    expect(landing).toContain('De “tengo que acordarme” a “ya está agendado”')
+    expect(landing).toContain('Ya no olvidarás los acontecimientos que llegan a tu correo')
   })
 
   it('anima las respuestas frecuentes al abrir y cerrar, respetando movimiento reducido', () => {

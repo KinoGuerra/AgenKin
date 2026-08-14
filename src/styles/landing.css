@@ -35,6 +35,9 @@ body { background: radial-gradient(circle at 82% 4%, color-mix(in srgb, var(--me
 .promesa-datos strong { display: block; margin-bottom: 1rem; font-family: Bahnschrift, "Arial Narrow", Aptos, sans-serif; font-size: clamp(1.65rem, 3vw, 2.2rem); letter-spacing: -.03em; line-height: 1.08; }
 .promesa-datos p { color: #b8cad3; font-size: .92rem; }
 .promesa-datos a { display: inline-block; margin-top: .55rem; color: #92dcff; font-size: .8rem; font-weight: 780; text-underline-offset: .28rem; }
+.promesa-datos__garantias { display: flex; flex-wrap: wrap; gap: .5rem .85rem; margin: 1.2rem 0 .35rem; padding: 1rem 0 0; border-top: 1px solid rgb(255 255 255 / 12%); color: #d7e8ef; font-size: .68rem; font-weight: 760; list-style: none; }
+.promesa-datos__garantias li { display: inline-flex; align-items: center; gap: .38rem; }
+.promesa-datos__garantias li::before { width: .35rem; height: .35rem; border-radius: 50%; background: var(--lima); content: ""; }
 
 .garantias { display: grid; width: min(1220px, calc(100% - 2rem)); grid-template-columns: repeat(4, 1fr); margin: 0 auto; padding: 0; border-block: 1px solid var(--borde); list-style: none; }
 .garantias li { display: grid; grid-template-columns: auto 1fr; gap: .15rem .75rem; padding: 1.35rem clamp(.9rem, 2vw, 1.5rem); }
@@ -200,7 +203,7 @@ body { background: radial-gradient(circle at 82% 4%, color-mix(in srgb, var(--me
   .promesa-datos { display: grid; grid-template-columns: 2.35rem 1fr; align-items: center; gap: .75rem; padding: 1rem 1.1rem; }
   .promesa-datos > .material-symbols-rounded { width: 2.35rem; height: 2.35rem; margin: 0; }
   .promesa-datos strong { margin: 0; font-size: 1.05rem; }
-  .promesa-datos p, .promesa-datos a { display: none; }
+  .promesa-datos p, .promesa-datos a, .promesa-datos__garantias { display: none; }
   .garantias { grid-template-columns: repeat(4, 1fr); }
   .garantias li { display: grid; grid-template-columns: 1fr; justify-items: center; gap: .25rem; padding: .7rem .25rem; text-align: center; }
   .garantias li + li { border-left: 1px solid var(--borde); }
