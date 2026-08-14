@@ -1,7 +1,7 @@
 import js from '@eslint/js'
 
 export default [
-  { ignores: ['dist/**', 'coverage/**', 'node_modules/**', 'supabase/functions/**'] },
+  { ignores: ['dist/**', 'coverage/**', 'node_modules/**', 'supabase/functions/**', '.agents/**', '.impeccable/**', '.codex/**'] },
   js.configs.recommended,
   {
     files: ['src/**/*.js', 'tests/**/*.js', 'vite.config.js'],

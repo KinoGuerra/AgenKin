@@ -9,3 +9,11 @@ coverage/
 .supabase/
 supabase/.temp/
 tmp/imagegen/
+.impeccable/questions/
+.impeccable/review/
+.impeccable/config.local.json
+.impeccable/landing-brief.txt
+.impeccable/landing-options.json
+.agents/
+.codex/
+.github/hooks/

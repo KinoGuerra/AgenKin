@@ -20,6 +20,7 @@
       <p class="etiqueta-lateral">Navegación</p>
       <nav aria-label="Panel administrativo">
         <a class="activo" href="#resumen" data-icon="dashboard" data-tooltip="Resumen"><span class="navegacion-lateral__texto">Resumen</span></a>
+        <a href="#planes" data-icon="payments" data-tooltip="Planes y precios"><span class="navegacion-lateral__texto">Planes y precios</span></a>
         <a href="#usuarios" data-icon="group" data-tooltip="Usuarios"><span class="navegacion-lateral__texto">Usuarios</span></a>
         <a href="#auditoria" data-icon="history" data-tooltip="Auditoría"><span class="navegacion-lateral__texto">Auditoría</span></a>
       </nav>
@@ -123,6 +124,25 @@
             <article><small>Dispositivos</small><strong data-metrica="suscripciones_push_activas">—</strong><span>Activos</span></article>
           </section>
         </div>
+      </section>
+
+      <section id="planes" class="panel panel--admin panel--precios">
+        <div class="titulo-seccion">
+          <div>
+            <p class="eyebrow">Catálogo público</p>
+            <h2>Planes y precios</h2>
+            <p>Estos valores se muestran en la landing. El plan interno AgenKin permanece oculto y no se modifica desde aquí.</p>
+          </div>
+        </div>
+        <form data-precios-form>
+          <div class="precios-admin" data-precios-lista aria-live="polite">
+            <p>Cargando planes…</p>
+          </div>
+          <div class="precios-admin__acciones">
+            <p data-precios-estado role="status">Los cambios quedan registrados en la auditoría administrativa.</p>
+            <button class="boton boton--primario" type="submit" data-guardar-precios>Guardar precios</button>
+          </div>
+        </form>
       </section>
 
       <section id="usuarios" class="panel panel--admin">

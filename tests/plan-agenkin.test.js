@@ -33,6 +33,6 @@ describe('plan interno AgenKin', () => {
     expect(portal).toContain("? 'Sin vencimiento'")
     expect(admin).toContain("usuario.es_interno ? 'Sin vencimiento'")
     expect(funcionAdmin).toContain('planes(nombre,limite_cuentas_gmail,es_interno)')
-    expect(funcionAdmin).toContain("select('id,nombre,es_interno')")
+    expect(funcionAdmin).toMatch(/select\('id,nombre,[^']*es_interno[^']*'\)/)
   })
 })

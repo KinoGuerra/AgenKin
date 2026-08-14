@@ -1,0 +1,152 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-08-14T20:17:19.6834328-03:00",
+  "title": "Design System: AgenKin",
+  "extensions": {
+    "colorMeta": {
+      "ink": { "role": "neutral", "displayName": "Tinta azul", "canonical": "#142033", "tonalRamp": ["oklch(15% 0.03 255)", "oklch(25% 0.03 255)", "oklch(35% 0.03 255)", "oklch(47% 0.03 255)", "oklch(59% 0.03 255)", "oklch(71% 0.03 255)", "oklch(83% 0.03 255)", "oklch(95% 0.03 255)"] },
+      "ink-muted": { "role": "neutral", "displayName": "Tinta serena", "canonical": "#536373", "tonalRamp": ["oklch(15% 0.025 240)", "oklch(25% 0.025 240)", "oklch(35% 0.025 240)", "oklch(47% 0.025 240)", "oklch(59% 0.025 240)", "oklch(71% 0.025 240)", "oklch(83% 0.025 240)", "oklch(95% 0.025 240)"] },
+      "canvas": { "role": "neutral", "displayName": "Lienzo frío", "canonical": "#e3e9e8", "tonalRamp": ["oklch(15% 0.01 180)", "oklch(25% 0.01 180)", "oklch(35% 0.01 180)", "oklch(47% 0.01 180)", "oklch(59% 0.01 180)", "oklch(71% 0.01 180)", "oklch(83% 0.01 180)", "oklch(95% 0.01 180)"] },
+      "surface": { "role": "neutral", "displayName": "Superficie papel", "canonical": "#eff3f1", "tonalRamp": ["oklch(15% 0.008 165)", "oklch(25% 0.008 165)", "oklch(35% 0.008 165)", "oklch(47% 0.008 165)", "oklch(59% 0.008 165)", "oklch(71% 0.008 165)", "oklch(83% 0.008 165)", "oklch(95% 0.008 165)"] },
+      "surface-soft": { "role": "neutral", "displayName": "Superficie de apoyo", "canonical": "#d7e1e2", "tonalRamp": ["oklch(15% 0.012 210)", "oklch(25% 0.012 210)", "oklch(35% 0.012 210)", "oklch(47% 0.012 210)", "oklch(59% 0.012 210)", "oklch(71% 0.012 210)", "oklch(83% 0.012 210)", "oklch(95% 0.012 210)"] },
+      "signal-blue": { "role": "primary", "displayName": "Azul de acción", "canonical": "#0a8fdf", "tonalRamp": ["oklch(15% 0.15 245)", "oklch(25% 0.15 245)", "oklch(35% 0.15 245)", "oklch(47% 0.15 245)", "oklch(59% 0.15 245)", "oklch(71% 0.15 245)", "oklch(83% 0.15 245)", "oklch(95% 0.15 245)"] },
+      "signal-blue-deep": { "role": "primary", "displayName": "Azul de recorrido", "canonical": "#1263d6", "tonalRamp": ["oklch(15% 0.18 255)", "oklch(25% 0.18 255)", "oklch(35% 0.18 255)", "oklch(47% 0.18 255)", "oklch(59% 0.18 255)", "oklch(71% 0.18 255)", "oklch(83% 0.18 255)", "oklch(95% 0.18 255)"] },
+      "sky-wash": { "role": "tertiary", "displayName": "Lavado celeste", "canonical": "#ccefff", "tonalRamp": ["oklch(15% 0.07 225)", "oklch(25% 0.07 225)", "oklch(35% 0.07 225)", "oklch(47% 0.07 225)", "oklch(59% 0.07 225)", "oklch(71% 0.07 225)", "oklch(83% 0.07 225)", "oklch(95% 0.07 225)"] },
+      "lime-confirm": { "role": "secondary", "displayName": "Lima de certeza", "canonical": "#d8f36a", "tonalRamp": ["oklch(15% 0.16 115)", "oklch(25% 0.16 115)", "oklch(35% 0.16 115)", "oklch(47% 0.16 115)", "oklch(59% 0.16 115)", "oklch(71% 0.16 115)", "oklch(83% 0.16 115)", "oklch(95% 0.16 115)"] },
+      "border": { "role": "neutral", "displayName": "Borde frío", "canonical": "#c4d0d3", "tonalRamp": ["oklch(15% 0.012 215)", "oklch(25% 0.012 215)", "oklch(35% 0.012 215)", "oklch(47% 0.012 215)", "oklch(59% 0.012 215)", "oklch(71% 0.012 215)", "oklch(83% 0.012 215)", "oklch(95% 0.012 215)"] },
+      "danger": { "role": "tertiary", "displayName": "Rojo de riesgo", "canonical": "#a83232", "tonalRamp": ["oklch(15% 0.15 25)", "oklch(25% 0.15 25)", "oklch(35% 0.15 25)", "oklch(47% 0.15 25)", "oklch(59% 0.15 25)", "oklch(71% 0.15 25)", "oklch(83% 0.15 25)", "oklch(95% 0.15 25)"] },
+      "success": { "role": "secondary", "displayName": "Verde de confirmación", "canonical": "#16845b", "tonalRamp": ["oklch(15% 0.11 155)", "oklch(25% 0.11 155)", "oklch(35% 0.11 155)", "oklch(47% 0.11 155)", "oklch(59% 0.11 155)", "oklch(71% 0.11 155)", "oklch(83% 0.11 155)", "oklch(95% 0.11 155)"] },
+      "trust-navy": { "role": "neutral", "displayName": "Azul noche de confianza", "canonical": "#071b2a", "tonalRamp": ["oklch(15% 0.045 240)", "oklch(25% 0.045 240)", "oklch(35% 0.045 240)", "oklch(47% 0.045 240)", "oklch(59% 0.045 240)", "oklch(71% 0.045 240)", "oklch(83% 0.045 240)", "oklch(95% 0.045 240)"] },
+      "commercial-blue": { "role": "primary", "displayName": "Azul comercial profundo", "canonical": "#075a96", "tonalRamp": ["oklch(15% 0.12 245)", "oklch(25% 0.12 245)", "oklch(35% 0.12 245)", "oklch(47% 0.12 245)", "oklch(59% 0.12 245)", "oklch(71% 0.12 245)", "oklch(83% 0.12 245)", "oklch(95% 0.12 245)"] },
+      "commercial-blue-hover": { "role": "primary", "displayName": "Azul comercial en hover", "canonical": "#064b7c", "tonalRamp": ["oklch(15% 0.1 245)", "oklch(25% 0.1 245)", "oklch(35% 0.1 245)", "oklch(47% 0.1 245)", "oklch(59% 0.1 245)", "oklch(71% 0.1 245)", "oklch(83% 0.1 245)", "oklch(95% 0.1 245)"] },
+      "white": { "role": "neutral", "displayName": "Blanco nítido", "canonical": "#ffffff", "tonalRamp": ["oklch(15% 0 0)", "oklch(25% 0 0)", "oklch(35% 0 0)", "oklch(47% 0 0)", "oklch(59% 0 0)", "oklch(71% 0 0)", "oklch(83% 0 0)", "oklch(95% 0 0)"] }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Promesa condensada", "purpose": "Promesa principal de la landing." },
+      "headline": { "displayName": "Titular editorial", "purpose": "Títulos de sección y llamados de cierre." },
+      "title": { "displayName": "Título contenido", "purpose": "Tarjetas, pasos y módulos compactos." },
+      "body": { "displayName": "Lectura serena", "purpose": "Explicaciones, descripciones y contenido operativo." },
+      "label": { "displayName": "Etiqueta precisa", "purpose": "Estados, categorías y cejas editoriales." }
+    },
+    "shadows": [
+      { "name": "ambient-global", "value": "0 22px 70px rgb(17 26 46 / 14%)", "purpose": "Diálogos, menús móviles y superficies flotantes." },
+      { "name": "floating-navigation", "value": "0 10px 35px rgb(17 26 46 / 7%)", "purpose": "Cabecera pública translúcida." },
+      { "name": "deep-trust", "value": "0 28px 80px rgb(7 27 42 / 24%)", "purpose": "Panel oscuro de privacidad del hero." },
+      { "name": "soft-selection", "value": "0 20px 55px color-mix(in srgb, var(--verde) 12%, transparent)", "purpose": "Plan destacado o selección equivalente." }
+    ],
+    "motion": [
+      { "name": "ease-emphasized", "value": "cubic-bezier(.22, 1, .36, 1)", "purpose": "Entradas, subrayados, acordeones y microdesplazamientos editoriales." },
+      { "name": "ease-theme", "value": "cubic-bezier(.4, 0, .2, 1)", "purpose": "Revelado del cambio de tema." },
+      { "name": "state-fast", "value": "150ms ease", "purpose": "Hover de botones y cambios de borde." },
+      { "name": "journey-loop", "value": "4s linear infinite", "purpose": "Movimiento de la línea del recorrido; se desactiva con movimiento reducido." }
+    ],
+    "breakpoints": [
+      { "name": "compact", "value": "520px" },
+      { "name": "mobile", "value": "720px" },
+      { "name": "stack", "value": "900px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Acción comercial principal de landing y planes.",
+      "html": "<button class=\"ds-btn-primary\" type=\"button\">Comenzar</button>",
+      "css": ".ds-btn-primary { min-height: 42px; padding: .7rem 1.1rem; border: 1px solid transparent; border-radius: 10px; background: #075a96; color: #fff; font: 750 1rem/1 Aptos, 'Segoe UI', sans-serif; cursor: pointer; transition: transform .15s ease, background .15s ease; } .ds-btn-primary:hover { background: #064b7c; transform: translateY(-1px); } .ds-btn-primary:focus-visible { outline: 3px solid #35bdf7; outline-offset: 3px; } .ds-btn-primary:active { transform: translateY(0); }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Acción secundaria contenida sobre superficies claras.",
+      "html": "<button class=\"ds-btn-secondary\" type=\"button\">Ingresar</button>",
+      "css": ".ds-btn-secondary { min-height: 42px; padding: .7rem 1.1rem; border: 1px solid var(--borde, #c4d0d3); border-radius: 10px; background: var(--superficie, #eff3f1); color: var(--tinta, #142033); font: 750 1rem/1 Aptos, 'Segoe UI', sans-serif; cursor: pointer; transition: transform .15s ease, background .15s ease, border-color .15s ease; } .ds-btn-secondary:hover { border-color: var(--verde, #0a8fdf); background: var(--superficie-suave, #d7e1e2); transform: translateY(-1px); } .ds-btn-secondary:focus-visible { outline: 3px solid #35bdf7; outline-offset: 3px; } .ds-btn-secondary:active { transform: translateY(0); }"
+    },
+    {
+      "name": "Light CTA Button",
+      "kind": "button",
+      "refersTo": "button-light",
+      "description": "Llamada final sobre azul noche con acento lima.",
+      "html": "<button class=\"ds-btn-light\" type=\"button\">Empezar ahora</button>",
+      "css": ".ds-btn-light { min-height: 42px; padding: .7rem 1.1rem; border: 1px solid transparent; border-radius: 10px; background: var(--lima, #d8f36a); color: #10240e; font: 750 1rem/1 Aptos, 'Segoe UI', sans-serif; cursor: pointer; transition: transform .15s ease, filter .15s ease; } .ds-btn-light:hover { filter: brightness(.96); transform: translateY(-1px); } .ds-btn-light:focus-visible { outline: 3px solid #35bdf7; outline-offset: 3px; } .ds-btn-light:active { transform: translateY(0); }"
+    },
+    {
+      "name": "Text Field",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Campo estándar para formularios y configuración.",
+      "html": "<label class=\"ds-field\">Nombre del evento<input type=\"text\" value=\"Vencimiento del servicio\"></label>",
+      "css": ".ds-field { display: grid; gap: .35rem; color: var(--tinta, #142033); font: 700 .84rem/1.5 Aptos, 'Segoe UI', sans-serif; } .ds-field input { width: 100%; padding: .72rem .8rem; border: 1px solid #b7c5c8; border-radius: 9px; background: var(--superficie, #eff3f1); color: var(--tinta, #142033); font: 400 1rem/1.5 Aptos, 'Segoe UI', sans-serif; } .ds-field input:hover { border-color: var(--verde, #0a8fdf); } .ds-field input:focus-visible { outline: 3px solid #35bdf7; outline-offset: 3px; }"
+    },
+    {
+      "name": "Public Navigation",
+      "kind": "nav",
+      "description": "Navegación pública flotante, compacta y translúcida.",
+      "html": "<nav class=\"ds-public-nav\" aria-label=\"Navegación de ejemplo\"><a href=\"#\">Cómo funciona</a><a href=\"#\">Privacidad</a><a href=\"#\">Planes</a></nav>",
+      "css": ".ds-public-nav { display: flex; align-items: center; gap: 2rem; padding: .55rem 1rem; border: 1px solid color-mix(in srgb, var(--borde, #c4d0d3) 75%, transparent); border-radius: 15px; background: color-mix(in srgb, var(--fondo, #e3e9e8) 86%, transparent); box-shadow: 0 10px 35px rgb(17 26 46 / 7%); backdrop-filter: blur(18px); } .ds-public-nav a { position: relative; padding: .55rem 0; color: var(--tinta-suave, #536373); font: 650 .9rem/1.2 Aptos, 'Segoe UI', sans-serif; text-decoration: none; } .ds-public-nav a::after { position: absolute; right: 0; bottom: .2rem; left: 0; height: 1px; background: var(--verde, #0a8fdf); content: ''; transform: scaleX(0); transition: transform .24s cubic-bezier(.22,1,.36,1); } .ds-public-nav a:hover::after, .ds-public-nav a:focus-visible::after { transform: scaleX(1); } .ds-public-nav a:focus-visible { outline: 3px solid #35bdf7; outline-offset: 3px; }"
+    },
+    {
+      "name": "Trust Panel",
+      "kind": "card",
+      "refersTo": "trust-panel",
+      "description": "Panel protagonista para compromisos de privacidad y control.",
+      "html": "<aside class=\"ds-trust-panel\"><span class=\"ds-trust-mark\" aria-hidden=\"true\">✓</span><strong>Tus datos trabajan para vos.</strong><p>Solo usamos la información para las funciones que activás.</p><a href=\"#\">Conocer más</a></aside>",
+      "css": ".ds-trust-panel { position: relative; max-width: 390px; padding: 2rem; border-radius: 16px; background: #071b2a; box-shadow: 0 28px 80px rgb(7 27 42 / 24%); color: #f4fbff; font-family: Aptos, 'Segoe UI', sans-serif; } .ds-trust-panel::before { position: absolute; inset: 13px; border: 1px solid rgb(255 255 255 / 10%); border-radius: 11px; pointer-events: none; content: ''; } .ds-trust-mark { position: relative; display: grid; width: 3rem; height: 3rem; place-items: center; margin-bottom: 2rem; border-radius: 12px; background: var(--lima, #d8f36a); color: #10240e; font-weight: 850; } .ds-trust-panel strong, .ds-trust-panel p, .ds-trust-panel a { position: relative; } .ds-trust-panel strong { display: block; font: 700 1.85rem/1.08 Bahnschrift, 'Arial Narrow', Aptos, sans-serif; letter-spacing: -.03em; } .ds-trust-panel p { color: #b8cad3; font-size: .92rem; line-height: 1.5; } .ds-trust-panel a { color: #92dcff; font-size: .8rem; font-weight: 780; text-underline-offset: .28rem; } .ds-trust-panel a:hover { color: #fff; } .ds-trust-panel a:focus-visible { outline: 3px solid #35bdf7; outline-offset: 3px; }"
+    },
+    {
+      "name": "Plan Card",
+      "kind": "card",
+      "refersTo": "plan-card",
+      "description": "Tarjeta comercial contenida, con variante destacada por tono y borde.",
+      "html": "<article class=\"ds-plan-card\"><div class=\"ds-plan-head\"><h3>Dos cuentas</h3><span>RECOMENDADO</span></div><p class=\"ds-plan-price\"><strong>$—</strong><small>/ mes</small></p><p>Agenda propia y conexión opcional con Calendar.</p><button type=\"button\">Elegir plan</button></article>",
+      "css": ".ds-plan-card { display: flex; min-height: 330px; flex-direction: column; padding: 1.65rem; border: 1px solid color-mix(in srgb, var(--verde, #0a8fdf) 65%, var(--borde, #c4d0d3)); border-radius: 14px; background: color-mix(in srgb, var(--menta, #ccefff) 35%, var(--superficie, #eff3f1)); box-shadow: 0 20px 55px color-mix(in srgb, var(--verde, #0a8fdf) 12%, transparent); color: var(--tinta, #142033); font-family: Aptos, 'Segoe UI', sans-serif; } .ds-plan-head { display: flex; align-items: start; justify-content: space-between; gap: .75rem; } .ds-plan-head h3 { margin: 0; font: 700 1.45rem/1.04 Bahnschrift, 'Arial Narrow', Aptos, sans-serif; letter-spacing: -.035em; } .ds-plan-head span { padding: .3rem .5rem; border-radius: 100px; background: var(--lima, #d8f36a); color: #243008; font-size: .64rem; font-weight: 850; } .ds-plan-price { display: flex; align-items: baseline; gap: .35rem; margin: 2rem 0 1.15rem; } .ds-plan-price strong { font: 700 3rem/1 Bahnschrift, 'Arial Narrow', Aptos, sans-serif; letter-spacing: -.035em; } .ds-plan-card > p:not(.ds-plan-price) { color: var(--tinta-suave, #536373); font-size: .83rem; line-height: 1.5; } .ds-plan-card button { width: 100%; min-height: 42px; margin-top: auto; border: 0; border-radius: 10px; background: #075a96; color: #fff; font-weight: 750; cursor: pointer; transition: background .15s ease, transform .15s ease; } .ds-plan-card button:hover { background: #064b7c; transform: translateY(-1px); } .ds-plan-card button:focus-visible { outline: 3px solid #35bdf7; outline-offset: 3px; }"
+    },
+    {
+      "name": "FAQ Row",
+      "kind": "custom",
+      "description": "Acordeón editorial sin tarjeta adicional ni sombra.",
+      "html": "<details class=\"ds-faq\"><summary>¿AgenKin crea eventos automáticamente?</summary><p>Solo con tu autorización y cuando el caso es seguro.</p></details>",
+      "css": ".ds-faq { overflow: clip; border-bottom: 1px solid var(--borde, #c4d0d3); color: var(--tinta, #142033); font-family: Aptos, 'Segoe UI', sans-serif; } .ds-faq summary { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1.35rem 0; cursor: pointer; font-weight: 780; list-style: none; } .ds-faq summary::after { display: grid; width: 1.9rem; height: 1.9rem; flex: 0 0 auto; place-items: center; border: 1px solid var(--borde, #c4d0d3); border-radius: 50%; color: var(--verde, #0a8fdf); content: '+'; transition: transform .34s cubic-bezier(.22,1,.36,1), background .26s ease; } .ds-faq[open] summary::after { background: color-mix(in srgb, var(--verde, #0a8fdf) 10%, var(--superficie, #eff3f1)); transform: rotate(45deg); } .ds-faq summary:hover { color: var(--verde-oscuro, #1263d6); } .ds-faq summary:focus-visible { outline: 3px solid #35bdf7; outline-offset: 3px; } .ds-faq p { max-width: 72ch; margin: 0; padding-bottom: 1.4rem; color: var(--tinta-suave, #536373); line-height: 1.5; }"
+    },
+    {
+      "name": "Auth Status",
+      "kind": "chip",
+      "description": "Estado breve con señal circular y texto explícito.",
+      "html": "<p class=\"ds-auth-status\"><span aria-hidden=\"true\"></span>Acceso seguro disponible</p>",
+      "css": ".ds-auth-status { display: inline-flex; align-items: center; gap: .5rem; margin: 0; color: var(--tinta-suave, #536373); font: 700 .78rem/1.5 Aptos, 'Segoe UI', sans-serif; } .ds-auth-status span { width: .5rem; height: .5rem; border-radius: 50%; background: var(--exito, #16845b); box-shadow: 0 0 0 4px color-mix(in srgb, var(--exito, #16845b) 16%, transparent); transition: transform .15s ease; } .ds-auth-status:hover span { transform: scale(1.12); } .ds-auth-status:focus-visible { outline: 3px solid #35bdf7; outline-offset: 3px; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "Confianza primero",
+    "overview": "AgenKin se presenta como un asistente sereno, confiable, comercial y no invasivo. La interfaz hace visible un recorrido delicado —del correo a una fecha accionable— con superficies claras, tinta azul profunda y señales verdes que confirman sin convertir la experiencia en una alarma permanente.\n\nEl mundo visual ya está establecido y se extiende desde la landing persuasiva hasta el portal operativo. La jerarquía es editorial y compacta; la geometría toma de bandejas, fechas y recorridos sus marcos, filas y secuencias. La profundidad es ambiental: ayuda a separar capas y estados, pero nunca se vuelve ornamento.",
+    "keyCharacteristics": [
+      "Asistente sereno y directo, con confianza visible antes que grandilocuencia.",
+      "Superficies claras y azul profundo, con verde reservado para progreso y confirmación.",
+      "Titulares condensados, texto de lectura amplio y etiquetas técnicas discretas.",
+      "Geometría contenida de bandejas, calendarios, filas y recorridos.",
+      "Profundidad difusa y puntual, reforzada por tono, borde y desenfoque."
+    ],
+    "rules": [
+      { "name": "The Confirmación Escasa Rule", "body": "El verde y el lima señalan progreso, éxito o una decisión segura; no colorean superficies completas sin una función concreta.", "section": "colors" },
+      { "name": "The Agenda Primero Rule", "body": "El azul profundo conduce el recorrido y la Agenda conserva la prioridad visual; Calendar aparece como integración opcional, no como identidad dominante.", "section": "colors" },
+      { "name": "The Dos Voces Rule", "body": "Bahnschrift promete y estructura; Aptos explica y acompaña. No intercambiar sus funciones por sección.", "section": "typography" },
+      { "name": "The Compacta, No Apretada Rule", "body": "La jerarquía puede ser densa, pero conserva una altura de lectura de 1.5 y anchos de línea contenidos.", "section": "typography" },
+      { "name": "The Profundidad Ambiental Rule", "body": "Una sombra debe explicar una capa, una selección o un estado flotante; si solo adorna, se elimina.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do mantener el azul como guía de acción y el verde como confirmación verificable.",
+      "Do construir jerarquía con tono, borde, espacio y tipografía antes de sumar sombra.",
+      "Do adaptar recorridos y grillas a una secuencia móvil explícita en lugar de comprimirlos.",
+      "Do mostrar foco visible, estados textuales y alternativas para movimiento reducido.",
+      "Do conservar el mundo establecido entre landing y portal; las variaciones responden al modo de uso, no a un rebrand."
+    ],
+    "donts": [
+      "Don't usar verde, lima o rojo como decoración sin significado de estado.",
+      "Don't reemplazar la geometría contenida por cápsulas generalizadas o tarjetas excesivamente redondas.",
+      "Don't agregar profundidad ornamental, glassmorphism gratuito o gradientes que no expliquen jerarquía.",
+      "Don't introducir tipografías, dependencias o iconografías nuevas cuando el sistema existente ya cubre la función.",
+      "Don't prometer automatización infalible: la confianza visual siempre acompaña estados honestos y control del usuario."
+    ]
+  }
+}

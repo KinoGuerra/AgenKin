@@ -15,6 +15,8 @@ const tbody = document.querySelector('[data-usuarios]')
 const dialogo = document.querySelector('[data-admin-dialog]')
 const formulario = document.querySelector('[data-admin-form]')
 const filtros = document.querySelector('[data-filtros]')
+const formularioPrecios = document.querySelector('[data-precios-form]')
+const listaPrecios = document.querySelector('[data-precios-lista]')
 const botonMenu = document.querySelector('[data-menu]')
 const botonActualizar = document.querySelector('[data-admin-actualizar]')
 const anclaAlertasOperativas = document.querySelector('[data-alertas-operativas]')
@@ -279,6 +281,53 @@ function renderAuditoria(items) {
   })
 }
 
+function renderPrecios(planes) {
+  listaPrecios.replaceChildren()
+  const publicos = planes.filter((plan) => plan.visible_publico && !plan.es_interno)
+  if (!publicos.length) {
+    listaPrecios.append(estadoVacio('No hay planes públicos activos.'))
+    return
+  }
+
+  publicos.forEach((plan) => {
+    const tarjeta = document.createElement('article')
+    tarjeta.dataset.planPrecio = plan.id
+    const cabecera = document.createElement('div')
+    const nombre = document.createElement('strong')
+    const capacidad = document.createElement('small')
+    nombre.textContent = plan.nombre
+    capacidad.textContent = `${plan.limite_cuentas_gmail} cuenta${plan.limite_cuentas_gmail === 1 ? '' : 's'} Gmail`
+    cabecera.append(nombre, capacidad)
+
+    const campoPrecio = document.createElement('label')
+    campoPrecio.textContent = 'Precio publicado'
+    const precio = document.createElement('input')
+    precio.type = 'number'
+    precio.min = '0'
+    precio.max = '9999999999.99'
+    precio.step = '0.01'
+    precio.required = true
+    precio.value = Number(plan.precio || 0).toFixed(2)
+    precio.dataset.precio = ''
+    campoPrecio.append(precio)
+
+    const campoMoneda = document.createElement('label')
+    campoMoneda.textContent = 'Moneda'
+    const moneda = document.createElement('input')
+    moneda.type = 'text'
+    moneda.inputMode = 'text'
+    moneda.maxLength = 3
+    moneda.pattern = '[A-Za-z]{3}'
+    moneda.required = true
+    moneda.value = String(plan.moneda || 'ARS').trim().toUpperCase()
+    moneda.dataset.moneda = ''
+    campoMoneda.append(moneda)
+
+    tarjeta.append(cabecera, campoPrecio, campoMoneda)
+    listaPrecios.append(tarjeta)
+  })
+}
+
 function abrirAccion(usuario, accion) {
   formulario.reset()
   usuarioGestionado = usuario
@@ -300,6 +349,7 @@ async function cargar() {
   selectorPlanes.replaceChildren()
   planesDisponibles = datos.planes || []
   planesDisponibles.forEach((plan) => selectorPlanes.add(new Option(plan.nombre, plan.id)))
+  renderPrecios(planesDisponibles)
 
   Object.entries(datos.metricas || {}).forEach(([nombre, valor]) => {
     const elemento = document.querySelector(`[data-metrica="${nombre}"]`)
@@ -433,6 +483,30 @@ formulario.addEventListener('submit', async (evento) => {
     await cargar()
   } catch (error) {
     mostrarAviso(error.message, 'error')
+  } finally {
+    setCargando(boton, false)
+  }
+})
+formularioPrecios.addEventListener('submit', async (evento) => {
+  evento.preventDefault()
+  const boton = evento.submitter
+  const precios = [...listaPrecios.querySelectorAll('[data-plan-precio]')].map((tarjeta) => ({
+    id: tarjeta.dataset.planPrecio,
+    precio: Number(tarjeta.querySelector('[data-precio]').value),
+    moneda: tarjeta.querySelector('[data-moneda]').value.trim().toUpperCase(),
+  }))
+  if (precios.some(({ precio, moneda }) => !Number.isFinite(precio) || precio < 0 || !/^[A-Z]{3}$/.test(moneda))) {
+    mostrarAviso('Revisá los precios y las monedas antes de guardar.', 'error')
+    return
+  }
+  setCargando(boton, true, 'Guardando…')
+  try {
+    await invocarFuncion('admin-manage-user', { accion: 'actualizar_precios', precios })
+    document.querySelector('[data-precios-estado]').textContent = 'Precios actualizados y registrados en auditoría.'
+    mostrarAviso('Los precios públicos se actualizaron correctamente.', 'exito')
+    await cargar()
+  } catch (error) {
+    mostrarAviso(error.message || 'No se pudieron actualizar los precios.', 'error')
   } finally {
     setCargando(boton, false)
   }

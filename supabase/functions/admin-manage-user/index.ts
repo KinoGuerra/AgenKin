@@ -28,7 +28,7 @@ Deno.serve(async (request) => {
       if (termino) consulta = consulta.or(`email.ilike.%${termino}%,nombre_completo.ilike.%${termino}%`)
       const [usuariosResultado, planesResultado, auditoriaResultado] = await Promise.all([
         consulta,
-        cliente.from('planes').select('id,nombre,es_interno').eq('activo', true).order('nombre'),
+        cliente.from('planes').select('id,nombre,precio,moneda,limite_cuentas_gmail,es_interno,visible_publico').eq('activo', true).order('nombre'),
         cliente.from('auditoria_administrativa').select('accion,detalle,creado_en,administrador_id').order('creado_en', { ascending: false }).limit(20),
       ])
       if (usuariosResultado.error || planesResultado.error || auditoriaResultado.error) throw new Error('No se pudo consultar la administración')
@@ -74,6 +74,33 @@ Deno.serve(async (request) => {
         },
         paginas: Math.max(1, Math.ceil((usuariosResultado.count || 0) / TAMANO_PAGINA)),
       })
+    }
+
+    if (body.accion === 'actualizar_precios') {
+      if (!Array.isArray(body.precios) || body.precios.length < 1 || body.precios.length > 10) {
+        return json({ error: 'Catálogo de precios inválido' }, 400)
+      }
+      const precios: Array<{ id: string; precio: number; moneda: string }> = body.precios.map((item: Record<string, unknown>) => ({
+        id: String(item?.id || ''),
+        precio: Number(item?.precio),
+        moneda: String(item?.moneda || '').trim().toUpperCase(),
+      }))
+      const invalido = precios.some((item) =>
+        !/^[0-9a-f-]{36}$/i.test(item.id)
+        || !Number.isFinite(item.precio)
+        || item.precio < 0
+        || item.precio > 9999999999.99
+        || !/^[A-Z]{3}$/.test(item.moneda)
+      )
+      if (invalido || new Set(precios.map(({ id }) => id)).size !== precios.length) {
+        return json({ error: 'Precio o plan inválido' }, 400)
+      }
+      const { error } = await cliente.rpc('actualizar_catalogo_precios', {
+        p_administrador_id: usuario.id,
+        p_precios: precios,
+      })
+      if (error) throw new Error('No se pudo actualizar el catálogo de precios')
+      return json({ ok: true })
     }
 
     if (!ACCIONES.has(body.accion)) return json({ error: 'Acción no permitida' }, 400)

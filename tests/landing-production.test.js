@@ -19,9 +19,9 @@ describe('landing preparada para producción', () => {
 
   it('explica permisos y tratamiento de datos antes del ingreso', () => {
     expect(landing).toContain('Gmail en modo lectura')
-    expect(landing).toContain('Un Calendar opcional por usuario')
-    expect(landing).toContain('Alertas internas opcionales')
-    expect(landing).toContain('Sin guardar el cuerpo completo')
+    expect(landing).toContain('Calendar opcional')
+    expect(landing).toContain('Tus datos trabajan para vos, no para publicidad')
+    expect(landing).toContain('No vendemos tus datos ni modificamos tu correo')
     expect(landing).toContain('./privacidad.html#eliminacion')
     expect(landing).not.toContain('A definir')
     expect(landing).not.toContain('El MVP')
@@ -30,9 +30,11 @@ describe('landing preparada para producción', () => {
 
   it('describe la Agenda interna, revisión y Calendar sin prometer automatización total', () => {
     expect(landing).toContain('Agenda interna es la fuente principal')
-    expect(landing).toContain('Los casos ambiguos quedan para revisión')
+    expect(landing).toContain('Los casos ambiguos esperan tu revisión')
     expect(landing).toContain('una sola conexión Calendar opcional')
     expect(landing).toContain('Web Push se activa voluntariamente')
+    expect(landing).toContain('<svg viewBox="0 0 1160 410"')
+    expect(landing).toContain('De “tengo que acordarme” a “ya está agendado”')
   })
 
   it('anima las respuestas frecuentes al abrir y cerrar, respetando movimiento reducido', () => {
@@ -45,16 +47,14 @@ describe('landing preparada para producción', () => {
     expect(estilosLanding).toContain('.respuesta-frecuente')
   })
 
-  it('muestra los límites multicuenta de los planes públicos', () => {
-    expect(landing).toContain('<h3>Prueba</h3>')
-    expect(landing).toContain('<h3>Dúo</h3>')
-    expect(landing).toContain('<h3>Pro</h3>')
-    expect(landing).toContain('<h3>Ultra</h3>')
-    expect(landing).toContain('<strong>5</strong> cuentas Gmail')
-    expect(landing).toContain('No aplicamos un cupo comercial por mensajes')
+  it('consulta y construye de forma segura los planes públicos vigentes', () => {
+    expect(landing).toContain('data-planes-publicos')
+    expect(landingJs).toContain(".from('planes')")
+    expect(landingJs).toContain(".eq('visible_publico', true)")
+    expect(landingJs).toContain('function crearPlan(plan)')
+    expect(landingJs).toContain('textContent = texto')
     expect(landing).not.toContain('<h3>AgenKin</h3>')
-    expect(landing).toContain('Los precios comerciales todavía no están publicados.')
-    expect(landing).not.toContain('Ingresar y solicitar')
+    expect(landing).not.toContain('durante la beta todos tienen precio cero')
   })
 
   it('mantiene una política CSP sin ejecución insegura', () => {
