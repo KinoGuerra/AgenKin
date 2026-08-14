@@ -1,5 +1,6 @@
 (function prepararTema(global) {
   const TEMAS = new Set(['light', 'dark'])
+  const COLORES_NAVEGADOR = Object.freeze({ light: '#e3e9e8', dark: '#071018' })
 
   function resolverTema(preferenciaGuardada, prefiereOscuro) {
     return TEMAS.has(preferenciaGuardada) ? preferenciaGuardada : prefiereOscuro ? 'dark' : 'light'
@@ -11,6 +12,17 @@
     } catch {
       return null
     }
+  }
+
+  function actualizarColorNavegador(tema) {
+    let metas = [...global.document.querySelectorAll('meta[name="theme-color"]')]
+    if (metas.length === 0) {
+      const meta = global.document.createElement('meta')
+      meta.name = 'theme-color'
+      global.document.head.append(meta)
+      metas = [meta]
+    }
+    metas.forEach((meta) => { meta.content = COLORES_NAVEGADOR[tema] })
   }
 
   function actualizarControles(tema) {
@@ -38,6 +50,7 @@
   function aplicarTema(tema, guardar = false) {
     global.document.documentElement.dataset.theme = tema
     global.document.documentElement.style.colorScheme = tema
+    actualizarColorNavegador(tema)
     actualizarControles(tema)
     if (guardar) {
       try {
@@ -131,6 +144,6 @@
     else media.addListener(seguirSistema)
   }
 
-  global.AgenKinTheme = Object.freeze({ resolverTema, inicializarTema })
+  global.AgenKinTheme = Object.freeze({ resolverTema, inicializarTema, colorNavegador: (tema) => COLORES_NAVEGADOR[tema] })
   if (global.document) inicializarTema()
 })(globalThis)
