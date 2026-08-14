@@ -103,9 +103,9 @@ body { background: radial-gradient(circle at 82% 4%, color-mix(in srgb, var(--me
 .plan__cabecera { display: flex; align-items: start; justify-content: space-between; gap: .75rem; }
 .plan__cabecera h3 { margin: 0; font-size: 1.45rem; }
 .plan__insignia { padding: .3rem .5rem; border-radius: 100px; background: var(--lima); color: #243008; font-size: .64rem; font-weight: 850; }
-.plan__precio { display: flex; align-items: baseline; gap: .35rem; min-height: 4.5rem; margin: 2rem 0 1.15rem; color: var(--tinta); }
-.plan__precio strong { font-family: Bahnschrift, "Arial Narrow", Aptos, sans-serif; font-size: clamp(2.2rem, 4vw, 3.5rem); letter-spacing: -.035em; line-height: 1; }
-.plan__precio span { color: var(--tinta-suave); font-size: .75rem; }
+.plan__precio { display: grid; min-height: 5.35rem; align-content: start; gap: .45rem; margin: 1.8rem 0 1.15rem; color: var(--tinta); }
+.plan__precio strong { font-family: Bahnschrift, "Arial Narrow", Aptos, sans-serif; font-size: clamp(2.35rem, 3.1vw, 3rem); font-variant-numeric: tabular-nums; letter-spacing: -.035em; line-height: 1; white-space: nowrap; }
+.plan__precio span { color: var(--tinta-suave); font-size: .68rem; font-weight: 780; letter-spacing: .08em; line-height: 1; text-transform: uppercase; }
 .plan__descripcion { min-height: 4.2rem; font-size: .83rem; }
 .plan__detalle { display: grid; gap: .65rem; margin: 1rem 0 1.7rem; padding: 0; color: var(--tinta-suave); font-size: .8rem; list-style: none; }
 .plan__detalle li { display: flex; gap: .45rem; }

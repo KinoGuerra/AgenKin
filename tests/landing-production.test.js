@@ -35,7 +35,7 @@ describe('landing preparada para producción', () => {
     expect(landing).toContain('una sola conexión Calendar opcional')
     expect(landing).toContain('Web Push se activa voluntariamente')
     expect(landing).toContain('<svg viewBox="0 0 1160 410"')
-    expect(landing).toContain('Ya no olvidarás los acontecimientos que llegan a tu correo')
+    expect(landing).toContain('Ya no olvidarás los acontecimientos que llegan a tu correo.</h2>')
   })
 
   it('anima las respuestas frecuentes al abrir y cerrar, respetando movimiento reducido', () => {

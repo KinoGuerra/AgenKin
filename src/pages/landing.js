@@ -59,7 +59,7 @@ function crearPlan(plan) {
 
   const precio = elemento('p', 'plan__precio')
   precio.append(elemento('strong', '', formatearPrecio(plan.precio, plan.moneda)))
-  if (Number(plan.precio) > 0) precio.append(elemento('span', '', `${String(plan.moneda).trim()} · valor publicado`))
+  if (Number(plan.precio) > 0) precio.append(elemento('span', '', String(plan.moneda).trim()))
 
   const descripcion = elemento('p', 'plan__descripcion', plan.descripcion || 'Organizá vencimientos con las funciones esenciales de AgenKin.')
   const detalles = elemento('ul', 'plan__detalle')
