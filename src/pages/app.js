@@ -645,13 +645,16 @@ function renderPortal(datos) {
   seguirSincronizacion(Number(conexion.tareas_pendientes || 0))
 
   const suscripcion = resumen.suscripcion || {}
+  const vigencia = suscripcion.es_interno
+    ? 'Sin vencimiento'
+    : formatearFecha(suscripcion.fecha_vencimiento)
   definirTexto('[data-plan-cabecera]', suscripcion.plan || 'Sin plan')
-  definirTexto('[data-plan-vencimiento]', formatearFecha(suscripcion.fecha_vencimiento))
+  definirTexto('[data-plan-vencimiento]', vigencia)
   const campos = {
     plan: suscripcion.plan || 'Sin plan',
     estado: suscripcion.estado || 'Sin suscripción',
     inicio: formatearFecha(suscripcion.fecha_inicio),
-    vencimiento: formatearFecha(suscripcion.fecha_vencimiento),
+    vencimiento: vigencia,
   }
   Object.entries(campos).forEach(([campo, valor]) => definirTexto(`[data-suscripcion="${campo}"]`, valor))
   const usados = Number(suscripcion.cuentas_gmail_usadas || 0)

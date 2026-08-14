@@ -9,6 +9,8 @@ import { validarAccionAdministrativa } from '../utils/validaciones.js'
 
 let pagina = 1
 let administradorId = null
+let planesDisponibles = []
+let usuarioGestionado = null
 const tbody = document.querySelector('[data-usuarios]')
 const dialogo = document.querySelector('[data-admin-dialog]')
 const formulario = document.querySelector('[data-admin-form]')
@@ -43,6 +45,18 @@ function accionesDisponibles(usuario) {
     if (!accionesAcceso.has(valor)) return true
     return accionesEstado[usuario.estado_acceso]?.has(valor) ?? true
   })
+}
+
+function sincronizarCampoFecha() {
+  const accion = formulario.elements.accion.value
+  const plan = planesDisponibles.find(({ id }) => id === formulario.elements.plan_id.value)
+  const requiereAlSalirDeAgenKin = accion === 'cambiar_plan'
+    && usuarioGestionado?.es_interno
+    && !plan?.es_interno
+  const mostrar = ['extender_prueba', 'cambiar_vencimiento'].includes(accion)
+    || requiereAlSalirDeAgenKin
+  document.querySelector('[data-campo-fecha]').classList.toggle('oculto', !mostrar)
+  formulario.elements.fecha_vencimiento.required = mostrar
 }
 
 function obtenerIniciales(nombre, email) {
@@ -227,7 +241,7 @@ function renderUsuarios(usuarios) {
       crearCelda(usuario.plan || 'Sin plan'),
       crearCelda(usuario.estado_acceso),
       crearCelda(usuario.estado_suscripcion || '—'),
-      crearCelda(formatearFecha(usuario.fecha_vencimiento)),
+      crearCelda(usuario.es_interno ? 'Sin vencimiento' : formatearFecha(usuario.fecha_vencimiento)),
       crearCelda(`${usuario.cuentas_gmail || 0}/${usuario.limite_cuentas_gmail || '—'} cuentas`),
       crearCelda(formatearFecha(usuario.ultimo_acceso)),
     )
@@ -267,6 +281,7 @@ function renderAuditoria(items) {
 
 function abrirAccion(usuario, accion) {
   formulario.reset()
+  usuarioGestionado = usuario
   formulario.elements.usuario_id.value = usuario.id
   formulario.elements.accion.value = accion
   const etiqueta = ACCIONES.find(([valor]) => valor === accion)?.[1] || 'Gestionar usuario'
@@ -274,7 +289,7 @@ function abrirAccion(usuario, accion) {
   document.querySelector('[data-admin-titulo]').textContent = etiqueta
   document.querySelector('[data-admin-confirmacion]').textContent = `Vas a aplicar “${etiqueta.toLowerCase()}” a ${nombre}. El cambio quedará registrado.`
   document.querySelector('[data-campo-plan]').classList.toggle('oculto', accion !== 'cambiar_plan')
-  document.querySelector('[data-campo-fecha]').classList.toggle('oculto', !['extender_prueba', 'cambiar_vencimiento'].includes(accion))
+  sincronizarCampoFecha()
   dialogo.showModal()
 }
 
@@ -283,7 +298,8 @@ async function cargar() {
   const datos = await invocarFuncion('admin-manage-user', { accion: 'listar', pagina, ...valores })
   const selectorPlanes = formulario.elements.plan_id
   selectorPlanes.replaceChildren()
-  ;(datos.planes || []).forEach((plan) => selectorPlanes.add(new Option(plan.nombre, plan.id)))
+  planesDisponibles = datos.planes || []
+  planesDisponibles.forEach((plan) => selectorPlanes.add(new Option(plan.nombre, plan.id)))
 
   Object.entries(datos.metricas || {}).forEach(([nombre, valor]) => {
     const elemento = document.querySelector(`[data-metrica="${nombre}"]`)
@@ -421,5 +437,6 @@ formulario.addEventListener('submit', async (evento) => {
     setCargando(boton, false)
   }
 })
+formulario.elements.plan_id.addEventListener('change', sincronizarCampoFecha)
 
 iniciar()

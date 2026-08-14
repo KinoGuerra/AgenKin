@@ -114,7 +114,8 @@ Las migraciones crean:
 
 - perfiles con rol `usuario` y acceso `activo`;
 - prueba automática por 15 días;
-- planes Prueba, Básico, Dúo, Pro y Ultra, más el plan interno AgenKin;
+- planes Prueba, Básico, Dúo, Pro y Ultra, más AgenKin: el plan interno,
+  gratuito y sin vencimiento, asignable sólo por un superadministrador;
 - límites por cantidad de cuentas Gmail (1, 1, 2, 3 y 5), sin cupo comercial por mensajes;
 - consumos mensuales usados únicamente como métricas históricas;
 - varias conexiones Google cifradas por usuario y un único Calendar seleccionado;

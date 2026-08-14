@@ -35,8 +35,8 @@ Rutas principales:
 ## Modelo multicuenta
 
 - Cada plan limita cuentas Gmail activas: 1, 2, 3 o 5; no limita mensajes.
-- `AgenKin` es un plan interno equivalente a Pro y solo lo asigna un
-  superadministrador.
+- `AgenKin` es un plan interno gratuito, sin vencimiento y equivalente a Pro;
+  solo lo asigna un superadministrador.
 - Una conexión se identifica por `usuario_id + google_subject_id`.
 - Correos y tareas se deduplican por
   `conexion_google_id + gmail_message_id`.

@@ -21,14 +21,14 @@ Deno.serve(async (request) => {
       const termino = String(body.buscar || '').replace(/[,%()]/g, '').trim().slice(0, 80)
       let consulta = cliente
         .from('perfiles')
-        .select('id,nombre_completo,email,estado_acceso,ultimo_acceso,suscripciones(plan_id,estado,fecha_vencimiento,planes(nombre,limite_cuentas_gmail)),consumos_mensuales(correos_procesados,periodo),conexiones_google(id,gmail_conectado,estado_conexion)', { count: 'exact' })
+        .select('id,nombre_completo,email,estado_acceso,ultimo_acceso,suscripciones(plan_id,estado,fecha_vencimiento,planes(nombre,limite_cuentas_gmail,es_interno)),consumos_mensuales(correos_procesados,periodo),conexiones_google(id,gmail_conectado,estado_conexion)', { count: 'exact' })
         .order('fecha_registro', { ascending: false })
         .range(desde, desde + TAMANO_PAGINA - 1)
       if (body.estado) consulta = consulta.eq('estado_acceso', body.estado)
       if (termino) consulta = consulta.or(`email.ilike.%${termino}%,nombre_completo.ilike.%${termino}%`)
       const [usuariosResultado, planesResultado, auditoriaResultado] = await Promise.all([
         consulta,
-        cliente.from('planes').select('id,nombre').eq('activo', true).order('nombre'),
+        cliente.from('planes').select('id,nombre,es_interno').eq('activo', true).order('nombre'),
         cliente.from('auditoria_administrativa').select('accion,detalle,creado_en,administrador_id').order('creado_en', { ascending: false }).limit(20),
       ])
       if (usuariosResultado.error || planesResultado.error || auditoriaResultado.error) throw new Error('No se pudo consultar la administración')
@@ -45,6 +45,7 @@ Deno.serve(async (request) => {
           estado_acceso: perfil.estado_acceso,
           ultimo_acceso: perfil.ultimo_acceso,
           plan: plan?.nombre,
+          es_interno: Boolean(plan?.es_interno),
           limite_cuentas_gmail: plan?.limite_cuentas_gmail,
           estado_suscripcion: suscripcion?.estado,
           fecha_vencimiento: suscripcion?.fecha_vencimiento,
