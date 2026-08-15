@@ -63,7 +63,9 @@ function actualizarPreciosVisibles() {
     precio.textContent = formatearPrecio(precioEnMoneda(precioArs), monedaVista)
   })
   document.querySelectorAll('[data-moneda-plan]').forEach((etiqueta) => {
-    etiqueta.textContent = Number(etiqueta.dataset.precioArs) > 0 ? monedaVista : ''
+    const tienePrecio = Number(etiqueta.dataset.precioArs) > 0
+    etiqueta.textContent = tienePrecio ? monedaVista : ''
+    etiqueta.dataset.monedaPlan = tienePrecio ? monedaVista : ''
   })
 }
 
@@ -99,7 +101,7 @@ function crearPlan(plan) {
   const importe = elemento('strong', '', formatearPrecio(plan.precio, 'ARS'))
   importe.dataset.precioPlan = String(Number(plan.precio))
   const moneda = elemento('span', '', Number(plan.precio) > 0 ? 'ARS' : '')
-  moneda.dataset.monedaPlan = ''
+  moneda.dataset.monedaPlan = Number(plan.precio) > 0 ? 'ARS' : ''
   moneda.dataset.precioArs = String(Number(plan.precio))
   precio.append(importe, moneda)
 

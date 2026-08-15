@@ -101,8 +101,14 @@ body { background: radial-gradient(circle at 82% 4%, color-mix(in srgb, var(--me
 .selector-moneda { display: grid; justify-items: end; gap: .5rem; margin-bottom: 2.2rem; }
 .selector-moneda > span { color: var(--tinta-suave); font-size: .68rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
 .selector-moneda__opciones { display: flex; padding: .25rem; border: 1px solid var(--borde); border-radius: 999px; background: var(--superficie-suave); }
-.selector-moneda__opciones button { display: inline-flex; align-items: baseline; gap: .35rem; min-height: 38px; padding: .55rem .8rem; border: 0; border-radius: 999px; background: transparent; color: var(--tinta-suave); cursor: pointer; font: inherit; font-size: .76rem; font-weight: 800; }
+.selector-moneda__opciones button { display: inline-flex; align-items: center; gap: .35rem; min-height: 38px; padding: .55rem .8rem; border: 0; border-radius: 999px; background: transparent; color: var(--tinta-suave); cursor: pointer; font: inherit; font-size: .76rem; font-weight: 800; }
 .selector-moneda__opciones button small { font-size: .58rem; letter-spacing: .06em; }
+.bandera-moneda,
+[data-moneda-plan]::before { width: 1.1rem; height: .72rem; flex: 0 0 1.1rem; border: 1px solid rgb(20 32 51 / 18%); border-radius: 2px; box-sizing: border-box; content: ""; }
+.bandera-moneda[data-bandera="ARS"],
+[data-moneda-plan="ARS"]::before { background: radial-gradient(circle at center, #f6b40e 0 1px, transparent 1.2px), linear-gradient(to bottom, #74acdf 0 33.33%, #fff 33.33% 66.66%, #74acdf 66.66%); }
+.bandera-moneda[data-bandera="USD"],
+[data-moneda-plan="USD"]::before { background: linear-gradient(#3c3b6e 0 54%, transparent 54%) left top / 46% 100% no-repeat, repeating-linear-gradient(to bottom, #b22234 0 8%, #fff 8% 16%); }
 .selector-moneda__opciones button[aria-pressed="true"] { background: var(--superficie); box-shadow: 0 4px 14px rgb(7 27 42 / 10%); color: var(--tinta); }
 .selector-moneda__opciones button:focus-visible { outline: 2px solid var(--verde); outline-offset: 2px; }
 .selector-moneda__opciones button:disabled { cursor: wait; opacity: .48; }
@@ -116,7 +122,7 @@ body { background: radial-gradient(circle at 82% 4%, color-mix(in srgb, var(--me
 .plan__insignia { padding: .3rem .5rem; border-radius: 100px; background: var(--lima); color: #243008; font-size: .64rem; font-weight: 850; }
 .plan__precio { display: grid; min-height: 5.35rem; align-content: start; gap: .45rem; margin: 1.8rem 0 1.15rem; color: var(--tinta); }
 .plan__precio strong { font-family: Bahnschrift, "Arial Narrow", Aptos, sans-serif; font-size: clamp(2.35rem, 3.1vw, 3rem); font-variant-numeric: tabular-nums; letter-spacing: -.035em; line-height: 1; white-space: nowrap; }
-.plan__precio span { color: var(--tinta-suave); font-size: .68rem; font-weight: 780; letter-spacing: .08em; line-height: 1; text-transform: uppercase; }
+.plan__precio span { display: inline-flex; align-items: center; gap: .42rem; color: var(--tinta-suave); font-size: .68rem; font-weight: 780; letter-spacing: .08em; line-height: 1; text-transform: uppercase; }
 .plan__descripcion { min-height: 4.2rem; font-size: .83rem; }
 .plan__detalle { display: grid; gap: .65rem; margin: 1rem 0 1.7rem; padding: 0; color: var(--tinta-suave); font-size: .8rem; list-style: none; }
 .plan__detalle li { display: flex; gap: .45rem; }
