@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 
 const leer = (ruta) => readFileSync(new URL(`../${ruta}`, import.meta.url), 'utf8')
 const migracion = leer('supabase/migrations/20260814224954_catalogo_precios_publicos_editable.sql')
-const migracionArs = leer('supabase/migrations/20260815003932_forzar_precios_planes_en_ars.sql')
+const migracionUsd = leer('supabase/migrations/20260815010122_usar_usd_como_moneda_base_planes.sql')
 const funcionAdmin = leer('supabase/functions/admin-manage-user/index.ts')
 const admin = leer('src/pages/admin.js')
 const adminHtml = leer('admin.html')
@@ -32,13 +32,17 @@ describe('catálogo público de precios', () => {
     expect(funcionAdmin).toContain('superadministradorAutenticado(request)')
   })
 
-  it('administra un único importe canónico en pesos argentinos', () => {
-    expect(migracionArs).toContain('planes_moneda_ars_check')
-    expect(migracionArs).toContain("moneda = 'ARS'")
-    expect(migracionArs).toContain("set search_path = ''")
-    expect(migracionArs).toContain('from public, anon, authenticated')
+  it('administra USD como moneda canónica y fija el catálogo solicitado', () => {
+    expect(migracionUsd).toContain('planes_moneda_usd_check')
+    expect(migracionUsd).toContain("moneda = 'USD'")
+    expect(migracionUsd).toContain("when 'Básico' then 5")
+    expect(migracionUsd).toContain("when 'Dúo' then 7")
+    expect(migracionUsd).toContain("when 'Pro' then 10")
+    expect(migracionUsd).toContain("when 'Ultra' then 13")
+    expect(migracionUsd).toContain("set search_path = ''")
+    expect(migracionUsd).toContain('from public, anon, authenticated')
     expect(funcionAdmin).not.toContain('item?.moneda')
-    expect(admin).toContain('ARS · Pesos argentinos')
+    expect(admin).toContain('USD · Dólares estadounidenses')
     expect(admin).not.toContain('dataset.moneda')
   })
 

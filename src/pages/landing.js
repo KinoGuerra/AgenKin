@@ -8,6 +8,7 @@ import {
 import { env, rutaPublica } from '../config/env.js'
 import { destinoPorPerfil } from '../guards/route-guard.js'
 import { supabase } from '../services/supabase.js'
+import { convertirUsdAArs } from '../utils/precios.js'
 
 const botonesIngreso = [...document.querySelectorAll('[data-login]')]
 const etiquetasIniciales = new Map(
@@ -28,7 +29,7 @@ const estadoCotizacion = document.querySelector('[data-cotizacion-estado]')
 let contextoSesion
 let estadoGoogle
 let ingresoEnCurso = false
-let monedaVista = 'ARS'
+let monedaVista = 'USD'
 let dolarBlueVenta = null
 
 function elemento(etiqueta, clase, texto) {
@@ -45,6 +46,7 @@ function formatearPrecio(precio, moneda = 'ARS') {
     return new Intl.NumberFormat('es-AR', {
       style: 'currency',
       currency: moneda,
+      minimumFractionDigits: valor % 1 === 0 ? 0 : 2,
       maximumFractionDigits: moneda === 'USD' ? 2 : valor % 1 === 0 ? 0 : 2,
     }).format(valor)
   } catch {
@@ -52,25 +54,27 @@ function formatearPrecio(precio, moneda = 'ARS') {
   }
 }
 
-function precioEnMoneda(precioArs) {
-  return monedaVista === 'USD' && dolarBlueVenta ? precioArs / dolarBlueVenta : precioArs
+function precioEnMoneda(precioUsd) {
+  return monedaVista === 'ARS' && dolarBlueVenta
+    ? convertirUsdAArs(precioUsd, dolarBlueVenta)
+    : precioUsd
 }
 
 function actualizarPreciosVisibles() {
   botonesMoneda.forEach((boton) => boton.setAttribute('aria-pressed', String(boton.dataset.monedaVista === monedaVista)))
   document.querySelectorAll('[data-precio-plan]').forEach((precio) => {
-    const precioArs = Number(precio.dataset.precioPlan)
-    precio.textContent = formatearPrecio(precioEnMoneda(precioArs), monedaVista)
+    const precioUsd = Number(precio.dataset.precioPlan)
+    precio.textContent = formatearPrecio(precioEnMoneda(precioUsd), monedaVista)
   })
   document.querySelectorAll('[data-moneda-plan]').forEach((etiqueta) => {
-    const tienePrecio = Number(etiqueta.dataset.precioArs) > 0
+    const tienePrecio = Number(etiqueta.dataset.precioUsd) > 0
     etiqueta.textContent = tienePrecio ? monedaVista : ''
     etiqueta.dataset.monedaPlan = tienePrecio ? monedaVista : ''
   })
 }
 
 async function cargarCotizacion() {
-  const botonDolares = botonesMoneda.find((boton) => boton.dataset.monedaVista === 'USD')
+  const botonPesos = botonesMoneda.find((boton) => boton.dataset.monedaVista === 'ARS')
   const respuesta = await globalThis.fetch(`${env.supabaseUrl}/functions/v1/public-exchange-rate`, {
     credentials: 'omit',
     referrerPolicy: 'no-referrer',
@@ -79,12 +83,12 @@ async function cargarCotizacion() {
   const data = await respuesta.json()
   const venta = Number(data?.venta)
   if (!Number.isFinite(venta) || venta <= 0) {
-    estadoCotizacion.textContent = 'La conversión no está disponible. Los importes continúan visibles en ARS.'
+    estadoCotizacion.textContent = 'La conversión no está disponible. Los importes continúan visibles en USD.'
     return
   }
 
   dolarBlueVenta = venta
-  botonDolares.disabled = false
+  botonPesos.disabled = false
   estadoCotizacion.textContent = `Conversión orientativa · Dólar Blue Venta ${formatearPrecio(venta, 'ARS')} por USD.`
 }
 
@@ -98,11 +102,11 @@ function crearPlan(plan) {
   if (esDestacado) cabecera.append(elemento('span', 'plan__insignia', 'Recomendado'))
 
   const precio = elemento('p', 'plan__precio')
-  const importe = elemento('strong', '', formatearPrecio(plan.precio, 'ARS'))
+  const importe = elemento('strong', '', formatearPrecio(plan.precio, 'USD'))
   importe.dataset.precioPlan = String(Number(plan.precio))
-  const moneda = elemento('span', '', Number(plan.precio) > 0 ? 'ARS' : '')
-  moneda.dataset.monedaPlan = Number(plan.precio) > 0 ? 'ARS' : ''
-  moneda.dataset.precioArs = String(Number(plan.precio))
+  const moneda = elemento('span', '', Number(plan.precio) > 0 ? 'USD' : '')
+  moneda.dataset.monedaPlan = Number(plan.precio) > 0 ? 'USD' : ''
+  moneda.dataset.precioUsd = String(Number(plan.precio))
   precio.append(importe, moneda)
 
   const descripcion = elemento('p', 'plan__descripcion', plan.descripcion || 'Organizá vencimientos con las funciones esenciales de AgenKin.')
@@ -146,7 +150,7 @@ async function cargarPlanesPublicos() {
   }
   listaPlanes.replaceChildren(...data.map(crearPlan))
   cargarCotizacion().catch(() => {
-    estadoCotizacion.textContent = 'La conversión no está disponible. Los importes continúan visibles en ARS.'
+    estadoCotizacion.textContent = 'La conversión no está disponible. Los importes continúan visibles en USD.'
   })
 }
 
@@ -346,7 +350,7 @@ document.addEventListener('click', (evento) => {
 
 botonesIngreso.forEach((boton) => boton.addEventListener('click', ingresar))
 botonesMoneda.forEach((boton) => boton.addEventListener('click', () => {
-  if (boton.disabled || (boton.dataset.monedaVista === 'USD' && !dolarBlueVenta)) return
+  if (boton.disabled || (boton.dataset.monedaVista === 'ARS' && !dolarBlueVenta)) return
   monedaVista = boton.dataset.monedaVista
   actualizarPreciosVisibles()
 }))

@@ -307,7 +307,7 @@ function renderPrecios(planes) {
     precio.max = '9999999999.99'
     precio.step = '0.01'
     precio.required = true
-    precio.value = Number(plan.precio || 0).toFixed(2)
+    precio.value = String(Number(plan.precio || 0))
     precio.dataset.precio = ''
     campoPrecio.append(precio)
 
@@ -315,7 +315,7 @@ function renderPrecios(planes) {
     moneda.className = 'precio-admin__moneda'
     moneda.append(
       Object.assign(document.createElement('small'), { textContent: 'Moneda de publicación' }),
-      Object.assign(document.createElement('strong'), { textContent: 'ARS · Pesos argentinos' }),
+      Object.assign(document.createElement('strong'), { textContent: 'USD · Dólares estadounidenses' }),
     )
 
     tarjeta.append(cabecera, campoPrecio, moneda)
