@@ -80,17 +80,15 @@ Deno.serve(async (request) => {
       if (!Array.isArray(body.precios) || body.precios.length < 1 || body.precios.length > 10) {
         return json({ error: 'Catálogo de precios inválido' }, 400)
       }
-      const precios: Array<{ id: string; precio: number; moneda: string }> = body.precios.map((item: Record<string, unknown>) => ({
+      const precios: Array<{ id: string; precio: number }> = body.precios.map((item: Record<string, unknown>) => ({
         id: String(item?.id || ''),
         precio: Number(item?.precio),
-        moneda: String(item?.moneda || '').trim().toUpperCase(),
       }))
       const invalido = precios.some((item) =>
         !/^[0-9a-f-]{36}$/i.test(item.id)
         || !Number.isFinite(item.precio)
         || item.precio < 0
         || item.precio > 9999999999.99
-        || !/^[A-Z]{3}$/.test(item.moneda)
       )
       if (invalido || new Set(precios.map(({ id }) => id)).size !== precios.length) {
         return json({ error: 'Precio o plan inválido' }, 400)

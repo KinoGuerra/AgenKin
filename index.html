@@ -174,9 +174,20 @@
       </section>
 
       <section class="seccion planes-seccion" id="planes" aria-labelledby="titulo-planes">
-        <div class="encabezado-seccion">
-          <h2 id="titulo-planes">Un plan para cada cantidad de bandejas.</h2>
-          <p>Todos organizan fechas en la Agenda propia. El precio y la capacidad publicada se actualizan directamente desde la administración de AgenKin.</p>
+        <div class="planes__presentacion">
+          <div class="encabezado-seccion">
+            <h2 id="titulo-planes">Un plan para cada cantidad de bandejas.</h2>
+            <p>Todos organizan fechas en la Agenda propia. El precio y la capacidad publicada se actualizan directamente desde la administración de AgenKin.</p>
+          </div>
+          <div class="selector-moneda" aria-label="Moneda para visualizar los planes">
+            <span>Ver precios en</span>
+            <div class="selector-moneda__opciones" role="group" aria-label="Elegir moneda">
+              <button type="button" data-moneda-vista="ARS" aria-pressed="true">Pesos <small>ARS</small></button>
+              <button type="button" data-moneda-vista="USD" aria-pressed="false" disabled>Dólares <small>USD</small></button>
+            </div>
+            <p class="selector-moneda__estado" data-cotizacion-estado role="status">Consultando Dólar Blue Venta…</p>
+            <a class="selector-moneda__fuente" href="https://dolarhoy.com/cotizaciondolarblue" target="_blank" rel="noopener noreferrer">Fuente: DolarHoy</a>
+          </div>
         </div>
         <div class="planes" data-planes-publicos aria-live="polite" aria-busy="true">
           <p class="planes__estado">Consultando planes y precios actuales…</p>

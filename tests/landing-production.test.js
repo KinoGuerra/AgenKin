@@ -58,6 +58,18 @@ describe('landing preparada para producción', () => {
     expect(landing).not.toContain('durante la beta todos tienen precio cero')
   })
 
+  it('permite alternar ARS y USD con una cotización externa validada', () => {
+    expect(landing).toContain('data-moneda-vista="ARS"')
+    expect(landing).toContain('data-moneda-vista="USD"')
+    expect(landing).toContain('Dólar Blue Venta')
+    expect(landing).toContain('https://dolarhoy.com/cotizaciondolarblue')
+    expect(landingJs).toContain("/functions/v1/public-exchange-rate")
+    expect(landingJs).toContain("credentials: 'omit'")
+    expect(landingJs).toContain('precioArs / dolarBlueVenta')
+    expect(landingJs).toContain('La conversión no está disponible')
+    expect(landing).not.toContain('<iframe')
+  })
+
   it('mantiene una política CSP sin ejecución insegura', () => {
     const csp = landing.match(/http-equiv="Content-Security-Policy" content="([^"]+)"/)?.[1]
     const cargadorLocal = landing.match(/<script>(if\(location\.protocol==='file:'\).*?)<\/script>/)?.[1]

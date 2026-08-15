@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 
 const leer = (ruta) => readFileSync(new URL(`../${ruta}`, import.meta.url), 'utf8')
 const migracion = leer('supabase/migrations/20260814224954_catalogo_precios_publicos_editable.sql')
+const migracionArs = leer('supabase/migrations/20260815003932_forzar_precios_planes_en_ars.sql')
 const funcionAdmin = leer('supabase/functions/admin-manage-user/index.ts')
 const admin = leer('src/pages/admin.js')
 const adminHtml = leer('admin.html')
@@ -29,6 +30,16 @@ describe('catálogo público de precios', () => {
     expect(funcionAdmin).toContain('item.precio > 9999999999.99')
     expect(funcionAdmin).toContain("cliente.rpc('actualizar_catalogo_precios'")
     expect(funcionAdmin).toContain('superadministradorAutenticado(request)')
+  })
+
+  it('administra un único importe canónico en pesos argentinos', () => {
+    expect(migracionArs).toContain('planes_moneda_ars_check')
+    expect(migracionArs).toContain("moneda = 'ARS'")
+    expect(migracionArs).toContain("set search_path = ''")
+    expect(migracionArs).toContain('from public, anon, authenticated')
+    expect(funcionAdmin).not.toContain('item?.moneda')
+    expect(admin).toContain('ARS · Pesos argentinos')
+    expect(admin).not.toContain('dataset.moneda')
   })
 
   it('ofrece edición real desde Administración sin mostrar el plan interno', () => {

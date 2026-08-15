@@ -311,19 +311,14 @@ function renderPrecios(planes) {
     precio.dataset.precio = ''
     campoPrecio.append(precio)
 
-    const campoMoneda = document.createElement('label')
-    campoMoneda.textContent = 'Moneda'
-    const moneda = document.createElement('input')
-    moneda.type = 'text'
-    moneda.inputMode = 'text'
-    moneda.maxLength = 3
-    moneda.pattern = '[A-Za-z]{3}'
-    moneda.required = true
-    moneda.value = String(plan.moneda || 'ARS').trim().toUpperCase()
-    moneda.dataset.moneda = ''
-    campoMoneda.append(moneda)
+    const moneda = document.createElement('div')
+    moneda.className = 'precio-admin__moneda'
+    moneda.append(
+      Object.assign(document.createElement('small'), { textContent: 'Moneda de publicación' }),
+      Object.assign(document.createElement('strong'), { textContent: 'ARS · Pesos argentinos' }),
+    )
 
-    tarjeta.append(cabecera, campoPrecio, campoMoneda)
+    tarjeta.append(cabecera, campoPrecio, moneda)
     listaPrecios.append(tarjeta)
   })
 }
@@ -493,10 +488,9 @@ formularioPrecios.addEventListener('submit', async (evento) => {
   const precios = [...listaPrecios.querySelectorAll('[data-plan-precio]')].map((tarjeta) => ({
     id: tarjeta.dataset.planPrecio,
     precio: Number(tarjeta.querySelector('[data-precio]').value),
-    moneda: tarjeta.querySelector('[data-moneda]').value.trim().toUpperCase(),
   }))
-  if (precios.some(({ precio, moneda }) => !Number.isFinite(precio) || precio < 0 || !/^[A-Z]{3}$/.test(moneda))) {
-    mostrarAviso('Revisá los precios y las monedas antes de guardar.', 'error')
+  if (precios.some(({ precio }) => !Number.isFinite(precio) || precio < 0)) {
+    mostrarAviso('Revisá los precios antes de guardar.', 'error')
     return
   }
   setCargando(boton, true, 'Guardando…')
