@@ -1471,7 +1471,7 @@ body.portal--admin.menu-admin-colapsado .menu-lateral-toggle { left: calc(var(--
 .portal--admin .contenido-portal { width: calc(100% - var(--ancho-lateral)); margin-left: var(--ancho-lateral); padding: calc(var(--alto-encabezado) + 1.25rem) clamp(1rem, 4vw, 4rem) 5rem; transition: width .38s var(--menu-lateral-ease), margin-left .38s var(--menu-lateral-ease); }
 body.portal--admin.menu-admin-colapsado .contenido-portal { width: calc(100% - var(--ancho-lateral-colapsado)); margin-left: var(--ancho-lateral-colapsado); }
 .encabezado-global--admin .encabezado-global__marca { background: linear-gradient(105deg, #061725 0%, #082941 34%, #0a3d5e 58%, color-mix(in srgb, #0a3d5e 63%, var(--fondo)) 84%, var(--fondo) 100%); }
-.encabezado-global__tarjetas--admin { grid-auto-rows: 96px; }
+.encabezado-global__tarjetas--admin { grid-auto-rows: 88px; }
 .tarjeta-encabezado--operador { grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: .75rem; }
 .datos-operador { display: flex; min-width: 0; align-items: center; gap: .65rem; }
 .datos-operador > div { display: grid; min-width: 0; gap: .15rem; }
@@ -1512,13 +1512,38 @@ body.portal--admin.menu-admin-colapsado .contenido-portal { width: calc(100% - v
 .tarjeta-encabezado--estado .datos-encabezado { gap: .19rem; }
 .boton--actualizar-admin { position: absolute; right: .65rem; bottom: .55rem; min-height: 30px; padding: .35rem .55rem; font-size: .65rem; }
 .boton--actualizar-admin .material-symbols-rounded { font-size: .9rem; }
-.resumen-admin { margin-bottom: 1.5rem; }
-.titulo-seccion--admin h1 { margin: 0; }
+.resumen-admin { margin-bottom: 1.25rem; }
+.titulo-seccion--admin h1 { margin: 0; font-size: 2.15rem; letter-spacing: -.025em; }
 .estado-resultados { margin: -.25rem 0 .75rem; color: var(--tinta-suave); font-size: .76rem; }
-.portal--admin .metricas--admin { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.pulso-admin { display: grid; grid-template-columns: minmax(180px, .55fr) minmax(0, 2fr); align-items: center; gap: 1.5rem; margin-top: 1.25rem; padding: 1.25rem 1.35rem; border: 1px solid var(--borde); border-radius: 14px; background: var(--superficie); }
+.pulso-admin__encabezado h2 { margin: 0 0 .3rem; font-size: 1.05rem; }
+.pulso-admin__encabezado p { margin: 0; font-size: .76rem; }
+.pulso-admin dl { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); margin: 0; }
+.pulso-admin dl > div { display: grid; min-width: 0; gap: .15rem; padding: .15rem 1rem; }
+.pulso-admin dl > div + div { border-left: 1px solid var(--borde); }
+.pulso-admin dt { overflow: hidden; color: var(--tinta-suave); font-size: .68rem; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+.pulso-admin dd { margin: 0; font-size: 1.7rem; font-weight: 850; font-variant-numeric: tabular-nums; letter-spacing: -.035em; line-height: 1.05; }
+.pulso-admin small { color: var(--tinta-suave); font-size: .62rem; }
+.detalle-admin { margin-top: .75rem; }
+.detalle-admin > summary { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: .9rem .15rem; cursor: pointer; list-style: none; }
+.detalle-admin > summary::-webkit-details-marker { display: none; }
+.detalle-admin > summary > span:first-child { display: grid; gap: .1rem; }
+.detalle-admin > summary strong { font-size: .8rem; }
+.detalle-admin > summary small { color: var(--tinta-suave); font-size: .68rem; }
+.detalle-admin > summary > .material-symbols-rounded { color: var(--verde); transform: rotate(-90deg); transition: transform .2s ease; }
+.detalle-admin[open] > summary > .material-symbols-rounded { transform: rotate(90deg); }
+.portal--admin .metricas--admin { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.25rem; margin: 0; padding-bottom: 1rem; }
+.portal--admin .metricas--admin .grupo-metricas { max-width: none; grid-template-columns: repeat(auto-fit, minmax(145px, 1fr)); padding: 1rem 0 0; border: 0; border-top: 1px solid var(--borde); border-radius: 0; background: transparent; box-shadow: none; }
+.portal--admin .metricas--admin .grupo-metricas--notificaciones { grid-column: 1 / -1; grid-template-columns: repeat(auto-fit, minmax(145px, 1fr)); }
+.portal--admin .metricas--admin .grupo-metricas article { min-height: 68px; padding: .7rem .75rem; }
+.portal--admin .panel--admin { margin-bottom: 0; padding: 2rem 0; border: 0; border-top: 1px solid var(--borde); border-radius: 0; background: transparent; box-shadow: none; }
 .estado-admin { display: inline-flex; padding: .23rem .48rem; border-radius: 999px; background: var(--superficie-suave); color: var(--tinta); font-size: .68rem; font-weight: 750; }
 
 @media (max-width: 1050px) {
+  .pulso-admin { grid-template-columns: 1fr; gap: 1rem; }
+  .pulso-admin dl { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .pulso-admin dl > div:nth-child(3) { border-left: 0; }
+  .pulso-admin dl > div:nth-child(n + 3) { margin-top: .75rem; padding-top: .75rem; border-top: 1px solid var(--borde); }
   .portal--admin .metricas--admin { grid-template-columns: 1fr; }
   .portal--admin .metricas--admin .grupo-metricas { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .portal--admin .metricas--admin .grupo-metricas > header { grid-column: 1 / -1; }
@@ -1545,6 +1570,9 @@ body.portal--admin.menu-admin-colapsado .contenido-portal { width: calc(100% - v
   .panel-alertas-operativas { position: fixed; top: 5.3rem; right: .75rem; }
 }
 @media (max-width: 520px) {
+  .pulso-admin { padding: 1rem; }
+  .pulso-admin dl > div { padding-inline: .65rem; }
+  .pulso-admin dd { font-size: 1.45rem; }
   .portal--admin .metricas--admin .grupo-metricas,
   .portal--admin .metricas--admin .grupo-metricas--notificaciones { grid-template-columns: 1fr; }
   .encabezado-global__tarjetas--admin .tarjeta-encabezado { min-width: 210px; flex-basis: 210px; }
@@ -1554,5 +1582,6 @@ body.portal--admin.menu-admin-colapsado .contenido-portal { width: calc(100% - v
   .portal--admin .contenido-portal,
   .portal--admin .navegacion-lateral__texto,
   .portal--admin .boton-lateral__texto,
-  .portal--admin .menu-lateral-toggle { transition: none; }
+  .portal--admin .menu-lateral-toggle,
+  .detalle-admin > summary > .material-symbols-rounded { transition: none; }
 }

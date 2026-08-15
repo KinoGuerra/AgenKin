@@ -83,39 +83,50 @@
       <section id="resumen" class="resumen-admin" aria-labelledby="titulo-resumen-admin">
         <div class="titulo-seccion titulo-seccion--admin">
           <div>
-            <p class="eyebrow">Centro de operaciones</p>
             <h1 id="titulo-resumen-admin">Administración</h1>
-            <p>Supervisá el acceso, los planes y la actividad de AgenKin.</p>
+            <p>Estado general, accesos y actividad reciente.</p>
           </div>
           <time data-actualizado>Actualizando datos…</time>
         </div>
 
-        <div class="metricas metricas--admin">
+        <section class="pulso-admin" aria-labelledby="titulo-pulso-admin">
+          <div class="pulso-admin__encabezado">
+            <h2 id="titulo-pulso-admin">Pulso operativo</h2>
+            <p>Lo importante para decidir dónde actuar.</p>
+          </div>
+          <dl>
+            <div><dt>Correos procesados</dt><dd data-metrica="correos">—</dd><small>Este mes</small></div>
+            <div><dt>Eventos creados</dt><dd data-metrica="eventos">—</dd><small>Confirmados</small></div>
+            <div><dt>Revisiones pendientes</dt><dd data-metrica="revisiones_pendientes">—</dd><small>Requieren decisión</small></div>
+            <div><dt>Errores recientes</dt><dd data-metrica="errores">—</dd><small>Salud operativa</small></div>
+          </dl>
+        </section>
+
+        <details class="detalle-admin">
+          <summary><span><strong>Detalle operativo</strong><small>Usuarios, conexiones, colas y Push</small></span><span class="material-symbols-rounded" aria-hidden="true">chevron_left</span></summary>
+          <div class="metricas metricas--admin">
           <section class="grupo-metricas" aria-labelledby="grupo-usuarios">
             <header><span class="material-symbols-rounded" aria-hidden="true">group</span><h3 id="grupo-usuarios">Usuarios</h3></header>
             <article><small>Registrados</small><strong data-metrica="registrados">—</strong><span>Total acumulado</span></article>
             <article><small>Activos</small><strong data-metrica="activos">—</strong><span>Pueden ingresar</span></article>
             <article><small>En prueba</small><strong data-metrica="prueba">—</strong><span>Período vigente</span></article>
-          </section>
-
-          <section class="grupo-metricas grupo-metricas--alerta" aria-labelledby="grupo-accesos">
-            <header><span class="material-symbols-rounded" aria-hidden="true">admin_panel_settings</span><h3 id="grupo-accesos">Accesos y planes</h3></header>
             <article><small>Suspendidos</small><strong data-metrica="suspendidos">—</strong><span>Acceso pausado</span></article>
             <article><small>Bloqueados</small><strong data-metrica="bloqueados">—</strong><span>Acceso denegado</span></article>
             <article><small>Suscripciones vencidas</small><strong data-metrica="vencidas">—</strong><span>Requieren revisión</span></article>
           </section>
 
-          <section class="grupo-metricas grupo-metricas--actividad" aria-labelledby="grupo-actividad">
-            <header><span class="material-symbols-rounded" aria-hidden="true">monitoring</span><h3 id="grupo-actividad">Actividad del período</h3></header>
-            <article><small>Correos procesados</small><strong data-metrica="correos">—</strong><span>Uso mensual</span></article>
-            <article><small>Eventos creados</small><strong data-metrica="eventos">—</strong><span>Confirmados</span></article>
+          <section class="grupo-metricas grupo-metricas--actividad" aria-labelledby="grupo-conexiones">
+            <header><span class="material-symbols-rounded" aria-hidden="true">sync</span><h3 id="grupo-conexiones">Conexiones y colas</h3></header>
             <article><small>Cuentas Gmail</small><strong data-metrica="cuentas_gmail">—</strong><span>Conectadas</span></article>
-            <article><small>Errores recientes</small><strong data-metrica="errores">—</strong><span>Salud operativa</span></article>
+            <article><small>Gmail pendientes</small><strong data-metrica="gmail_pendientes">—</strong><span>Disponibles</span></article>
+            <article><small>Demora Gmail</small><strong data-metrica="gmail_antiguedad_minutos">—</strong><span>Minutos</span></article>
+            <article><small>Calendar pendientes</small><strong data-metrica="calendar_pendientes">—</strong><span>En cola</span></article>
+            <article><small>Demora Calendar</small><strong data-metrica="calendar_antiguedad_minutos">—</strong><span>Minutos</span></article>
+            <article><small>Reautorizaciones</small><strong data-metrica="conexiones_token_vencido">—</strong><span>Google</span></article>
           </section>
 
           <section class="grupo-metricas grupo-metricas--notificaciones" aria-labelledby="grupo-notificaciones">
             <header><span class="material-symbols-rounded" aria-hidden="true">notifications_active</span><h3 id="grupo-notificaciones">Alertas y Push</h3></header>
-            <article><small>Revisiones</small><strong data-metrica="revisiones_pendientes">—</strong><span>Pendientes</span></article>
             <article><small>Alertas</small><strong data-metrica="alertas_pendientes">—</strong><span>Programadas</span></article>
             <article><small>Antigüedad</small><strong data-metrica="alerta_mas_antigua_minutos">—</strong><span>Minutos</span></article>
             <article><small>Push exitosos</small><strong data-metrica="push_exitosos">—</strong><span>Este mes</span></article>
@@ -123,15 +134,15 @@
             <article><small>Push terminales</small><strong data-metrica="push_terminales">—</strong><span>Este mes</span></article>
             <article><small>Dispositivos</small><strong data-metrica="suscripciones_push_activas">—</strong><span>Activos</span></article>
           </section>
-        </div>
+          </div>
+        </details>
       </section>
 
       <section id="planes" class="panel panel--admin panel--precios">
         <div class="titulo-seccion">
           <div>
-            <p class="eyebrow">Catálogo público</p>
             <h2>Planes y precios</h2>
-            <p>Estos valores se muestran en la landing. El plan interno AgenKin permanece oculto y no se modifica desde aquí.</p>
+            <p>Valores publicados en la landing. El plan interno AgenKin no se modifica desde aquí.</p>
           </div>
         </div>
         <form data-precios-form>
@@ -148,9 +159,8 @@
       <section id="usuarios" class="panel panel--admin">
         <div class="titulo-seccion">
           <div>
-            <p class="eyebrow">Control de acceso</p>
             <h2>Gestión de usuarios</h2>
-            <p>Las acciones críticas requieren confirmación y quedan auditadas.</p>
+            <p>Buscá una cuenta y elegí una acción. Los cambios sensibles se confirman y auditan.</p>
           </div>
         </div>
 
@@ -180,9 +190,8 @@
       <section id="auditoria" class="panel panel--admin">
         <div class="titulo-seccion">
           <div>
-            <p class="eyebrow">Trazabilidad</p>
             <h2>Auditoría administrativa</h2>
-            <p>Últimas acciones sensibles registradas.</p>
+            <p>Últimas acciones sensibles.</p>
           </div>
         </div>
         <div data-auditoria class="lista-vacia">Cargando historial…</div>
@@ -192,7 +201,7 @@
     <dialog data-admin-dialog>
       <form method="dialog" data-admin-form>
         <header>
-          <div><p class="eyebrow">Acción administrativa</p><h2 data-admin-titulo>Gestionar usuario</h2></div>
+          <div><h2 data-admin-titulo>Gestionar usuario</h2></div>
           <button value="cancel" formnovalidate class="cerrar" aria-label="Cerrar">×</button>
         </header>
         <input type="hidden" name="usuario_id">
